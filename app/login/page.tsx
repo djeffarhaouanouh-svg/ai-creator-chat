@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic";
 'use client'
 
 import { useState } from 'react'
@@ -7,6 +6,7 @@ import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
+
   const [accountType, setAccountType] = useState<'creator' | 'user'>('user')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
