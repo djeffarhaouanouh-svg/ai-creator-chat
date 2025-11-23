@@ -1,0 +1,249 @@
+📚 RESSOURCES & LIENS UTILES
+============================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 API & IA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Anthropic Claude:
+→ Console: https://console.anthropic.com/
+→ Documentation: https://docs.anthropic.com/
+→ Pricing: https://www.anthropic.com/pricing
+→ Premier crédit: 5$ gratuits
+
+OpenAI (alternative):
+→ Console: https://platform.openai.com/
+→ Documentation: https://platform.openai.com/docs
+
+Modèles Open Source:
+→ Llama 3: https://ai.meta.com/llama/
+→ Mistral: https://mistral.ai/
+→ Hugging Face: https://huggingface.co/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💳 PAIEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Stripe:
+→ Dashboard: https://dashboard.stripe.com/
+→ Documentation: https://stripe.com/docs
+→ Test Cards: https://stripe.com/docs/testing
+
+Alternatives pour adult content:
+→ CCBill: https://www.ccbill.com/
+→ Epoch: https://epoch.com/
+→ Segpay: https://www.segpay.com/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌐 HÉBERGEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Vercel (recommandé):
+→ Dashboard: https://vercel.com/
+→ Documentation: https://vercel.com/docs
+→ CLI: npm i -g vercel
+
+Netlify:
+→ Dashboard: https://app.netlify.com/
+→ Documentation: https://docs.netlify.com/
+
+VPS:
+→ OVH: https://www.ovhcloud.com/fr/
+→ DigitalOcean: https://www.digitalocean.com/
+→ Hetzner: https://www.hetzner.com/
+
+GPU Servers (pour modèles open source):
+→ RunPod: https://www.runpod.io/
+→ Vast.ai: https://vast.ai/
+→ Lambda Labs: https://lambdalabs.com/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🗄️ BASES DE DONNÉES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Supabase (PostgreSQL):
+→ Dashboard: https://app.supabase.com/
+→ Documentation: https://supabase.com/docs
+→ Gratuit: 500MB, 2GB bande passante
+
+PlanetScale (MySQL):
+→ Dashboard: https://app.planetscale.com/
+→ Documentation: https://planetscale.com/docs
+
+MongoDB Atlas:
+→ Dashboard: https://www.mongodb.com/cloud/atlas
+→ Gratuit: 512MB
+
+Firebase:
+→ Console: https://console.firebase.google.com/
+→ Documentation: https://firebase.google.com/docs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 DESIGN & UI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tailwind CSS:
+→ Documentation: https://tailwindcss.com/docs
+→ Components: https://tailwindui.com/
+
+Icons:
+→ Lucide React: https://lucide.dev/
+→ Heroicons: https://heroicons.com/
+
+Images gratuites:
+→ Unsplash: https://unsplash.com/
+→ Pexels: https://www.pexels.com/
+→ Pravatar (avatars): https://i.pravatar.cc/
+
+Inspiration design:
+→ Dribbble: https://dribbble.com/
+→ Behance: https://www.behance.net/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔧 DÉVELOPPEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Next.js:
+→ Documentation: https://nextjs.org/docs
+→ Learn: https://nextjs.org/learn
+
+React:
+→ Documentation: https://react.dev/
+
+TypeScript:
+→ Documentation: https://www.typescriptlang.org/docs/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 ANALYTICS & MONITORING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Google Analytics:
+→ Console: https://analytics.google.com/
+
+Vercel Analytics:
+→ Documentation: https://vercel.com/analytics
+
+Sentry (erreurs):
+→ Console: https://sentry.io/
+→ Gratuit: 5k events/mois
+
+PostHog (analytics produit):
+→ Console: https://posthog.com/
+→ Open source
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎤 VOIX (OPTIONNEL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ElevenLabs (clonage vocal):
+→ Console: https://elevenlabs.io/
+→ Pricing: À partir de 5$/mois
+→ Qualité: Excellente
+
+Play.ht:
+→ Console: https://play.ht/
+→ Alternative moins chère
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚖️ LÉGAL & RGPD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Générateurs de mentions légales (FR):
+→ https://www.legalplace.fr/
+→ https://www.subdelirium.com/generateur-mentions-legales/
+
+CGV Templates:
+→ https://www.legalstart.fr/
+
+RGPD:
+→ CNIL: https://www.cnil.fr/
+→ Cookiebot: https://www.cookiebot.com/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 MARKETING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Landing Page Builders:
+→ Carrd: https://carrd.co/
+→ Webflow: https://webflow.com/
+
+Email Marketing:
+→ Mailchimp: https://mailchimp.com/
+→ SendGrid: https://sendgrid.com/
+
+SEO:
+→ Google Search Console: https://search.google.com/
+→ Ubersuggest: https://neilpatel.com/ubersuggest/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎓 LEARNING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Next.js:
+→ https://nextjs.org/learn
+→ https://www.youtube.com/@Fireship
+
+Prompt Engineering:
+→ https://learnprompting.org/
+→ https://www.promptingguide.ai/
+
+Business:
+→ Indie Hackers: https://www.indiehackers.com/
+→ Y Combinator Startup School: https://www.startupschool.org/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 COMMUNAUTÉS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Reddit:
+→ r/SaaS
+→ r/Entrepreneur
+→ r/nextjs
+→ r/webdev
+
+Discord:
+→ Next.js: https://nextjs.org/discord
+→ Vercel: https://vercel.com/discord
+
+Twitter/X:
+→ Suis: @levelsio, @IndieHackers, @stripe
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📞 SUPPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Si tu bloques:
+→ Stack Overflow: https://stackoverflow.com/
+→ GitHub Discussions: Cherche "next.js chat app"
+→ ChatGPT: https://chat.openai.com/
+→ Claude: https://claude.ai/ (moi!)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 CHECKLIST LANCEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+□ Nom de domaine acheté
+□ Hébergement configuré (Vercel)
+□ API Claude configurée
+□ Design finalisé
+□ 3 créatrices signées
+□ Tests utilisateurs (10+ personnes)
+□ Mentions légales + CGV
+□ Analytics installé
+□ Page Twitter/Instagram créée
+□ Landing page optimisée
+□ Première campagne marketing prête
+□ Support client (email/chat)
+□ Plan backup si Stripe refuse
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tout est là ! Tu as maintenant toutes les ressources
+nécessaires pour lancer ton projet.
+
+Remember: Ship fast, iterate faster! 🚀
+
+Ne perfectionne pas à l'infini - lance et améliore
+en fonction des retours réels.
+
+Good luck! 💪
