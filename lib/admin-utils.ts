@@ -283,16 +283,37 @@ export async function getCreatorStats(creatorId: string) {
     .eq('creator_id', creatorId)
   
   // Revenus générés
-  const { data: payments } = await supabase
-    .from('payments')
-    .select('amount')
-    .eq('status', 'succeeded')
-    .in('subscription_id', 
-      supabase
-        .from('subscriptions')
-        .select('id')
-        .eq('creator_id', creatorId)
-    )
+  // 1) On récupère d’abord les IDs des subscriptions du créateur
+const { data: subscriptions, error: subError } = await supabase
+  .from('subscriptions')
+  .select('id')
+  .eq('creator_id', creatorId);
+
+if (subError) {
+  throw subError;
+}
+
+// On transforme en tableau d’ids
+const subscriptionIds = (subscriptions ?? []).map((s) => s.id);
+
+// Si pas d’abos → pas de paiements
+if (subscriptionIds.length === 0) {
+  return []; // ou ce que ta fonction doit renvoyer dans ce cas
+}
+
+// 2) On récupère les payments liés à ces subscriptions
+const { data: payments, error: payError } = await supabase
+  .from('payments')
+  .select('*')
+  .eq('status', 'succeeded')
+  .in('subscription_id', subscriptionIds);
+
+if (payError) {
+  throw payError;
+}
+
+return payments;
+
   
   const totalRevenue = payments?.reduce((sum, p) => sum + p.amount, 0) || 0
   
