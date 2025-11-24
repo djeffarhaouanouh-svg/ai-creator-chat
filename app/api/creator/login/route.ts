@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseClient } from '@/lib/supabase'
 
+// ✅ AJOUTEZ CES LIGNES
+export const runtime = 'edge' // ou 'nodejs'
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
   try {
-    const supabase = getSupabaseClient() // Créer le client ici
+    const supabase = getSupabaseClient()
     const { email, password } = await request.json()
     
     const { data, error } = await supabase.auth.signInWithPassword({
