@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 )
 
 export async function POST(request: Request) {
@@ -19,14 +18,24 @@ export async function POST(request: Request) {
       .single()
 
     if (error || !creator) {
-      return NextResponse.json({ error: 'Identifiants incorrects' }, { status: 401 })
+      return NextResponse.json(
+        { error: 'Identifiants incorrects' },
+        { status: 401 }
+      )
     }
 
     return NextResponse.json({
       success: true,
-      creator: { id: creator.id, name: creator.name, slug: creator.slug }
+      creator: {
+        id: creator.id,
+        name: creator.name,
+        slug: creator.slug
+      }
     })
   } catch (error) {
-    return NextResponse.json({ error: 'Erreur de connexion' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Erreur de connexion' },
+      { status: 500 }
+    )
   }
 }
