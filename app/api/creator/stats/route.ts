@@ -1,8 +1,13 @@
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 
 export async function GET(request: Request) {
   try {
+    const supabase = getSupabaseClient() // ✅ AJOUTÉ
+    
     const { searchParams } = new URL(request.url)
     const creatorId = searchParams.get('creatorId')
     if (!creatorId) return NextResponse.json({ error: 'Creator ID required' }, { status: 400 })

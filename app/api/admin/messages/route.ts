@@ -1,21 +1,27 @@
-export const dynamic = "force-dynamic";
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 
 export async function GET(request: Request) {
   try {
     const authHeader = request.headers.get('authorization')
-    if (authHeader !== 'Bearer Lolo2003/') {
+    if (authHeader !== 'Bearer lolo2003J') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const supabase = getSupabaseClient()
+    
     const { data: messages, error } = await supabase
       .from('messages')
-      .select(`
+      .select(
+        `
         *,
         users (email, name),
         creators (name)
-      `)
+      `
+      )
       .order('timestamp', { ascending: false })
       .limit(50)
 

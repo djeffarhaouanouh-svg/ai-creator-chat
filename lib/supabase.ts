@@ -1,4 +1,4 @@
-  // lib/supabase.ts
+// lib/supabase.ts
 import { createClient } from '@supabase/supabase-js'
 
 export const getSupabaseClient = () => {
@@ -11,6 +11,9 @@ export const getSupabaseClient = () => {
   
   return createClient(supabaseUrl, supabaseAnonKey)
 }
+
+// ✅ AJOUTEZ CETTE LIGNE pour la compatibilité
+export const supabase = getSupabaseClient()
 
 // Types pour TypeScript
 export interface User {

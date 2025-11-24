@@ -1,46 +1,45 @@
-export const dynamic = "force-dynamic";
-import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
-export async function GET(request: Request) {
-  try {
-    const authHeader = request.headers.get('authorization')
-    if (authHeader !== 'Bearer Lolo2003/') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+// lib/supabase.ts
+import { createClient } from '@supabase/supabase-js'
 
-    // Récupérer les stats globales
-    const { data: statsData, error: statsError } = await supabase.rpc('get_global_stats')
-    
-    if (statsError) {
-      console.error('Stats error:', statsError)
-      throw statsError
-    }
-
-    // Stats par créatrice
-    const { data: creators } = await supabase
-      .from('creators')
-      .select('id, name')
-
-    const byCreator = creators?.map(c => ({
-      creator_id: c.id,
-      creators: { name: c.name },
-      count: 0
-    })) || []
-
-    // Revenus (vide pour l'instant)
-    const revenueChart: any[] = []
-
-    return NextResponse.json({
-      global: statsData,
-      byCreator,
-      revenueChart
-    })
-  } catch (error) {
-    console.error('Error fetching stats:', error)
-    return NextResponse.json({ 
-      error: 'Failed to fetch stats',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+export const getSupabaseClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables')
   }
+  
+  return createClient(supabaseUrl, supabaseAnonKey)
+}
+
+// ✅ AJOUTEZ CETTE EXPORT POUR LA COMPATIBILITÉ
+export const supabase = getSupabaseClient()
+
+// Types
+export interface User {
+  id: string
+  email: string
+  name?: string
+  created_at: string
+  last_login?: string
+  is_active: boolean
+}
+
+export interface Creator {
+  id: string
+  name: string
+  slug: string
+  bio?: string
+  avatar_url?: string
+  personality?: string
+  is_active: boolean
+  created_at: string
+}
+
+export interface Subscription {
+  id: string
+  user_id: string
 }

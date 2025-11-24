@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Users, MessageCircle, DollarSign, TrendingUp, CreditCard, Settings, LogOut, X } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import { creators } from '@/data/creators'
 import Image from 'next/image'
 
@@ -25,6 +25,8 @@ export default function MonCompte() {
 
   const loadUserData = async () => {
     try {
+      const supabase = getSupabaseClient() // ✅ AJOUTÉ
+      
       // Récupérer l'ID utilisateur depuis sessionStorage
       const userId = sessionStorage.getItem('userId')
       
@@ -107,6 +109,8 @@ export default function MonCompte() {
     const phone = formData.get('phone') as string
 
     try {
+      const supabase = getSupabaseClient() // ✅ AJOUTÉ
+      
       const { error } = await supabase
         .from('users')
         .update({ 
