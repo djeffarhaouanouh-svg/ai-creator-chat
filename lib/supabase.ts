@@ -19,7 +19,10 @@ export const getSupabaseClient = () => {
   return supabaseInstance
 }
 
-// Types pour TypeScript
+// ✅ AJOUTEZ CETTE LIGNE
+export const supabase = getSupabaseClient()
+
+// Types
 export interface User {
   id: string
   email: string
@@ -43,4 +46,21 @@ export interface Creator {
 export interface Subscription {
   id: string
   user_id: string
+}
+
+export interface Message {
+  id: string
+  user_id: string
+  creator_id: string
+  content: string
+  role: string
+  timestamp: string
+}
+
+export interface Payment {
+  id: string
+  user_id: string
+  amount: number
+  status: string
+  created_at: string
 }
