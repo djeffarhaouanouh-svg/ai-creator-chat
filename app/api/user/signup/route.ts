@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { sql } from '@vercel/postgres'
 import bcrypt from 'bcryptjs'
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,13 +38,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier si l'email existe déjà
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email.toLowerCase())
-      .single()
+    const existingResult = await sql`
+      SELECT id FROM users 
+      WHERE email = ${email.toLowerCase()}
+      LIMIT 1
+    `
 
-    if (existingUser) {
+    if (existingResult.rows.length > 0) {
       return NextResponse.json(
         { error: 'Un compte existe déjà avec cet email' },
         { status: 409 }
@@ -48,28 +54,20 @@ export async function POST(request: NextRequest) {
     // Hasher le mot de passe
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Créer l'utilisateur dans Supabase
-    const { data: newUser, error: createError } = await supabase
-      .from('users')
-      .insert([
-        {
-          email: email.toLowerCase(),
-          name: name.trim(),
-          password_hash: hashedPassword,
-          is_active: true,
-          created_at: new Date().toISOString()
-        }
-      ])
-      .select()
-      .single()
-
-    if (createError) {
-      console.error('Erreur création utilisateur:', createError)
-      return NextResponse.json(
-        { error: 'Erreur lors de la création du compte' },
-        { status: 500 }
+    // Créer l'utilisateur
+    const result = await sql<User>`
+      INSERT INTO users (email, name, password_hash, is_active, created_at)
+      VALUES (
+        ${email.toLowerCase()},
+        ${name.trim()},
+        ${hashedPassword},
+        true,
+        ${new Date().toISOString()}
       )
-    }
+      RETURNING id, email, name
+    `
+
+    const newUser = result.rows[0]
 
     // Retourner le succès (sans le mot de passe)
     return NextResponse.json(

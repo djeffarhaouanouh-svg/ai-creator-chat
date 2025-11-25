@@ -1,18 +1,26 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { sql } from '@vercel/postgres'
+
+interface Creator {
+  id: string;
+  name: string;
+  slug: string;
+}
 
 export async function POST(request: Request) {
   try {
     const { slug, password } = await request.json()
 
-    const { data: creator, error } = await supabase
-      .from('creators')
-      .select('*')
-      .eq('slug', slug)
-      .eq('password', password)
-      .single()
+    const result = await sql<Creator>`
+      SELECT id, name, slug
+      FROM creators
+      WHERE slug = ${slug} AND password = ${password}
+      LIMIT 1
+    `
 
-    if (error || !creator) {
+    const creator = result.rows[0]
+
+    if (!creator) {
       return NextResponse.json({ error: 'Identifiants incorrects' }, { status: 401 })
     }
 

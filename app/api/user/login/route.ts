@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { sql } from '@vercel/postgres'
 import bcrypt from 'bcryptjs'
+
+// Interface pour typer la réponse
+interface User {
+  id: string;
+  email: string;
+  name: string | null;
+  password_hash: string;
+  is_active: boolean;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,13 +24,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Récupérer l'utilisateur avec son password_hash
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('id, email, name, password_hash, is_active')
-      .eq('email', email.toLowerCase())
-      .single()
+    const result = await sql<User>`
+      SELECT id, email, name, password_hash, is_active
+      FROM users
+      WHERE email = ${email.toLowerCase()}
+      LIMIT 1
+    `
 
-    if (error || !user) {
+    const user = result.rows[0]
+
+    if (!user) {
       return NextResponse.json(
         { error: 'Identifiants incorrects' },
         { status: 401 }
@@ -47,10 +59,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Mettre à jour last_login
-    await supabase
-      .from('users')
-      .update({ last_login: new Date().toISOString() })
-      .eq('id', user.id)
+    await sql`
+      UPDATE users
+      SET last_login = ${new Date().toISOString()}
+      WHERE id = ${user.id}
+    `
 
     // Retourner le succès (sans le password_hash)
     return NextResponse.json({

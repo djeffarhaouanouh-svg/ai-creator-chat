@@ -11,8 +11,10 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.0",
     "@supabase/supabase-js": "^2.83.0",
+    "@vercel/postgres": "^0.10.0",
     "bcryptjs": "^3.0.3",
     "elevenlabs": "^0.8.1",
+    "jose": "^6.1.2",
     "lucide-react": "^0.263.1",
     "next": "14.2.5",
     "react": "^18.3.1",

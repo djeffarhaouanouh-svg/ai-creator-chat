@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { sql } from '@vercel/postgres'
 
 export async function GET(request: Request) {
   try {
@@ -7,34 +7,88 @@ export async function GET(request: Request) {
     const creatorId = searchParams.get('creatorId')
     if (!creatorId) return NextResponse.json({ error: 'Creator ID required' }, { status: 400 })
 
-    const { count: subscriberCount } = await supabase.from('subscriptions').select('*', { count: 'exact', head: true }).eq('creator_id', creatorId).eq('status', 'active')
-    const { count: messageCount } = await supabase.from('messages').select('*', { count: 'exact', head: true }).eq('creator_id', creatorId)
-    
-    const { data: subscriptions } = await supabase.from('subscriptions').select('id').eq('creator_id', creatorId)
-    const subscriptionIds = subscriptions?.map(s => s.id) || []
+    // Compter les abonnés actifs
+    const subscriberResult = await sql`
+      SELECT COUNT(*) as count
+      FROM subscriptions
+      WHERE creator_id = ${creatorId} AND status = 'active'
+    `
+    const subscriberCount = parseInt(subscriberResult.rows[0].count)
 
+    // Compter les messages
+    const messageResult = await sql`
+      SELECT COUNT(*) as count
+      FROM messages
+      WHERE creator_id = ${creatorId}
+    `
+    const messageCount = parseInt(messageResult.rows[0].count)
+
+    // Récupérer les IDs des subscriptions
+    const subscriptionsResult = await sql`
+      SELECT id FROM subscriptions WHERE creator_id = ${creatorId}
+    `
+    const subscriptionIds = subscriptionsResult.rows.map(s => s.id)
+
+    // Calculer les revenus
     let totalRevenue = 0
     let revenueThisMonth = 0
+    
     if (subscriptionIds.length > 0) {
-      const { data: payments } = await supabase.from('payments').select('amount, created_at').in('subscription_id', subscriptionIds).eq('status', 'succeeded')
-      totalRevenue = payments?.reduce((sum, p) => sum + p.amount, 0) || 0
-      const thisMonth = payments?.filter(p => {
+      const paymentsResult = await sql`
+        SELECT amount, created_at
+        FROM payments
+        WHERE subscription_id = ANY(ARRAY[${subscriptionIds.join(',')}]::uuid[]) AND status = 'succeeded'
+      `
+      
+      const payments = paymentsResult.rows
+      totalRevenue = payments.reduce((sum, p) => sum + parseFloat(p.amount), 0)
+      
+      const now = new Date()
+      const thisMonthPayments = payments.filter(p => {
         const date = new Date(p.created_at)
-        const now = new Date()
         return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
-      }) || []
-      revenueThisMonth = thisMonth.reduce((sum, p) => sum + p.amount, 0)
+      })
+      revenueThisMonth = thisMonthPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0)
     }
 
-    const { data: subscribers } = await supabase.from('subscriptions').select('*, users (id, email, name, created_at)').eq('creator_id', creatorId).eq('status', 'active')
-    const { data: messages } = await supabase.from('messages').select('*, users (email, name)').eq('creator_id', creatorId).order('timestamp', { ascending: false }).limit(20)
+    // Récupérer les abonnés avec leurs infos
+    const subscribersResult = await sql`
+      SELECT 
+        s.*,
+        u.id as user_id,
+        u.email as user_email,
+        u.name as user_name,
+        u.created_at as user_created_at
+      FROM subscriptions s
+      INNER JOIN users u ON s.user_id = u.id
+      WHERE s.creator_id = ${creatorId} AND s.status = 'active'
+    `
+
+    // Récupérer les messages récents
+    const messagesResult = await sql`
+      SELECT 
+        m.*,
+        u.email as user_email,
+        u.name as user_name
+      FROM messages m
+      INNER JOIN users u ON m.user_id = u.id
+      WHERE m.creator_id = ${creatorId}
+      ORDER BY m.timestamp DESC
+      LIMIT 20
+    `
 
     return NextResponse.json({
-      stats: { subscribers: subscriberCount || 0, messages: messageCount || 0, total_revenue: totalRevenue, revenue_this_month: revenueThisMonth },
-      subscribers: subscribers || [],
-      recent_messages: messages || []
+      stats: { 
+        subscribers: subscriberCount, 
+        messages: messageCount, 
+        total_revenue: totalRevenue, 
+        revenue_this_month: revenueThisMonth 
+      },
+      subscribers: subscribersResult.rows,
+      recent_messages: messagesResult.rows
     })
   } catch (error) {
+    console.error('Stats error:', error)
     return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 })
   }
 }
