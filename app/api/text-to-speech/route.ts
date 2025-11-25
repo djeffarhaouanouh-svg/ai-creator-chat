@@ -1,71 +1,68 @@
-import { NextRequest, NextResponse } from 'next/server';
+ import { NextRequest, NextResponse } from 'next/server';
 import { ElevenLabsClient } from 'elevenlabs';
 
 // Initialiser le client ElevenLabs
 const elevenlabs = new ElevenLabsClient({
-  apiKey: process.env.ELEVENLABS_API_KEY
+  apiKey: process.env.ELEVENLABS_API_KEY ?? '',
 });
 
-// Voix françaises NATIVES pour chaque créatrice
-// IMPORTANT : Ces IDs sont des exemples. Allez sur https://elevenlabs.io/voice-library
-// Filtrez par langue "French" et copiez les IDs des voix qui vous plaisent
-const VOICE_IDS: { [key: string]: string } = {
-  // Voix française de qualité - À REMPLACER par vos choix
-  'sophia': 'XB0fDUnXU5powFXDhCwa', // Charlotte - Voix féminine française douce
-  'emma': 'piTKgcLEGmPE4e6mEKli', // Nicole - Voix féminine française expressive  
-  'luna': 'g5CIjZEefAph4nQFvHAz', // Matilda - Voix féminine française énergique
+// Voix pour chaque créatrice
+const VOICE_IDS: Record<string, string> = {
+  sophia: 'XB0fDUnXU5powFXDhCwa', // exemple
+  emma: 'piTKgcLEGmPE4e6mEKli', // exemple
+  luna: 'g5CIjZEefAph4nQFvHAz', // exemple
 };
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const { text, creatorId } = await request.json();
+    const body = await req.json();
+    const text: string | undefined = body?.text;
+    const model: string | undefined = body?.model;
 
-    if (!text || !creatorId) {
+    if (!text || typeof text !== 'string') {
       return NextResponse.json(
-        { error: 'Le texte et l\'ID de la créatrice sont requis' },
-        { status: 400 }
+        { error: 'Missing text' },
+        { status: 400 },
       );
     }
 
-    if (!process.env.ELEVENLABS_API_KEY) {
-      return NextResponse.json(
-        { error: 'Clé API ElevenLabs non configurée' },
-        { status: 500 }
-      );
-    }
+    const voiceId =
+      (model && VOICE_IDS[model as keyof typeof VOICE_IDS]) ||
+      VOICE_IDS.sophia;
 
-    // Sélectionner la voix en fonction de la créatrice
-    const voiceId = VOICE_IDS[creatorId] || VOICE_IDS['sophia'];
+    // Appel ElevenLabs
+    const audio: AsyncIterable<Uint8Array> | any =
+      await elevenlabs.textToSpeech.convert(voiceId, {
+        text,
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+          style: 0.0,
+          use_speaker_boost: true,
+        },
+      } as any);
 
-    // Générer l'audio avec ElevenLabs
-    const audio = await elevenlabs.textToSpeech.convert(voiceId, {
-      text,
-      model_id: 'eleven_multilingual_v2',
-      voice_settings: {
-        stability: 0.5,
-        similarity_boost: 0.75,
-        style: 0.5,
-        use_speaker_boost: true,
-      },
-    });
-
-    // Convertir le stream en buffer
+    // On lit le stream et on crée un buffer
     const chunks: Uint8Array[] = [];
-    for await (const chunk of audio) {
+    for await (const chunk of audio as AsyncIterable<Uint8Array>) {
       chunks.push(chunk);
     }
     const audioBuffer = Buffer.concat(chunks);
 
-    // Retourner l'audio en base64
-    return NextResponse.json({
-      audio: audioBuffer.toString('base64'),
-      contentType: 'audio/mpeg',
-    });
+    // On renvoie du base64 au front
+    return NextResponse.json(
+      {
+        audio: audioBuffer.toString('base64'),
+        contentType: 'audio/mpeg',
+      },
+      { status: 200 },
+    );
   } catch (error) {
     console.error('Erreur lors de la génération audio:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la génération audio' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
