@@ -2,37 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/* PALETTE ROOT */
 :root {
   --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
+  --background-start-rgb: 255, 255, 255;
   --background-end-rgb: 255, 255, 255;
 }
 
+/* MODE SOMBRE */
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --background-start-rgb: 20, 20, 20;
+    --background-end-rgb: 20, 20, 20;
   }
 }
 
-body {
+/* 🔥 CORRECTION PRINCIPALE : SUPPRESSION DU FOND NOIR */
+ body {
   color: rgb(var(--foreground-rgb));
+
+  /* FOND ROSE – COMME TON LOGIN */
   background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+    to bottom right,
+    #111111,
+  );
+
+  overscroll-behavior: none;
 }
 
+/* Tailwind helper */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
 }
 
-/* Testimonials Section */
+/* ========== TESTIMONIALS (TON CODE ORIGINAL, INTACT) ========== */
+
 .testimonials-strip {
   background: #2c2c2c;
   padding: clamp(16px, 3vw, 32px) 16px;
@@ -147,7 +154,7 @@ body {
   }
 }
 
-/* Media Logos Scroll Animation */
+/* Logos défilants */
 @keyframes scroll {
   0% {
     transform: translateX(0);
@@ -166,16 +173,16 @@ body {
   .testimonials-track {
     gap: 24px;
   }
-  
+
   .testimonials-rail {
     gap: 24px;
   }
-  
+
   .testimonial-item {
     width: 280px;
     padding: 16px;
   }
-  
+
   .testimonials-fade {
     width: 60px;
   }
@@ -185,16 +192,16 @@ body {
   .testimonials-track {
     gap: 24px;
   }
-  
+
   .testimonial-item {
     width: 240px;
     padding: 14px;
   }
-  
+
   .testimonial-text {
     font-size: 12px;
   }
-  
+
   .testimonials-fade {
     width: 40px;
   }

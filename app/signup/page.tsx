@@ -1,3 +1,4 @@
+// Updated SignupPage with text-black added to all inputs
 'use client'
 
 import { useState } from 'react'
@@ -37,7 +38,6 @@ export default function SignupPage() {
     setLoading(true)
     setError('')
 
-    // Validations
     if (!formData.name.trim()) {
       setError('Veuillez entrer votre nom')
       setLoading(false)
@@ -79,10 +79,7 @@ export default function SignupPage() {
         throw new Error(data.error || 'Erreur lors de l\'inscription')
       }
 
-      // Sauvegarder l'ID utilisateur dans sessionStorage
       sessionStorage.setItem('userId', data.user.id)
-      
-      // Redirection vers la page Mon compte (/dashboard)
       router.push('/dashboard')
 
     } catch (err) {
@@ -101,7 +98,7 @@ export default function SignupPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Nom */}
+
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
               Nom complet
@@ -112,13 +109,12 @@ export default function SignupPage() {
               type="text"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
               placeholder="Jean Dupont"
               required
             />
           </div>
 
-          {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
               Adresse email
@@ -129,13 +125,12 @@ export default function SignupPage() {
               type="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
               placeholder="email@exemple.com"
               required
             />
           </div>
 
-          {/* Mot de passe */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Mot de passe
@@ -146,16 +141,13 @@ export default function SignupPage() {
               type="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
               placeholder="••••••••"
               required
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Minimum 8 caractères
-            </p>
+            <p className="text-xs text-gray-500 mt-1">Minimum 8 caractères</p>
           </div>
 
-          {/* Confirmation mot de passe */}
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
               Confirmer le mot de passe
@@ -166,20 +158,18 @@ export default function SignupPage() {
               type="password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
               placeholder="••••••••"
               required
             />
           </div>
 
-          {/* Message d'erreur */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
               {error}
             </div>
           )}
 
-          {/* Bouton de soumission */}
           <button
             type="submit"
             disabled={loading}
@@ -189,7 +179,6 @@ export default function SignupPage() {
           </button>
         </form>
 
-        {/* Lien vers connexion */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             Vous avez déjà un compte ?{' '}

@@ -38,7 +38,6 @@ export default function LoginPage() {
         if (!response.ok) throw new Error('Identifiants incorrects')
         const data = await response.json()
         sessionStorage.setItem('userId', data.user.id)
-        // Redirection corrigée vers /dashboard au lieu de /user/dashboard
         router.push('/dashboard')
       }
     } catch (err) {
@@ -57,10 +56,27 @@ export default function LoginPage() {
         </div>
 
         <div className="flex gap-2 mb-6">
-          <button type="button" onClick={() => setAccountType('user')} className={`flex-1 py-3 px-4 rounded-lg font-medium ${accountType === 'user' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
+          <button
+            type="button"
+            onClick={() => setAccountType('user')}
+            className={`flex-1 py-3 px-4 rounded-lg font-medium ${
+              accountType === 'user'
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                : 'bg-gray-100 text-gray-700'
+            }`}
+          >
             👤 Abonné
           </button>
-          <button type="button" onClick={() => setAccountType('creator')} className={`flex-1 py-3 px-4 rounded-lg font-medium ${accountType === 'creator' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
+
+          <button
+            type="button"
+            onClick={() => setAccountType('creator')}
+            className={`flex-1 py-3 px-4 rounded-lg font-medium ${
+              accountType === 'creator'
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                : 'bg-gray-100 text-gray-700'
+            }`}
+          >
             👩 Créatrice
           </button>
         </div>
@@ -70,27 +86,61 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {accountType === 'creator' ? 'Identifiant (slug)' : 'Email'}
             </label>
-            <input type={accountType === 'creator' ? 'text' : 'email'} value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-purple-500 outline-none" placeholder={accountType === 'creator' ? 'sarahmiller' : 'email@exemple.com'} required />
+
+            {/* INPUT EMAIL / SLUG FIXÉ */}
+            <input
+              type={accountType === 'creator' ? 'text' : 'email'}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border bg-white text-black placeholder-gray-400 focus:ring-2 focus:ring-purple-500 outline-none"
+              placeholder={
+                accountType === 'creator'
+                  ? 'sarahmiller'
+                  : 'email@exemple.com'
+              }
+              required
+            />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-purple-500 outline-none" placeholder="••••••••" required />
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Mot de passe
+            </label>
+
+            {/* INPUT PASSWORD FIXÉ */}
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border bg-white text-black placeholder-gray-400 focus:ring-2 focus:ring-purple-500 outline-none"
+              placeholder="••••••••"
+              required
+            />
           </div>
 
-          {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
 
-          <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
+          >
             {loading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
 
-        {/* Lien vers inscription - Visible uniquement pour les utilisateurs */}
         {accountType === 'user' && (
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Pas encore de compte ?{' '}
-              <Link href="/signup" className="text-purple-600 hover:text-purple-700 font-semibold">
+              <Link
+                href="/signup"
+                className="text-purple-600 hover:text-purple-700 font-semibold"
+              >
                 Créer un compte
               </Link>
             </p>
@@ -106,3 +156,4 @@ export default function LoginPage() {
     </div>
   )
 }
+

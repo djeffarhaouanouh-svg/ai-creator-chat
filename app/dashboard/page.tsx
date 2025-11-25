@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { sql } from '@vercel/postgres'
 import { Users, MessageCircle, DollarSign, TrendingUp, CreditCard, Settings, LogOut, X } from 'lucide-react'
-import { getSupabaseClient } from '@/lib/supabase'
 import { creators } from '@/data/creators'
 import Image from 'next/image'
 
@@ -25,66 +25,55 @@ export default function MonCompte() {
 
   const loadUserData = async () => {
     try {
-      const supabase = getSupabaseClient() // ✅ AJOUTÉ
-      
-      // Récupérer l'ID utilisateur depuis sessionStorage
       const userId = sessionStorage.getItem('userId')
-      
+
       if (!userId) {
-        // Pas connecté, rediriger vers login
         router.push('/login')
         return
       }
 
-      // Charger les données utilisateur
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single()
+      // Charger USER
+      const { rows: userRows } = await sql`
+        SELECT * FROM users WHERE id = ${userId} LIMIT 1
+      `
+      const userData = userRows[0]
 
-      if (userError || !userData) {
-        console.error('Erreur chargement user:', userError)
+      if (!userData) {
         router.push('/login')
         return
       }
 
       setUser(userData)
 
-      // Charger les abonnements
-      const { data: subsData, error: subsError } = await supabase
-        .from('subscriptions')
-        .select(`
-          *,
-          creators (
-            id,
-            name,
-            slug
-          )
-        `)
-        .eq('user_id', userId)
-        .eq('status', 'active')
+      // Charger SUBSCRIPTIONS (avec jointure creators)
+      const { rows: subsData } = await sql`
+        SELECT s.*, 
+               c.id AS creator_id, 
+               c.name AS creator_name, 
+               c.slug AS creator_slug,
+               c.price AS creator_price,
+               c.avatar AS creator_avatar
+        FROM subscriptions s
+        LEFT JOIN creators c ON c.id = s.creator_id
+        WHERE s.user_id = ${userId}
+        AND s.status = 'active'
+      `
+      setSubscriptions(subsData)
 
-      if (!subsError && subsData) {
-        setSubscriptions(subsData)
-      }
+      // Charger MESSAGES
+      const { rows: messagesData } = await sql`
+        SELECT * FROM messages WHERE user_id = ${userId}
+      `
+      const totalMessages = messagesData.length
 
-      // Charger les messages
-      const { data: messagesData, error: messagesError } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('user_id', userId)
-
-      const totalMessages = messagesData?.length || 0
-
-      // Calculer les stats
-      const totalSubs = subsData?.length || 0
+      // Stats basiques
+      const totalSubs = subsData.length
       const monthlyRevenue = totalSubs * 9.99
 
       setStats({
         totalSubscribers: totalSubs,
-        totalMessages: totalMessages,
-        monthlyRevenue: monthlyRevenue,
+        totalMessages,
+        monthlyRevenue,
         growthRate: 15.3
       })
 
@@ -95,40 +84,39 @@ export default function MonCompte() {
     }
   }
 
-  const handleLogout = () => {
-    sessionStorage.clear()
-    router.push('/login')
-  }
-
+  // UPDATE USER
   const handleUpdateProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
-    
+
     const name = formData.get('name') as string
     const email = formData.get('email') as string
-    const phone = formData.get('phone') as string
 
     try {
-      const supabase = getSupabaseClient() // ✅ AJOUTÉ
-      
-      const { error } = await supabase
-        .from('users')
-        .update({ 
-          name,
-          email: email.toLowerCase(),
-          // Ajouter le téléphone si la colonne existe dans ta table
-        })
-        .eq('id', user.id)
-
-      if (error) throw error
+      await sql`
+        UPDATE users
+        SET name = ${name}, email = ${email.toLowerCase()}
+        WHERE id = ${user.id}
+      `
 
       alert('Profil mis à jour avec succès !')
       loadUserData()
+
     } catch (error) {
       console.error('Erreur mise à jour:', error)
       alert('Erreur lors de la mise à jour')
     }
   }
+
+  const handleLogout = () => {
+    sessionStorage.clear()
+    router.push('/login')
+  }
+
+  // Mapping créatrices (selon  creators[] client-side)
+  const subscribedCreators = creators.filter(c => 
+    subscriptions.some(sub => sub.creator_slug === c.username)
+  )
 
   if (loading) {
     return (
@@ -138,14 +126,10 @@ export default function MonCompte() {
     )
   }
 
-  const subscribedCreators = creators.filter(c => 
-    subscriptions.some(sub => sub.creators?.slug === c.username)
-  )
-
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#1f1f1f' }}>
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Welcome message */}
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
             Bonjour, {user?.name || 'Utilisateur'} 👋
@@ -153,9 +137,9 @@ export default function MonCompte() {
           <p className="text-gray-400">Vue d'ensemble de vos abonnements et conversations</p>
         </div>
 
-        {/* Tableau de bord */}
+        {/* STATS */}
         <div className="space-y-6">
-          {/* Stats Cards */}
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center justify-between mb-4">
@@ -164,7 +148,7 @@ export default function MonCompte() {
                 </div>
                 <span className="text-xs text-green-600 font-semibold">+{stats.growthRate}%</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">{stats.totalSubscribers}</h3>
+              <h3 className="text-2xl font-bold text-gray-900">{stats.totalSubscribers}</h3>
               <p className="text-sm text-gray-600">Abonnements actifs</p>
             </div>
 
@@ -174,7 +158,7 @@ export default function MonCompte() {
                   <MessageCircle className="text-blue-600" size={24} />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">{stats.totalMessages}</h3>
+              <h3 className="text-2xl font-bold text-gray-900">{stats.totalMessages}</h3>
               <p className="text-sm text-gray-600">Messages envoyés</p>
             </div>
 
@@ -184,7 +168,7 @@ export default function MonCompte() {
                   <DollarSign className="text-green-600" size={24} />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">{stats.monthlyRevenue.toFixed(2)}€</h3>
+              <h3 className="text-2xl font-bold text-gray-900">{stats.monthlyRevenue.toFixed(2)}€</h3>
               <p className="text-sm text-gray-600">Dépenses mensuelles</p>
             </div>
 
@@ -194,49 +178,40 @@ export default function MonCompte() {
                   <TrendingUp className="text-purple-600" size={24} />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">{(stats.totalMessages / Math.max(stats.totalSubscribers, 1)).toFixed(0)}</h3>
+              <h3 className="text-2xl font-bold text-gray-900">
+                {(stats.totalMessages / Math.max(stats.totalSubscribers, 1)).toFixed(0)}
+              </h3>
               <p className="text-sm text-gray-600">Messages moyens/créatrice</p>
             </div>
           </div>
 
-          {/* Détails du compte */}
+          {/* PROFIL */}
           <div className="bg-white rounded-xl shadow-md p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Détails du compte</h2>
-            <p className="text-gray-600 mb-6">Modifiez vos informations personnelles.</p>
-            
+
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">Nom</label>
+                <label className="block text-gray-700 mb-2">Nom</label>
                 <input 
                   type="text"
                   name="name"
-                  defaultValue={user?.name || ''}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:border-pink-600"
-                  placeholder="Votre nom"
+                  defaultValue={user?.name}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">Email</label>
+                <label className="block text-gray-700 mb-2">Email</label>
                 <input 
                   type="email"
                   name="email"
-                  defaultValue={user?.email || ''}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:border-pink-600"
-                  placeholder="votre@email.com"
+                  defaultValue={user?.email}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900"
                 />
               </div>
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">Téléphone (optionnel)</label>
-                <input 
-                  type="tel"
-                  name="phone"
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:border-pink-600"
-                  placeholder="Votre numéro de téléphone"
-                />
-              </div>
+              
               <button 
                 type="submit"
-                className="w-full px-6 py-3 text-white rounded-lg hover:opacity-90 transition-colors font-medium" 
+                className="w-full px-6 py-3 text-white rounded-lg"
                 style={{ backgroundColor: '#e31fc1' }}
               >
                 Mettre à jour les informations
@@ -244,32 +219,19 @@ export default function MonCompte() {
             </form>
           </div>
 
-          {/* Subscriptions List */}
+          {/* ABONNEMENTS */}
           <div className="bg-white rounded-xl shadow-md p-6 mb-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Mes abonnements</h2>
-              <button 
-                className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50 transition-all"
-                style={{ borderColor: '#e31fc1', color: '#e31fc1' }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#fce7f3';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-              >
-                <Settings size={16} className="mr-2 inline" />
-                Gérer
-              </button>
             </div>
 
             {subscribedCreators.length === 0 ? (
               <div className="text-center py-12">
                 <MessageCircle size={48} className="text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">Vous n'êtes abonné à aucune créatrice pour le moment</p>
+                <p className="text-gray-500 mb-4">Vous n'êtes abonné à aucune créatrice</p>
                 <button 
                   onClick={() => router.push('/')}
-                  className="px-6 py-2 text-white rounded-lg hover:opacity-90 transition-colors"
+                  className="px-6 py-2 text-white rounded-lg"
                   style={{ backgroundColor: '#e31fc1' }}
                 >
                   Explorer les créatrices
@@ -278,24 +240,19 @@ export default function MonCompte() {
             ) : (
               <div className="space-y-4">
                 {subscribedCreators.map((creator) => {
-                  const subscription = subscriptions.find(sub => sub.creators?.slug === creator.username)
+                  const subscription = subscriptions.find(sub => sub.creator_slug === creator.username)
+
                   return (
-                    <div 
-                      key={creator.id} 
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                    >
+                    <div key={creator.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center gap-4">
                         <div className="relative w-16 h-16 rounded-full overflow-hidden">
-                          <Image
-                            src={creator.avatar}
-                            alt={creator.name}
-                            fill
-                            className="object-cover"
-                          />
+                          <Image src={creator.avatar} alt={creator.name} fill className="object-cover" />
                         </div>
+
                         <div>
                           <h4 className="font-semibold text-gray-900">{creator.name}</h4>
                           <p className="text-sm text-gray-500">@{creator.username}</p>
+
                           <div className="flex gap-4 mt-1 text-xs text-gray-500">
                             <span>{creator.price}€/mois</span>
                             {subscription && (
@@ -307,39 +264,32 @@ export default function MonCompte() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button 
-                          className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50 transition-all"
-                          style={{ borderColor: '#e31fc1', color: '#e31fc1' }}
-                          onClick={() => router.push(`/chat/${creator.id}`)}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#fce7f3';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }}
-                        >
-                          <MessageCircle size={16} className="mr-2 inline" />
-                          Discuter
-                        </button>
-                      </div>
+
+                      <button
+                        className="px-3 py-1 text-sm border rounded-md"
+                        style={{ borderColor: '#e31fc1', color: '#e31fc1' }}
+                        onClick={() => router.push(`/chat/${creator.id}`)}
+                      >
+                        <MessageCircle size={16} className="mr-2 inline" />
+                        Discuter
+                      </button>
                     </div>
-                  );
+                  )
                 })}
               </div>
             )}
           </div>
 
-          {/* Boutons de déconnexion */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8 border-t border-gray-700">
+          <div className="flex justify-center pt-8 border-t border-gray-700">
             <button 
               onClick={handleLogout}
-              className="flex items-center justify-center space-x-3 px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              className="flex items-center space-x-3 px-6 py-3 bg-gray-800 text-white rounded-lg"
             >
               <LogOut className="w-5 h-5" />
               <span className="font-medium">Se déconnecter</span>
             </button>
           </div>
+
         </div>
       </div>
     </div>

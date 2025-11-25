@@ -13,21 +13,23 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="fr">
-      <body className={`${inter.className} bg-black text-white`}>
+      <body className={`${inter.className} bg-black text-white pt-20`}>
+        {/* HEADER FIXÉ */}
         <Header />
 
+        {/* CONTENU */}
         {children}
 
-        {/* FOOTER FULL BLACK */}
+        {/* FOOTER */}
         <footer className="bg-black border-t border-white/10 mt-20">
           <div className="max-w-7xl mx-auto px-4 py-12">
             <div className="grid md:grid-cols-3 gap-8">
-              
+
               {/* Colonne 1 */}
               <div>
                 <h3 className="text-xl font-bold text-white mb-4">AI Creator Chat</h3>
