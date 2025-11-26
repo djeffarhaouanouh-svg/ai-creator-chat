@@ -41,28 +41,29 @@ export default function Home() {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + creators.length) % creators.length);
   };
 
-  const onTouchStart = (e: React.TouchEvent) => {
+  // --- Swipe Mobile avec désactivation sur le bouton ---
+  const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest("button")) return;
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
   };
 
-  const onTouchMove = (e: React.TouchEvent) => {
+  const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest("button")) return;
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
   const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
+    if (touchStart === null || touchEnd === null) return;
 
     const distance = touchStart - touchEnd;
-
     if (distance > minSwipeDistance) handleNext();
     if (distance < -minSwipeDistance) handlePrev();
   };
 
   useEffect(() => {
     if (!isMobile) return;
-
-    const interval = setInterval(handleNext, 5000);
+    const interval = setInterval(handleNext, 4000);
     return () => clearInterval(interval);
   }, [isMobile, currentIndex]);
 
@@ -82,23 +83,12 @@ export default function Home() {
               {creators.map((creator) => (
                 <Link key={creator.id} href={`/creator/${creator.username}`}>
                   <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer">
-
                     {/* IMAGE */}
                     <div className="relative h-48 w-full">
-                      <Image
-                        src={creator.coverImage}
-                        alt={creator.name}
-                        fill
-                        className="object-cover"
-                      />
+                      <Image src={creator.coverImage} alt={creator.name} fill className="object-cover" />
                       <div className="absolute -bottom-10 left-6">
                         <div className="relative w-20 h-20 rounded-full border-4 border-white overflow-hidden">
-                          <Image
-                            src={creator.avatar}
-                            alt={creator.name}
-                            fill
-                            className="object-cover"
-                          />
+                          <Image src={creator.avatar} alt={creator.name} fill className="object-cover" />
                         </div>
                       </div>
                     </div>
@@ -108,17 +98,12 @@ export default function Home() {
                       <h3 className="text-xl font-bold mb-1">{creator.name}</h3>
                       <p className="text-sm text-gray-600 mb-3">@{creator.username}</p>
 
-                      <p className="text-gray-700 text-sm mb-4 line-clamp-2">
-                        {creator.bio}
-                      </p>
+                      <p className="text-gray-700 text-sm mb-4 line-clamp-2">{creator.bio}</p>
 
                       {/* TAGS */}
                       <div className="flex flex-wrap gap-2 mb-4">
                         {creator.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="px-3 py-1 bg-gray-100 text-[#e31fc1] text-xs rounded-full font-medium"
-                          >
+                          <span key={tag} className="px-3 py-1 bg-gray-100 text-[#e31fc1] text-xs rounded-full font-medium">
                             {tag}
                           </span>
                         ))}
@@ -142,7 +127,6 @@ export default function Home() {
                           <span className="text-2xl font-bold text-gray-900">{creator.price}€</span>
                           <span className="text-gray-600 text-sm">/mois</span>
                         </div>
-
                         <button className="px-6 py-2 rounded-lg text-white font-semibold bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]">
                           Discuter
                         </button>
@@ -155,7 +139,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Mobile Carousel */}
+          {/* --------------------- MOBILE CAROUSEL --------------------- */}
           <div
             className="md:hidden relative overflow-hidden"
             onTouchStart={onTouchStart}
@@ -171,26 +155,17 @@ export default function Home() {
                 <div key={`${creator.id}-${index}`} className="w-full flex-shrink-0 px-2">
                   <div className="bg-white rounded-xl shadow-md overflow-hidden">
 
+                    {/* IMAGE */}
                     <div className="relative h-48 w-full">
-                      <Image
-                        src={creator.coverImage}
-                        alt={creator.name}
-                        fill
-                        className="object-cover pointer-events-none"
-                      />
+                      <Image src={creator.coverImage} alt={creator.name} fill className="object-cover pointer-events-none" />
                       <div className="absolute -bottom-10 left-6">
                         <div className="relative w-20 h-20 rounded-full border-4 border-white overflow-hidden">
-                          <Image
-                            src={creator.avatar}
-                            alt={creator.name}
-                            fill
-                            className="object-cover"
-                          />
+                          <Image src={creator.avatar} alt={creator.name} fill className="object-cover" />
                         </div>
                       </div>
                     </div>
 
-                    {/* MOBILE CONTENT */}
+                    {/* CONTENT MOBILE */}
                     <div className="pt-12 px-6 pb-6 text-black">
                       <h3 className="text-xl font-bold mb-1">{creator.name}</h3>
                       <p className="text-sm text-gray-600 mb-3">@{creator.username}</p>
@@ -200,10 +175,7 @@ export default function Home() {
                       {/* TAGS */}
                       <div className="flex flex-wrap gap-2 mb-4">
                         {creator.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="px-3 py-1 bg-gray-100 text-[#e31fc1] text-xs rounded-full font-medium"
-                          >
+                          <span key={tag} className="px-3 py-1 bg-gray-100 text-[#e31fc1] text-xs rounded-full font-medium">
                             {tag}
                           </span>
                         ))}
@@ -228,25 +200,31 @@ export default function Home() {
                           <span className="text-gray-600 text-sm">/mois</span>
                         </div>
 
-                        <button onTouchStart={(e) => e.stopPropagation()} className="px-6 py-2 rounded-lg text-white font-semibold bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]">
-                          Discuter
-                        </button>
+                        {/* BTN MOBILE — CLICKABLE */}
+                         <Link
+  href={`/creator/${creator.username}`}
+  onClick={(e) => e.stopPropagation()}
+  onTouchStart={(e) => e.stopPropagation()}
+  onTouchEnd={(e) => e.stopPropagation()}
+  className="inline-flex items-center justify-center px-6 py-2 rounded-lg text-white font-semibold bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]"
+>
+  Discuter
+</Link>
                       </div>
+
                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* PAGINATION DOTS */}
+            {/* DOTS */}
             <div className="flex justify-center mt-4 gap-2">
               {creators.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
-                  className={`w-2 h-2 rounded-full ${
-                    idx === currentIndex ? "bg-[#e31fc1]" : "bg-gray-500"
-                  }`}
+                  className={`w-2 h-2 rounded-full ${idx === currentIndex ? "bg-[#e31fc1]" : "bg-gray-500"}`}
                 />
               ))}
             </div>
@@ -256,14 +234,11 @@ export default function Home() {
 
       {/* SECTIONS AFTER */}
       <div className="space-y-20">
-  <ContenusPersonnalises />
-  <PrivateContentSection />
-  <CreatorsSection />
-</div>
-
+        <ContenusPersonnalises />
+        <PrivateContentSection />
+        <CreatorsSection />
+      </div>
 
     </main>
   );
 }
-
-           
