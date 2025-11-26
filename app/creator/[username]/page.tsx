@@ -4,7 +4,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { getCreatorByUsername } from '@/data/creators';
 import { MessageCircle, Users, Star } from 'lucide-react';
 import { storage } from '@/lib/storage';
-import { useState, useEffect } from 'react';
+import { useState, useEffect} from 'react';
+import PaypalButton from "@/components/PaypalButton";
+
 
 export default function CreatorPage() {
   const params = useParams();
@@ -148,6 +150,7 @@ export default function CreatorPage() {
               S'abonner et commencer à discuter
             </button>
           )}
+           <PaypalButton />
         </div>
       </div>
     </main>
