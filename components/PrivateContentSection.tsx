@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 const PrivateContentSection = () => {
   return (
-    <section className="bg-black text-white min-h-screen flex items-center px-8 md:px-16 -mb-20">
+     <section className="section-default">
       <div className="max-w-6xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
 

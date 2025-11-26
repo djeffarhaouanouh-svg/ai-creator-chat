@@ -176,7 +176,7 @@ export default function Home() {
                         src={creator.coverImage}
                         alt={creator.name}
                         fill
-                        className="object-cover"
+                        className="object-cover pointer-events-none"
                       />
                       <div className="absolute -bottom-10 left-6">
                         <div className="relative w-20 h-20 rounded-full border-4 border-white overflow-hidden">
@@ -228,7 +228,7 @@ export default function Home() {
                           <span className="text-gray-600 text-sm">/mois</span>
                         </div>
 
-                        <button className="px-6 py-2 rounded-lg text-white font-semibold bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]">
+                        <button onTouchStart={(e) => e.stopPropagation()} className="px-6 py-2 rounded-lg text-white font-semibold bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]">
                           Discuter
                         </button>
                       </div>
@@ -255,9 +255,12 @@ export default function Home() {
       </section>
 
       {/* SECTIONS AFTER */}
-      <ContenusPersonnalises />
-      <PrivateContentSection />
-      <CreatorsSection />
+      <div className="space-y-20">
+  <ContenusPersonnalises />
+  <PrivateContentSection />
+  <CreatorsSection />
+</div>
+
 
     </main>
   );

@@ -206,3 +206,7 @@
     width: 40px;
   }
 }
+.section-default {
+  @apply bg-black text-white py-2 md:py-28 px-8 md:px-0;
+}
+
