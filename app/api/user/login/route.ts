@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { sql } from '@vercel/postgres'
+import { pool } from '@/lib/db'  // ❗ maintenant on utilise ta vraie DB Neon
 import bcrypt from 'bcryptjs'
 
-// Interface pour typer la réponse
 interface User {
   id: string;
   email: string;
@@ -15,7 +14,7 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json()
 
-    // Validation
+    // Validation simple
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email et mot de passe requis' },
@@ -23,13 +22,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Récupérer l'utilisateur avec son password_hash
-    const result = await sql<User>`
-      SELECT id, email, name, password_hash, is_active
-      FROM users
-      WHERE email = ${email.toLowerCase()}
-      LIMIT 1
-    `
+    // RÉCUPÉRER L'UTILISATEUR
+    const result = await pool.query<User>(
+      `SELECT id, email, name, password_hash, is_active
+       FROM users
+       WHERE email = $1
+       LIMIT 1`,
+      [email.toLowerCase()]
+    )
 
     const user = result.rows[0]
 
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Vérifier le mot de passe avec bcrypt
+    // Vérifier le mot de passe
     const isPasswordValid = await bcrypt.compare(password, user.password_hash)
 
     if (!isPasswordValid) {
@@ -59,13 +59,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Mettre à jour last_login
-    await sql`
-      UPDATE users
-      SET last_login = ${new Date().toISOString()}
-      WHERE id = ${user.id}
-    `
+    await pool.query(
+      `UPDATE users
+       SET last_login = $1
+       WHERE id = $2`,
+      [new Date().toISOString(), user.id]
+    )
 
-    // Retourner le succès (sans le password_hash)
+    // Réponse OK
     return NextResponse.json({
       success: true,
       user: {

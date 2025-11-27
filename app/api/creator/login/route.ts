@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { sql } from '@vercel/postgres'
+import { pool } from '@/lib/db'   // on utilise maintenant ta vraie DB Neon
 
 interface Creator {
   id: string;
@@ -11,24 +11,34 @@ export async function POST(request: Request) {
   try {
     const { slug, password } = await request.json()
 
-    const result = await sql<Creator>`
+    const query = `
       SELECT id, name, slug
       FROM creators
-      WHERE slug = ${slug} AND password = ${password}
+      WHERE slug = $1 AND password = $2
       LIMIT 1
     `
 
+    const result = await pool.query(query, [slug, password])
     const creator = result.rows[0]
 
     if (!creator) {
-      return NextResponse.json({ error: 'Identifiants incorrects' }, { status: 401 })
+      return NextResponse.json(
+        { error: 'Identifiants incorrects' },
+        { status: 401 }
+      )
     }
 
     return NextResponse.json({
       success: true,
       creator: { id: creator.id, name: creator.name, slug: creator.slug }
     })
+
   } catch (error) {
-    return NextResponse.json({ error: 'Erreur de connexion' }, { status: 500 })
+    console.error("Erreur login créatrice :", error)
+    return NextResponse.json(
+      { error: 'Erreur de connexion' },
+      { status: 500 }
+    )
   }
 }
+
