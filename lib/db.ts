@@ -1,24 +1,29 @@
-import { Pool } from 'pg';
+import { Pool } from "pg";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL is missing in environment variables");
-}
+const connectionString = process.env.DATABASE_URL;
 
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+// NE PAS jeter d'erreur au build → juste pas de pool si non défini
+export const pool =
+  connectionString
+    ? new Pool({
+        connectionString,
+        ssl: { rejectUnauthorized: false },
+      })
+    : null;
 
 export async function query(queryText: string, params?: any[]) {
+  if (!pool) {
+    throw new Error("Database connection not initialized");
+  }
+
   const client = await pool.connect();
   try {
-    const res = await client.query(queryText, params);
-    return res;
+    return await client.query(queryText, params);
   } finally {
     client.release();
   }
 }
 
 export const sql = {
-  query: query
+  query,
 };
