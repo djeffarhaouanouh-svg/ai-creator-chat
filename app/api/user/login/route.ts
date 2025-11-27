@@ -1,24 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { pool } from '@/lib/db'  // ❗ maintenant on utilise ta vraie DB Neon
+import { pool } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 
 interface User {
-  id: string;
-  email: string;
-  name: string | null;
-  password_hash: string;
-  is_active: boolean;
+  id: string
+  email: string
+  name: string | null
+  password_hash: string
+  is_active: boolean
 }
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json()
 
-    // Validation simple
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email et mot de passe requis' },
         { status: 400 }
+      )
+    }
+
+    // 🔥 OBLIGATOIRE POUR VERCEL (sinon build error)
+    if (!pool) {
+      console.error("Database not initialized")
+      return NextResponse.json(
+        { error: "Database not initialized" },
+        { status: 500 }
       )
     }
 
@@ -40,7 +48,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Vérifier si le compte est actif
     if (!user.is_active) {
       return NextResponse.json(
         { error: 'Compte désactivé' },
@@ -48,17 +55,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Vérifier le mot de passe
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash)
+    const valid = await bcrypt.compare(password, user.password_hash)
 
-    if (!isPasswordValid) {
+    if (!valid) {
       return NextResponse.json(
         { error: 'Identifiants incorrects' },
         { status: 401 }
       )
     }
 
-    // Mettre à jour last_login
+    // METTRE À JOUR last_login
     await pool.query(
       `UPDATE users
        SET last_login = $1
@@ -66,7 +72,6 @@ export async function POST(request: NextRequest) {
       [new Date().toISOString(), user.id]
     )
 
-    // Réponse OK
     return NextResponse.json({
       success: true,
       user: {
@@ -77,7 +82,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Erreur login:', error)
+    console.error("Erreur login user :", error)
     return NextResponse.json(
       { error: 'Erreur de connexion' },
       { status: 500 }

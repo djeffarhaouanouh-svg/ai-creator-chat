@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { pool } from '@/lib/db'   // ✅ On utilise maintenant Neon
+import { pool } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 
 interface User {
@@ -11,6 +11,15 @@ interface User {
 export async function POST(request: NextRequest) {
   try {
     const { name, email, password } = await request.json()
+
+    // 🔥 Obligatoire pour éviter l’erreur TypeScript / Vercel
+    if (!pool) {
+      console.error("Database pool is null")
+      return NextResponse.json(
+        { error: "Database not initialized" },
+        { status: 500 }
+      )
+    }
 
     // --- VALIDATIONS ---
     if (!name || !email || !password) {
@@ -35,7 +44,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // --- Vérifier si l'utilisateur existe ---
+    // --- Vérifier si l'utilisateur existe déjà ---
     const existingUser = await pool.query(
       `SELECT id FROM users WHERE email = $1 LIMIT 1`,
       [email.toLowerCase()]
@@ -48,7 +57,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // --- Hash mot de passe ---
+    // --- Hash du mot de passe ---
     const hashedPassword = await bcrypt.hash(password, 10)
 
     // --- Création utilisateur ---
@@ -66,7 +75,6 @@ export async function POST(request: NextRequest) {
 
     const newUser = result.rows[0]
 
-    // --- Retour succès ---
     return NextResponse.json(
       {
         success: true,
@@ -75,10 +83,11 @@ export async function POST(request: NextRequest) {
           id: newUser.id,
           email: newUser.email,
           name: newUser.name,
-        },
+        }
       },
       { status: 201 }
     )
+
   } catch (error) {
     console.error('Erreur signup:', error)
     return NextResponse.json(
