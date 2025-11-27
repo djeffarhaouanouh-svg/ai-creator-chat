@@ -71,22 +71,23 @@ const CreatorsSection = () => {
 
           {/* 📝 TEXTE (droite sur ordi, sous les images sur mobile) */}
           <div className="space-y-10">
-             <h2
+               <h2
   className="text-5xl md:text-6xl font-bold leading-tight"
   style={{
-    fontSize: "42px",            // mobile (réduit de ~2px par rapport au 5xl natif ≈ 48px)
+    fontSize: "42px",
   }}
 >
-  Accède à des contenus{" "}
+  Ton expérience devient
+  <br />
   <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-    exclusifs
+    personnalisée
   </span>{" "}
+  ✨
 </h2>
 
-
             <p className="text-xl text-white/70 leading-relaxed">
-              Rejoins la plateforme et accède aux profils de milliers de
-              Créateurs partageant du contenu exclusif disponible uniquement ici.
+               Ta manière de parler, tes goûts, tes émotions… la conversation s’ajuste à toi.
+Tu ressens une vraie proximité, comme si votre lien devenait naturel au fil du temps.
             </p>
 
             <div className="flex flex-wrap gap-5 pt-6">

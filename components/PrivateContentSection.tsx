@@ -24,16 +24,23 @@ const PrivateContentSection = () => {
 
           {/* Texte — maintenant en deuxième sur desktop */}
           <div className="order-2 lg:order-2 space-y-10">
-            <h2 className="text-4xl md:text-5xl font-bold leading-tight">
-              Accède à des contenus à la demande et à des lives{' '}
-              <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-                privés
-              </span>
-            </h2>
+             <h2
+  className="text-4xl md:text-5xl font-bold leading-tight"
+  style={{
+    fontSize: "42px",
+  }}
+>
+  Toujours disponible pour discuter
+  <br />
+  <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
+    avec toi
+  </span>{" "}
+  💬
+</h2>
 
             <p className="text-xl text-white/70 leading-relaxed">
-              Abonne-toi à tes Créateurs préférés pour accéder à leurs catalogues exclusifs
-              et participer à des sessions live privées rien que pour toi.
+              Pas de délais, pas d’absence.
+              Tu peux lui parler à n’importe quel moment, continuer votre histoire et renforcer votre connexion quand tu veux.
             </p>
 
             <div className="flex flex-wrap gap-5 pt-6">

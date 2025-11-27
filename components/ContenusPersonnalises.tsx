@@ -72,16 +72,18 @@ const ContenusPersonnalises = () => {
 
           {/* Content - Right Side */}
           <div className="space-y-10">
-            <h2 className="text-4xl md:text-5xl font-bold leading-tight">
-              Demande des contenus{' '}
-              <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-                personnalisés
-              </span>
+             <h2 className="text-4xl md:text-5xl font-bold leading-tight">
+                Discute et crée un lien que ton créateur
+             <br />
+             <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
+                peut suivre
+           </span>{" "}
+                👀
             </h2>
 
             <p className="text-xl text-gray-300 leading-relaxed">
-              Via le Chat, tu peux échanger directement avec le Créateur, lui demander des contenus 
-              personnalisés à tes envies et recevoir ses nouveaux médias exclusifs.
+                Échange librement : ton Créateur peut lire vos messages et suivre l’évolution de votre relation.
+                Tu n’es pas juste un fan! Tu deviens quelqu’un qu’il connaît.
             </p>
 
             <div className="flex flex-wrap gap-5 pt-6">
