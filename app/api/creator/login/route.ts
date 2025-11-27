@@ -1,10 +1,12 @@
-import { NextResponse } from 'next/server'
-import { pool } from '@/lib/db'   // on utilise maintenant ta vraie DB Neon
+ import { NextResponse } from 'next/server'
+import { pool } from '@/lib/db'
+import bcrypt from 'bcryptjs'
 
 interface Creator {
   id: string;
   name: string;
   slug: string;
+  password_hash: string;
 }
 
 export async function POST(request: Request) {
@@ -12,13 +14,13 @@ export async function POST(request: Request) {
     const { slug, password } = await request.json()
 
     const query = `
-      SELECT id, name, slug
+      SELECT id, name, slug, password_hash
       FROM creators
-      WHERE slug = $1 AND password = $2
+      WHERE slug = $1
       LIMIT 1
     `
 
-    const result = await pool.query(query, [slug, password])
+    const result = await pool.query<Creator>(query, [slug])
     const creator = result.rows[0]
 
     if (!creator) {
@@ -28,9 +30,22 @@ export async function POST(request: Request) {
       )
     }
 
+    // Vérification du mot de passe
+    const valid = await bcrypt.compare(password, creator.password_hash)
+    if (!valid) {
+      return NextResponse.json(
+        { error: 'Identifiants incorrects' },
+        { status: 401 }
+      )
+    }
+
     return NextResponse.json({
       success: true,
-      creator: { id: creator.id, name: creator.name, slug: creator.slug }
+      creator: {
+        id: creator.id,
+        name: creator.name,
+        slug: creator.slug
+      }
     })
 
   } catch (error) {
