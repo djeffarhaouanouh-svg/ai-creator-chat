@@ -254,14 +254,15 @@ export default function ChatPage() {
       <div className="bg-white border-t px-4 py-4">
         <div className="max-w-3xl mx-auto flex gap-2">
           <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder={`Message à ${creator.name}...`}
-            className="flex-1 resize-none rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            rows={1}
-            disabled={isLoading}
-          />
+  value={input}
+  onChange={(e) => setInput(e.target.value)}
+  onKeyPress={handleKeyPress}
+  placeholder={`Message à ${creator.name}...`}
+  className="flex-1 resize-none rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
+  // ← AJOUTÉ: text-gray-900 et placeholder:text-gray-400
+  rows={1}
+  disabled={isLoading}
+/>
           <Button
             onClick={sendMessage}
             disabled={!input.trim() || isLoading}
