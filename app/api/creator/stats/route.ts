@@ -1,12 +1,25 @@
- import { NextResponse } from 'next/server'
-import { pool } from '@/lib/db' // on utilise maintenant ta vraie DB Neon
+import { NextResponse } from 'next/server'
+import { pool } from '@/lib/db'  // DB Neon
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const creatorId = searchParams.get('creatorId')
+
     if (!creatorId) {
-      return NextResponse.json({ error: 'Creator ID required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Creator ID required' },
+        { status: 400 }
+      )
+    }
+
+    // 🔥 SÉCURITÉ : Vercel exige cette vérification
+    if (!pool) {
+      console.error("Database not initialized")
+      return NextResponse.json(
+        { error: "Database not initialized" },
+        { status: 500 }
+      )
     }
 
     // Count active subscribers
@@ -48,19 +61,28 @@ export async function GET(request: Request) {
       )
 
       const payments = paymentsResult.rows
-      totalRevenue = payments.reduce((sum, p) => sum + parseFloat(p.amount), 0)
+
+      totalRevenue = payments.reduce(
+        (sum, p) => sum + Number(p.amount),
+        0
+      )
 
       const now = new Date()
       const thisMonthPayments = payments.filter(p => {
         const date = new Date(p.created_at)
-        return date.getMonth() === now.getMonth() &&
-               date.getFullYear() === now.getFullYear()
+        return (
+          date.getMonth() === now.getMonth() &&
+          date.getFullYear() === now.getFullYear()
+        )
       })
 
-      revenueThisMonth = thisMonthPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0)
+      revenueThisMonth = thisMonthPayments.reduce(
+        (sum, p) => sum + Number(p.amount),
+        0
+      )
     }
 
-    // Get subscribers with user infos
+    // Subscribers with user infos
     const subscribersResult = await pool.query(
       `SELECT 
           s.*,
@@ -74,7 +96,7 @@ export async function GET(request: Request) {
       [creatorId]
     )
 
-    // Get recent messages
+    // Recent messages
     const messagesResult = await pool.query(
       `SELECT 
           m.*,
@@ -98,8 +120,12 @@ export async function GET(request: Request) {
       subscribers: subscribersResult.rows,
       recent_messages: messagesResult.rows
     })
+
   } catch (error) {
     console.error("Stats error:", error)
-    return NextResponse.json({ error: "Failed to fetch stats" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to fetch stats" },
+      { status: 500 }
+    )
   }
 }
