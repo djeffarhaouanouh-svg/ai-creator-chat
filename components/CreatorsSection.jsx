@@ -77,11 +77,10 @@ const CreatorsSection = () => {
     fontSize: "42px",            // mobile (réduit de ~2px par rapport au 5xl natif ≈ 48px)
   }}
 >
-  Accède aux contenus{" "}
+  Accède à des contenus{" "}
   <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
     exclusifs
   </span>{" "}
-  de tes Créateurs
 </h2>
 
 
