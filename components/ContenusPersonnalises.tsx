@@ -1,19 +1,17 @@
-import React from 'react'; 
+import React from 'react';
 
 const ContenusPersonnalises = () => {
   return (
-    <section className="section-default">
+    <section className="bg-black text-white min-h-screen flex items-center px-8 md:px-16">
 
       <div className="max-w-6xl mx-auto w-full">
-        {/* ⚠️ Grille identique partout : 1 colonne mobile → 2 colonnes dès md */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           
           {/* Chat Mockup - Left Side */}
           <div className="relative">
-
-            <div className="bg-gray-950 rounded-2xl p-6 shadow-2xl border border-gray-800 mx-auto w-[85%] md:w-auto">
+            <div className="bg-gray-950 rounded-2xl p-6 shadow-2xl border border-gray-800 max-w-md">
               
-              {/* Message - Girl WITHOUT photos */}
+              {/* Message - Girl (NO MEDIA) */}
               <div className="flex items-start gap-3 mb-5">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex-shrink-0 overflow-hidden">
                   <img 
@@ -24,9 +22,9 @@ const ContenusPersonnalises = () => {
                 </div>
                 
                 <div className="flex-1">
-                  <div className="bg-gray-800 rounded-xl rounded-tl-sm p-4 inline-block max-w-[80%] md:max-w-full">
+                  <div className="bg-gray-800 rounded-xl rounded-tl-sm p-4 inline-block">
                     <p className="text-white text-sm">
-                      Regarde ce que je viens de faire 😄
+                      Regarde ce que je viens de faire !
                     </p>
                   </div>
                 </div>
@@ -43,7 +41,7 @@ const ContenusPersonnalises = () => {
                 </div>
                 
                 <div className="flex-1 flex justify-end">
-                  <div className="bg-[#e31fc1] rounded-xl rounded-tr-sm p-4 inline-block max-w-[80%] md:max-w-[80%]">
+                  <div className="bg-[#e31fc1] rounded-xl rounded-tr-sm p-4 inline-block max-w-[80%]">
                     <p className="text-white text-sm">
                       Wow c’est superbe ! Magnifique 😍
                     </p>
@@ -60,16 +58,14 @@ const ContenusPersonnalises = () => {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="flex-1">
-                  <div className="bg-gray-800 rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-xl">
-                    😘
-                  </div>
+                  <div className="flex-1">
+                 <div className="bg-gray-800 rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-xl"> 😘 </div>
                 </div>
               </div>
 
             </div>
 
-            {/* Decorations */}
+            {/* Decorative Elements */}
             <div className="absolute -top-4 -left-4 w-24 h-24 bg-pink-500/20 rounded-full blur-2xl"></div>
             <div className="absolute -bottom-4 -right-4 w-28 h-28 bg-purple-500/20 rounded-full blur-2xl"></div>
           </div>
@@ -92,11 +88,8 @@ const ContenusPersonnalises = () => {
               <button className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-8 py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all duration-300 hover:scale-105">
                 Découvrir les Créateurs →
               </button>
-
-              <button
-                onClick={() => window.location.href = "/login"}
-                className="border border-white hover:bg-white hover:text-black text-white font-semibold px-8 py-4 rounded-full transition-all duration-300"
-              >
+              
+              <button className="border-2 border-white hover:bg-white hover:text-black text-white font-semibold px-8 py-4 rounded-full transition-all duration-300">
                 Connecte-toi
               </button>
             </div>
