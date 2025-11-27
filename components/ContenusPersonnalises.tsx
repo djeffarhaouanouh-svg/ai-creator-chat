@@ -1,17 +1,19 @@
- import React from 'react';
+import React from 'react';
 
 const ContenusPersonnalises = () => {
   return (
-       <section className="section-default">
+    <section className="section-default">
 
       <div className="max-w-6xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           
           {/* Chat Mockup - Left Side */}
           <div className="relative">
-            <div className="bg-gray-950 rounded-2xl p-6 shadow-2xl border border-gray-800 max-w-md">
+
+            {/* 🔥 Conteneur réduit sur mobile */}
+            <div className="bg-gray-950 rounded-2xl p-6 shadow-2xl border border-gray-800 mx-auto w-[85%] md:w-auto">
               
-              {/* Message - Girl with Media */}
+              {/* Message - Girl WITHOUT photos */}
               <div className="flex items-start gap-3 mb-5">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex-shrink-0 overflow-hidden">
                   <img 
@@ -22,35 +24,10 @@ const ContenusPersonnalises = () => {
                 </div>
                 
                 <div className="flex-1">
-                  <div className="bg-gray-800 rounded-xl rounded-tl-sm p-4 inline-block">
-                    <p className="text-white text-sm mb-3">
-                      Regarde les photos que je viens de prendre !
+                  <div className="bg-gray-800 rounded-xl rounded-tl-sm p-4 inline-block max-w-[80%] md:max-w-full">
+                    <p className="text-white text-sm">
+                      Regarde ce que je viens de faire 😄
                     </p>
-                    
-                    {/* Media Thumbnails */}
-                    <div className="flex gap-2">
-                      <div className="w-14 h-14 rounded-lg bg-gray-700 overflow-hidden">
-                        <img 
-                          src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=100&h=100&fit=crop" 
-                          alt="Media 1" 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="w-14 h-14 rounded-lg bg-gray-700 overflow-hidden">
-                        <img 
-                          src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" 
-                          alt="Media 2" 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="w-14 h-14 rounded-lg bg-gray-700 overflow-hidden">
-                        <img 
-                          src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop" 
-                          alt="Media 3" 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -66,9 +43,9 @@ const ContenusPersonnalises = () => {
                 </div>
                 
                 <div className="flex-1 flex justify-end">
-                  <div className="bg-[#e31fc1] rounded-xl rounded-tr-sm p-4 inline-block max-w-[80%]">
+                  <div className="bg-[#e31fc1] rounded-xl rounded-tr-sm p-4 inline-block max-w-[80%] md:max-w-[80%]">
                     <p className="text-white text-sm">
-                      Wow elles sont superbes ! Magnifique 😍
+                      Wow c’est superbe ! Magnifique 😍
                     </p>
                   </div>
                 </div>
@@ -84,9 +61,9 @@ const ContenusPersonnalises = () => {
                   />
                 </div>
                 <div className="flex-1">
-                  <div className="bg-gray-800 rounded-full w-12 h-12 flex items-center justify-center text-2xl">
+                  <div className="bg-gray-800 rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-xl">
                     😘
-                  </div>
+                </div>
                 </div>
               </div>
 
@@ -116,10 +93,12 @@ const ContenusPersonnalises = () => {
                 Découvrir les Créateurs
                 <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
               </button>
-              
-              <button className="border-2 border-white hover:bg-white hover:text-black text-white font-semibold px-8 py-4 rounded-full transition-all duration-300">
-                Connecte-toi
-              </button>
+               <button
+                  onClick={() => window.location.href = "/login"}
+                  className="border border-white hover:bg-white hover:text-black text-white font-semibold px-8 py-4 rounded-full transition-all duration-300"
+                  >
+                  Connecte-toi
+               </button>
             </div>
           </div>
 

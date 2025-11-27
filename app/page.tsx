@@ -235,8 +235,8 @@ export default function Home() {
       {/* SECTIONS AFTER */}
       <div className="space-y-20">
         <ContenusPersonnalises />
-        <PrivateContentSection />
         <CreatorsSection />
+        <PrivateContentSection />
       </div>
 
     </main>
