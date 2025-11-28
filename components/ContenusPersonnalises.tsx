@@ -72,7 +72,7 @@ const ContenusPersonnalises = () => {
 
           {/* Content - Right Side */}
           <div className="space-y-10">
-             <h2 className="text-4xl md:text-5xl font-bold leading-tight">
+             <h2 className="text-3xl md:text-5xl font-bold leading-tight">
                 Discute et crée un lien que ton créateur
              <br />
              <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
