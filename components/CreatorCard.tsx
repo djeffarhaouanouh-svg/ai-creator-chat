@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Creator } from '@/data/creators';
+import type { Creator } from '@/lib/types';
 import { MessageCircle, Users } from 'lucide-react';
 
 interface CreatorCardProps {
