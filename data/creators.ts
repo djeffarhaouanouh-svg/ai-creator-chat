@@ -1,5 +1,4 @@
-import type { Creator } from "../lib/types";
-
+import type { Creator } from '@/lib/types';
 
  export const creators: Creator[] = [
   {
