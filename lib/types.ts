@@ -28,3 +28,19 @@ export interface Subscription {
   messageLimit: number;
   messagesUsed: number;
 }
+
+export interface Creator {
+  id: string;
+  name: string;
+  username: string;
+  avatar: string;
+  coverImage: string;
+  bio: string;
+  personality: string;
+  subscribers: number;
+  messagesCount: number;
+  price: number;
+  tags: string[];
+  aiPrompt: string;
+  imageY?: string; // optionnel
+}

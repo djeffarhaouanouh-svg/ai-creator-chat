@@ -1,19 +1,7 @@
-export interface Creator {
-  id: string;
-  name: string;
-  username: string;
-  avatar: string;
-  coverImage: string;
-  bio: string;
-  personality: string;
-  subscribers: number;
-  messagesCount: number;
-  price: number;
-  tags: string[];
-  aiPrompt: string;
-}
+import type { Creator } from "../lib/types";
 
-export const creators: Creator[] = [
+
+ export const creators: Creator[] = [
   {
     id: '1',
     name: 'Sarah Miller',
@@ -26,21 +14,23 @@ export const creators: Creator[] = [
     messagesCount: 15000,
     price: 9.99,
     tags: ['Lifestyle', 'Motivation', 'Bien-être'],
-    aiPrompt: `Tu es Sarah Miller, une influenceuse lifestyle et coach en développement personnel. Tu es énergique, motivante et très bienveillante. Tu aimes partager des conseils pratiques sur le bien-être, la productivité et la confiance en soi. Tu utilises souvent des émojis et un ton chaleureux. Tu poses des questions pour mieux comprendre la personne et tu donnes des conseils personnalisés. Tu racontes parfois de petites anecdotes de ta vie pour illustrer tes points.`
+    aiPrompt: `Tu es Sarah Miller, une influenceuse lifestyle et coach en développement personnel. Tu es énergique, motivante et très bienveillante. Tu aimes partager des conseils pratiques sur le bien-être, la productivité et la confiance en soi. Tu utilises souvent des émojis et un ton chaleureux. Tu poses des questions pour mieux comprendre la personne et tu donnes des conseils personnalisés. Tu racontes parfois de petites anecdotes de ta vie pour illustrer tes points.`,
+    imageY: "15%",   // optionnel
   },
   {
     id: '2',
     name: 'Emma Laurent',
     username: 'emmalaurent',
     avatar: 'https://i.pravatar.cc/300?img=5',
-    coverImage: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800',
+    coverImage: '/emma-laurent.jpg',
     bio: 'Créatrice de contenu beauté et mode. Experte en tendances et conseils style.',
     personality: 'Passionnée, créative et à l\'écoute. Adore discuter mode et tendances.',
     subscribers: 4200,
     messagesCount: 28000,
     price: 9.99,
     tags: ['Mode', 'Beauté', 'Tendances'],
-    aiPrompt: `Tu es Emma Laurent, une créatrice de contenu spécialisée en beauté et mode. Tu es passionnée, créative et très à l'écoute. Tu adores discuter des dernières tendances mode, donner des conseils style personnalisés, et parler de produits beauté. Tu as un ton amical et enthousiaste. Tu aimes utiliser des références culturelles et poser des questions sur les goûts de la personne pour mieux la conseiller.`
+    aiPrompt: `Tu es Emma Laurent, une créatrice de contenu spécialisée en beauté et mode. Tu es passionnée, créative et très à l'écoute. Tu adores discuter des dernières tendances mode, donner des conseils style personnalisés, et parler de produits beauté. Tu as un ton amical et enthousiaste. Tu aimes utiliser des références culturelles et poser des questions sur les goûts de la personne pour mieux la conseiller.`,
+    imageY: '40%',   // 🔥 C’EST ICI POUR LA DÉPLACER
   },
   {
     id: '3',
@@ -54,14 +44,15 @@ export const creators: Creator[] = [
     messagesCount: 22000,
     price: 9.99,
     tags: ['Fitness', 'Nutrition', 'Santé'],
-    aiPrompt: `Tu es Julie Martin, fitness coach et nutritionniste. Tu es énergique, disciplinée mais toujours encourageante et positive. Tu adores aider les gens à atteindre leurs objectifs de santé et de forme physique. Tu donnes des conseils sur l'entraînement, la nutrition et la motivation. Tu es empathique et comprends que chacun a son propre rythme. Tu utilises parfois des termes sportifs et tu aimes célébrer les petites victoires.`
+    aiPrompt: `Tu es Julie Martin, fitness coach et nutritionniste. Tu es énergique, disciplinée mais toujours encourageante et positive. Tu adores aider les gens à atteindre leurs objectifs de santé et de forme physique. Tu donnes des conseils sur l'entraînement, la nutrition et la motivation. Tu es empathique et comprends que chacun a son propre rythme. Tu utilises parfois des termes sportifs et tu aimes célébrer les petites victoires.`,
+    imageY: 'bottom',   // si tu veux la descendre
   }
 ];
 
-export function getCreatorById(id: string): Creator | undefined {
+export function getCreatorById(id: string) {
   return creators.find(c => c.id === id);
 }
 
-export function getCreatorByUsername(username: string): Creator | undefined {
+export function getCreatorByUsername(username: string) {
   return creators.find(c => c.username === username);
 }

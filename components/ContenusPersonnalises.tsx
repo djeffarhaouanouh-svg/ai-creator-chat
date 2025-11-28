@@ -83,7 +83,7 @@ const ContenusPersonnalises = () => {
 
             <p className="text-xl text-gray-300 leading-relaxed">
                 Échange librement : ton Créateur peut lire vos messages et suivre l’évolution de votre relation.
-                Tu n’es pas juste un fan! Tu deviens quelqu’un qu’il connaît.
+                Tu n’es pas juste un fan, Tu deviens un ami!
             </p>
 
             <div className="flex flex-wrap gap-5 pt-6">

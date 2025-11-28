@@ -74,7 +74,7 @@ const CreatorsSection = () => {
                <h2
   className="text-5xl md:text-6xl font-bold leading-tight"
   style={{
-    fontSize: "42px",
+    fontSize: "38px",
   }}
 >
   Ton expérience devient
@@ -87,7 +87,7 @@ const CreatorsSection = () => {
 
             <p className="text-xl text-white/70 leading-relaxed">
                Ta manière de parler, tes goûts, tes émotions… la conversation s’ajuste à toi.
-Tu ressens une vraie proximité, comme si votre lien devenait naturel au fil du temps.
+               Tu ressens une vraie proximité, comme si votre lien devenait naturel au fil du temps.
             </p>
 
             <div className="flex flex-wrap gap-5 pt-6">

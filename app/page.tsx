@@ -83,16 +83,17 @@ export default function Home() {
               {creators.map((creator) => (
                 <Link key={creator.id} href={`/creator/${creator.username}`}>
                   <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer">
-                    {/* IMAGE */}
-                    <div className="relative h-48 w-full">
-                      <Image src={creator.coverImage} alt={creator.name} fill className="object-cover" />
-                      <div className="absolute -bottom-10 left-6">
-                        <div className="relative w-20 h-20 rounded-full border-4 border-white overflow-hidden">
-                          <Image src={creator.avatar} alt={creator.name} fill className="object-cover" />
-                        </div>
-                      </div>
-                    </div>
-
+                              {/* IMAGE */}
+            <div className="relative h-48 w-full">
+                      <Image src={creator.coverImage} alt={creator.name} fill className="object-cover"
+                     style={{ objectPosition: `center ${creator.imageY || "50%"}`,}}
+                     />
+            <div className="absolute -bottom-10 left-6">
+            <div className="relative w-20 h-20 rounded-full border-4 border-white overflow-hidden">
+                      <Image src={creator.avatar} alt={creator.name} fill className="object-cover" />
+                     </div>
+                   </div>
+                 </div>   
                     {/* CONTENT */}
                     <div className="pt-12 px-6 pb-6 text-black">
                       <h3 className="text-xl font-bold mb-1">{creator.name}</h3>
@@ -156,15 +157,16 @@ export default function Home() {
                   <div className="bg-white rounded-xl shadow-md overflow-hidden">
 
                     {/* IMAGE */}
-                    <div className="relative h-48 w-full">
-                      <Image src={creator.coverImage} alt={creator.name} fill className="object-cover pointer-events-none" />
-                      <div className="absolute -bottom-10 left-6">
-                        <div className="relative w-20 h-20 rounded-full border-4 border-white overflow-hidden">
-                          <Image src={creator.avatar} alt={creator.name} fill className="object-cover" />
-                        </div>
-                      </div>
-                    </div>
-
+            <div className="relative h-48 w-full">
+                      <Image src={creator.coverImage} alt={creator.name} fill className="object-cover"
+                     style={{ objectPosition: `center ${creator.imageY || "50%"}`,}}
+                     />
+            <div className="absolute -bottom-10 left-6">
+            <div className="relative w-20 h-20 rounded-full border-4 border-white overflow-hidden">
+                      <Image src={creator.avatar} alt={creator.name} fill className="object-cover" />
+                     </div>
+                   </div>
+                 </div>
                     {/* CONTENT MOBILE */}
                     <div className="pt-12 px-6 pb-6 text-black">
                       <h3 className="text-xl font-bold mb-1">{creator.name}</h3>

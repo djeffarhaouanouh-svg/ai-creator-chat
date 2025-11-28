@@ -25,7 +25,7 @@ const PrivateContentSection = () => {
           {/* Texte — maintenant en deuxième sur desktop */}
           <div className="order-2 lg:order-2 space-y-10">
              <h2
-  className="text-4xl md:text-5xl font-bold leading-tight"
+  className="text-3xl md:text-5xl font-bold leading-tight"
   style={{
     fontSize: "42px",
   }}
