@@ -72,7 +72,7 @@ const CreatorsSection = () => {
           {/* 📝 TEXTE (droite sur ordi, sous les images sur mobile) */}
           <div className="space-y-10">
                <h2
-  className="text-5xl md:text-6xl font-bold leading-tight"
+  className="text-4xl md:text-6xl font-bold leading-tight"
   style={{
     fontSize: "38px",
   }}
