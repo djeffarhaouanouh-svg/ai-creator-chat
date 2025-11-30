@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter } from "next/navigation";
 import { getCreatorByUsername } from "@/data/creators";
-import { MessageCircle, Users, Star } from 'lucide-react';
-import { storage } from '@/lib/storage';
-import { useState, useEffect } from 'react';
+import { MessageCircle, Users, Star } from "lucide-react";
+import { storage } from "@/lib/storage";
+import { useState, useEffect, useRef } from "react";
 import PaypalButton from "@/components/PaypalButton";
 
 export default function CreatorPage() {
@@ -15,6 +15,8 @@ export default function CreatorPage() {
   const creator = getCreatorByUsername(username);
 
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (creator) {
@@ -22,17 +24,39 @@ export default function CreatorPage() {
     }
   }, [creator]);
 
+  useEffect(() => {
+    audioRef.current = new Audio("/audio/sarah-voice.mp3");
+  }, []);
+
+  const toggleAudio = () => {
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+      setIsPlaying(true);
+      audioRef.current.onended = () => setIsPlaying(false);
+    }
+  };
+
   if (!creator) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Créatrice introuvable</h1>
-          <p className="text-gray-600 mb-4">Cette créatrice n'existe pas ou plus.</p>
-          <button 
-            onClick={() => router.push('/')} 
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Créatrice introuvable
+          </h1>
+          <p className="text-gray-600 mb-4">
+            Cette créatrice n&apos;existe pas ou plus.
+          </p>
+          <button
+            onClick={() => router.push("/")}
             className="bg-[#e31fc1] hover:bg-[#c919a3] text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
           >
-            Retour à l'accueil
+            Retour à l&apos;accueil
           </button>
         </div>
       </div>
@@ -51,10 +75,8 @@ export default function CreatorPage() {
 
   return (
     <main className="min-h-screen bg-white">
-
-            {/* HAUT - IMAGE + FONDU + NOM */}
+      {/* HAUT */}
       <div className="w-full h-[28rem] md:h-[52rem] relative overflow-hidden">
-
         {/* Image dynamique */}
         <div
           className="absolute inset-0 flex z-0"
@@ -77,18 +99,10 @@ export default function CreatorPage() {
           />
         </div>
 
-        {/* Fondu */}
+        {/* Fondu bas */}
         <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-white to-transparent z-10" />
 
-        {/* Badge note */}
-        <div className="relative z-20 flex justify-between items-start p-6">
-          <div></div>
-          <div className="bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
-            <span className="text-gray-900 font-bold">5.0 ★ (57)</span>
-          </div>
-        </div>
-
-        {/* Nom EN BAS du visuel */}
+        {/* Nom */}
         <div className="absolute bottom-6 left-0 w-full z-20 flex justify-center">
           <h1 className="text-3xl md:text-4xl font-bold text-black drop-shadow-md">
             {creator.name}
@@ -96,15 +110,10 @@ export default function CreatorPage() {
         </div>
       </div>
 
-
-      {/* ---------------------- */}
-      {/*        INFOS BAS       */}
-      {/* ---------------------- */}
-      <div className="bg-white px-4 md:px-8 py-6">
-
+      {/* BAS */}
+      <div className="px-4 md:px-8 py-10">
         {/* Stats */}
-        <div className="flex justify-center gap-6 md:gap-8 mb-8">
-
+        <div className="flex justify-center gap-6 md:gap-10 mb-10">
           {/* Abonnés */}
           <div className="text-center">
             <div className="flex items-center gap-2 justify-center mb-1">
@@ -137,38 +146,73 @@ export default function CreatorPage() {
             </div>
             <span className="text-gray-500 text-sm">note</span>
           </div>
-
         </div>
 
-        {/* Bio */}
-        <div className="max-w-2xl mx-auto mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">À propos</h2>
+        {/* Bio + style de conversation */}
+        <div className="max-w-2xl mx-auto mb-10">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
+            À propos
+          </h2>
 
           <p className="text-gray-700 leading-relaxed text-center mb-6">
             {creator.bio}
           </p>
 
           <div className="bg-gray-50 rounded-xl p-6">
-            <h3 className="font-semibold text-gray-900 mb-2 text-center">Style de conversation</h3>
-            <p className="text-gray-600 text-center">
-              {creator.personality}
-            </p>
+            <h3 className="font-semibold text-gray-900 mb-2 text-center">
+              Style de conversation
+            </h3>
+            <p className="text-gray-600 text-center">{creator.personality}</p>
           </div>
         </div>
 
-        {/* Pricing */}
-        <div className="max-w-md mx-auto">
-          <div className="text-center mb-6">
-            <div className="flex items-baseline justify-center gap-2 mb-2">
-              <span className="text-4xl font-bold text-gray-900">{creator.price}€</span>
-              <span className="text-gray-500">/mois</span>
-            </div>
-            <p className="text-gray-600">Messages illimités • Annulation à tout moment</p>
-          </div>
+        {/* AUDIO – on le laisse comme il est, sous le bloc style */}
+        <div className="w-full flex justify-center mt-2 mb-8">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleAudio}
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-[#e9edef] border border-gray-300"
+            >
+              {isPlaying ? (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="#4a4a4a">
+                  <rect x="3" y="3" width="5" height="14" rx="2" />
+                  <rect x="12" y="3" width="5" height="14" rx="2" />
+                </svg>
+              ) : (
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 20 20"
+                  fill="#4a4a4a"
+                >
+                  <polygon points="3,2 17,10 3,18" />
+                </svg>
+              )}
+            </button>
 
-          {/* CTA */}
+            <div className={`bespona-wave ${isPlaying ? "playing" : ""}`}>
+              {Array.from({ length: 10 }).map((_, i) => (
+                <span key={i}></span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Prix */}
+        <div className="text-center mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+            9.99€
+            <span className="text-lg font-medium text-gray-600"> /mois</span>
+          </h2>
+          <p className="text-gray-500 mt-2">
+            Messages illimités • Annulation à tout moment
+          </p>
+        </div>
+
+        {/* CTA + PayPal centrés comme avant */}
+        <div className="max-w-md mx-auto w-full">
           {isSubscribed ? (
-            <button 
+            <button
               onClick={handleChat}
               className="w-full px-8 py-4 rounded-xl font-semibold text-lg text-white bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] hover:opacity-90 transition flex items-center justify-center"
             >
@@ -176,7 +220,7 @@ export default function CreatorPage() {
               Discutez gratuitement
             </button>
           ) : (
-            <button 
+            <button
               onClick={handleSubscribe}
               className="w-full bg-[#e31fc1] hover:bg-[#c919a3] text-white px-8 py-4 rounded-xl font-semibold text-lg transition"
             >
@@ -184,12 +228,10 @@ export default function CreatorPage() {
             </button>
           )}
 
-          {/* PayPal */}
           <div className="mt-4">
             <PaypalButton />
           </div>
         </div>
-
       </div>
     </main>
   );

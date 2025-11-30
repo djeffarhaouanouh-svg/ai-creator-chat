@@ -210,3 +210,47 @@
   @apply bg-black text-white py-2 md:py-28 px-8 md:px-0;
 }
 
+/* Container */
+.bespona-wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  transform: translateY(2px); /* ajustement visuel */
+}
+
+/* Barres */
+.bespona-wave span {
+  width: 3px;
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #e31fc1, #ff6b9d, #ffc0cb);
+  opacity: 0.9;
+  box-shadow: 0 0 6px rgba(227, 31, 193, 0.5);
+  transform-origin: bottom;
+  animation: none;
+}
+
+/* Animation quand audio joue */
+.bespona-wave.playing span {
+  animation: besponaWave 1s ease-in-out infinite;
+}
+
+/* Delays progressifs */
+.bespona-wave span:nth-child(1) { animation-delay: 0s; }
+.bespona-wave span:nth-child(2) { animation-delay: 0.1s; }
+.bespona-wave span:nth-child(3) { animation-delay: 0.2s; }
+.bespona-wave span:nth-child(4) { animation-delay: 0.3s; }
+.bespona-wave span:nth-child(5) { animation-delay: 0.4s; }
+.bespona-wave span:nth-child(6) { animation-delay: 0.5s; }
+.bespona-wave span:nth-child(7) { animation-delay: 0.4s; }
+.bespona-wave span:nth-child(8) { animation-delay: 0.3s; }
+.bespona-wave span:nth-child(9) { animation-delay: 0.2s; }
+.bespona-wave span:nth-child(10) { animation-delay: 0.1s; }
+
+/* Animation douce */
+@keyframes besponaWave {
+  0%   { transform: scaleY(0.4); }
+  50%  { transform: scaleY(1.3); }
+  100% { transform: scaleY(0.4); }
+}
