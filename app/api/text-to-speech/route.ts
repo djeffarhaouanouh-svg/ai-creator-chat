@@ -1,70 +1,76 @@
-export const dynamic = "force-dynamic";
-
 import { NextRequest, NextResponse } from 'next/server';
 import { ElevenLabsClient } from 'elevenlabs';
 
-// Initialiser le client ElevenLabs
 const elevenlabs = new ElevenLabsClient({
-  apiKey: process.env.ELEVENLABS_API_KEY ?? '',
+  apiKey: process.env.ELEVENLABS_API_KEY
 });
 
-// Voix pour chaque créatrice
-const VOICE_IDS: Record<string, string> = {
-  sophia: 'XB0fDUnXU5powFXDhCwa', // exemple
-  emma: 'piTKgcLEGmPE4e6mEKli', // exemple
-  luna: 'g5CIjZEefAph4nQFvHAz', // exemple
+const VOICE_IDS: { [key: string]: string } = {
+  'sophia': 'MUhH6JrtlP5anyo6lI56',
+  'emma': 'EXAVITQu4vr4xnSDxMaL',
+  'luna': 'ThT5KcBeYPX3keUQqHPh',
 };
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
-    const text: string | undefined = body?.text;
-    const model: string | undefined = body?.model;
+    const { text, creatorId } = await request.json();
 
-    if (!text || typeof text !== 'string') {
+    if (!text || !creatorId) {
       return NextResponse.json(
-        { error: 'Missing text' },
-        { status: 400 },
+        { error: 'Le texte et l\'ID de la créatrice sont requis' },
+        { status: 400 }
       );
     }
 
-    const voiceId =
-      (model && VOICE_IDS[model as keyof typeof VOICE_IDS]) ||
-      VOICE_IDS.sophia;
-
-    // Appel ElevenLabs
-    const audio: AsyncIterable<Uint8Array> | any =
-      await elevenlabs.textToSpeech.convert(voiceId, {
-        text,
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-          style: 0.0,
-          use_speaker_boost: true,
-        },
-      } as any);
-
-    // On lit le stream et on crée un buffer
-    const chunks: Uint8Array[] = [];
-    for await (const chunk of audio as AsyncIterable<Uint8Array>) {
-      chunks.push(chunk);
+    if (!process.env.ELEVENLABS_API_KEY) {
+      return NextResponse.json(
+        { error: 'Clé API ElevenLabs non configurée' },
+        { status: 500 }
+      );
     }
-    const audioBuffer = Buffer.concat(chunks);
 
-    // On renvoie du base64 au front
-    return NextResponse.json(
-      {
-        audio: audioBuffer.toString('base64'),
-        contentType: 'audio/mpeg',
+    const voiceId = VOICE_IDS[creatorId] || VOICE_IDS['sophia'];
+
+    // Générer l'audio avec les options les plus rapides
+    const audioStream = await elevenlabs.textToSpeech.convert(voiceId, {
+      text,
+      model_id: 'eleven_turbo_v2_5', // Modèle le plus rapide d'ElevenLabs
+      voice_settings: {
+        stability: 0.5,
+        similarity_boost: 0.75,
+        style: 0.0, // Réduit à 0 pour plus de vitesse
+        use_speaker_boost: true,
       },
-      { status: 200 },
-    );
+      output_format: 'mp3_22050_32', // Qualité réduite = plus rapide
+    });
+
+    // Créer un ReadableStream pour le streaming
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of audioStream) {
+            controller.enqueue(chunk);
+          }
+          controller.close();
+        } catch (error) {
+          controller.error(error);
+        }
+      },
+    });
+
+    // Retourner le stream directement
+    return new NextResponse(stream, {
+      headers: {
+        'Content-Type': 'audio/mpeg',
+        'Cache-Control': 'no-cache',
+        'Transfer-Encoding': 'chunked',
+      },
+    });
   } catch (error) {
     console.error('Erreur lors de la génération audio:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la génération audio' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

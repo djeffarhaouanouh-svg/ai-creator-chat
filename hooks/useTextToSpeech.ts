@@ -24,19 +24,17 @@ export function useTextToSpeech(): UseTextToSpeechReturn {
 
   const playAudio = useCallback(async (text: string, messageId: string, creatorId: string) => {
     try {
-      // Si on joue déjà le même message, on arrête
       if (playingMessageId === messageId) {
         stopAudio();
         return;
       }
 
-      // Arrêter l'audio en cours si nécessaire
       stopAudio();
 
       setIsPlaying(true);
       setPlayingMessageId(messageId);
 
-      // Appeler l'API pour générer l'audio
+      // Appeler l'API en mode streaming
       const response = await fetch('/api/text-to-speech', {
         method: 'POST',
         headers: {
@@ -49,19 +47,17 @@ export function useTextToSpeech(): UseTextToSpeechReturn {
         throw new Error('Erreur lors de la génération audio');
       }
 
-      const { audio, contentType } = await response.json();
+      // Récupérer le stream audio directement
+      const blob = await response.blob();
+      const audioUrl = URL.createObjectURL(blob);
 
-      // Créer un blob à partir de l'audio base64
-      const audioBlob = new Blob(
-        [Uint8Array.from(atob(audio), c => c.charCodeAt(0))],
-        { type: contentType }
-      );
-      const audioUrl = URL.createObjectURL(audioBlob);
-
-      // Créer et jouer l'audio
+      // Créer l'élément audio et démarrer immédiatement
       const audioElement = new Audio(audioUrl);
       audioRef.current = audioElement;
 
+      // Démarrer la lecture dès que possible (streaming)
+      audioElement.preload = 'auto';
+      
       audioElement.onended = () => {
         setIsPlaying(false);
         setPlayingMessageId(null);
@@ -75,6 +71,7 @@ export function useTextToSpeech(): UseTextToSpeechReturn {
         URL.revokeObjectURL(audioUrl);
       };
 
+      // Lecture immédiate dès que les premières données arrivent
       await audioElement.play();
     } catch (error) {
       console.error('Erreur:', error);
