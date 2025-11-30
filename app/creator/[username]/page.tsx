@@ -74,9 +74,9 @@ export default function CreatorPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="bg-white">
       {/* HAUT */}
-      <div className="w-full h-[28rem] md:h-[52rem] relative overflow-hidden">
+       <div className="w-full h-[28rem] md:h-[52rem] relative">
         {/* Image dynamique */}
         <div
           className="absolute inset-0 flex z-0"
@@ -201,13 +201,30 @@ export default function CreatorPage() {
         {/* Prix */}
         <div className="text-center mb-6">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-            9.99€
+            4.97€
             <span className="text-lg font-medium text-gray-600"> /mois</span>
           </h2>
           <p className="text-gray-500 mt-2">
             Messages illimités • Annulation à tout moment
           </p>
         </div>
+         <div className="flex flex-col items-center gap-2 mt-4">
+
+  <div className="flex items-center gap-2">
+    <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
+      ✔
+    </span>
+    <p className="text-gray-600 text-lg">Messages illimités</p>
+  </div>
+
+  <div className="flex items-center gap-2">
+    <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
+      ✔
+    </span>
+    <p className="text-gray-600 text-lg">Annulation à tout moment</p>
+  </div>
+
+</div>
 
         {/* CTA + PayPal centrés comme avant */}
         <div className="max-w-md mx-auto w-full">

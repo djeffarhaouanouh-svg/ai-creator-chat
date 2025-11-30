@@ -18,12 +18,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className={`${inter.className} bg-black text-white pt-20`}>
+      <body className={`${inter.className} bg-black text-white`}>
+        
         {/* HEADER FIXÉ */}
         <Header />
 
-        {/* CONTENU */}
-        {children}
+        {/* WRAPPER CONTENU — padding pour compenser le header */}
+        <div className="pt-20">
+          {children}
+        </div>
 
         {/* FOOTER */}
         <footer className="bg-black border-t border-white/10 mt-20">
@@ -64,6 +67,7 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
+
       </body>
     </html>
   );

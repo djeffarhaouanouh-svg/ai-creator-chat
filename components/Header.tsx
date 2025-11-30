@@ -7,7 +7,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-black fixed top-0 left-0 w-full z-50 border-b border-gray-900">
+     <nav className="bg-black fixed top-0 left-0 w-full z-[999999] border-b border-gray-900">
       <div className="flex items-center justify-between h-16 px-4">
 
         {/* MENU BURGER */}
