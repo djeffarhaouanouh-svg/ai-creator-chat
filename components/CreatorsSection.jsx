@@ -15,11 +15,11 @@ const CreatorsSection = () => {
   </div>
 
   <div className="absolute left-40 top-0 w-60 h-80 rounded-2xl overflow-hidden border border-white/10 bg-black transition-transform duration-300 hover:scale-105 z-20">
-    <Image src="/images/creator2.jpg" alt="Créateur 2" fill className="object-cover"/>
+    <Image src="/alice_1.jpg" alt="Créateur 2" fill className="object-cover"/>
   </div>
 
   <div className="absolute right-0 top-16 w-52 h-72 rounded-2xl overflow-hidden border border-white/10 bg-black transition-transform duration-300 hover:scale-105 z-10">
-    <Image src="/images/creator3.jpg" alt="Créateur 3" fill className="object-cover"/>
+    <Image src="/toota_3.jpg" alt="Créateur 3" fill className="object-cover"/>
   </div>
 
 </div>
@@ -45,7 +45,7 @@ const CreatorsSection = () => {
                   cursor-pointer transition-transform duration-300 
                   hover:scale-105 active:scale-95">
     <Image
-      src="/images/creator2.jpg"
+      src="/alice_1.jpg"
       alt="Créateur 2"
       width={500}
       height={700}
@@ -58,7 +58,7 @@ const CreatorsSection = () => {
                   cursor-pointer transition-transform duration-300 
                   hover:scale-105 active:scale-95">
     <Image
-      src="/images/creator3.jpg"
+      src="/toota_3.jpg"
       alt="Créateur 3"
       width={500}
       height={700}
