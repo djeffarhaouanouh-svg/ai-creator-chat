@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 
-export const dynamic = "force-dynamic"; 
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export async function GET() {
   try {
@@ -17,7 +18,7 @@ export async function GET() {
       messagesSent: Number(messages.rows[0].total) || 0,
       avgMessages: 0,
       monthlySpent: 0,
-      activeSubscriptions: 0
+      activeSubscriptions: 0,
     });
   } catch (err) {
     console.error("Stats error:", err);
