@@ -17,7 +17,7 @@ export default function LucilePage() {
 
   // 🔥 DONNÉES UNIQUES POUR LUCILE
   const price = 4.97;
-  const audio = "/audio/sarah-voice.mp3";
+  const audio = "/audio/lucile.mp3";
   const photos = ["/chat.png", "/image2.jpg", "/image3.jpg"];
   const subscribers = 12500;
   const messagesCount = 8432;

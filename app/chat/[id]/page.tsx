@@ -286,7 +286,7 @@ export default function ChatPage() {
                   <div
                     className={`rounded-2xl px-4 py-2 ${
                       message.role === 'user'
-                        ? 'bg-primary-600 text-white'
+                        ? 'bg-[#E31FC1] text-white'
                         : 'bg-white text-gray-900 shadow-sm'
                     }`}
                   >
@@ -296,7 +296,7 @@ export default function ChatPage() {
                     <p
                       className={`text-xs mt-1 ${
                         message.role === 'user'
-                          ? 'text-primary-100'
+                          ? 'text-[#FFE4F7]'
                           : 'text-gray-400'
                       }`}
                     >
@@ -317,7 +317,7 @@ export default function ChatPage() {
                       }
                       className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-all ${
                         playingMessageId === message.id
-                          ? 'bg-primary-100 text-primary-600'
+                          ? 'bg-[#FFE4F7] text-[#E31FC1]'
                           : 'text-gray-500 hover:bg-gray-100'
                       }`}
                     >
@@ -385,7 +385,7 @@ export default function ChatPage() {
                 value={requestInput}
                 onChange={(e) => setRequestInput(e.target.value)}
                 placeholder="Ici, demande du contenu personnalisé..."
-                className="flex-1 rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
+                className="flex-1 rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#E31FC1] focus:border-transparent text-gray-900 placeholder:text-gray-400"
               />
               <Button onClick={sendRequest} disabled={!requestInput.trim()}>
                 <Send size={20} />
@@ -408,7 +408,7 @@ export default function ChatPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={`Message à ${creator.name}...`}
-              className="flex-1 resize-none rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
+              className="flex-1 resize-none rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#E31FC1] focus:border-transparent text-gray-900 placeholder:text-gray-400"
               rows={1}
               disabled={isLoading}
             />
@@ -425,4 +425,3 @@ export default function ChatPage() {
     </div>
   );
 }
-

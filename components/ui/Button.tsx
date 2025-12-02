@@ -16,9 +16,14 @@ export default function Button({
   const baseStyles = 'rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variants = {
-    primary: 'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800',
+    // 🌸 Nouveau rose Bespona
+    primary: 'bg-[#E31FC1] text-white hover:bg-[#d91bb3] active:bg-[#c217a4]',
+
     secondary: 'bg-gray-600 text-white hover:bg-gray-700 active:bg-gray-800',
-    outline: 'border-2 border-primary-600 text-primary-600 hover:bg-primary-50 active:bg-primary-100',
+
+    // 🌸 Outline rose
+    outline: 'border-2 border-[#E31FC1] text-[#E31FC1] hover:bg-[#ffe4f7] active:bg-[#ffd2f1]',
+
     ghost: 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
   };
 

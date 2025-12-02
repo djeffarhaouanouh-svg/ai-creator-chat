@@ -17,7 +17,7 @@ export default function TootatisPage() {
 
   // 🔥 DONNÉES UNIQUES POUR TOOTATIS
   const price = 4.97;
-  const audio = "/audio/tootatis-voice.mp3";
+  const audio = "/audio/tootatis.mp3";
   const photos = ["/tootatis/photo1.jpg", "/tootatis/photo2.jpg", "/tootatis/photo3.jpg"];
   const subscribers = 3800;
   const messagesCount = 22000;

@@ -43,27 +43,50 @@ export default function RootLayout({
 
               {/* Colonne 2 */}
               <div>
-                <h4 className="text-white font-semibold mb-4">Pages légales</h4>
                 <ul className="space-y-2 text-sm">
-                  <li><a className="text-white/60 hover:text-white transition-colors">Mentions légales</a></li>
-                  <li><a className="text-white/60 hover:text-white transition-colors">CGV</a></li>
-                  <li><a className="text-white/60 hover:text-white transition-colors">Confidentialité</a></li>
-                </ul>
+  <li>
+    <a href="/mentions-legales" className="text-white/60 hover:text-white transition-colors">
+      Mentions légales
+    </a>
+  </li>
+  <li>
+    <a href="/cgv" className="text-white/60 hover:text-white transition-colors">
+      CGV
+    </a>
+  </li>
+  <li>
+    <a href="/confidentialite" className="text-white/60 hover:text-white transition-colors">
+      Confidentialité
+    </a>
+  </li>
+  <li>
+    <a href="/cookies" className="text-white/60 hover:text-white transition-colors">
+      Cookies
+    </a>
+  </li>
+</ul>
               </div>
-
               {/* Colonne 3 */}
               <div>
                 <h4 className="text-white font-semibold mb-4">Support</h4>
                 <ul className="space-y-2 text-sm">
-                  <li><a className="text-white/60 hover:text-white transition-colors">Contact</a></li>
-                  <li><a className="text-white/60 hover:text-white transition-colors">FAQ</a></li>
+                  <li>
+  <a href="/contact" className="text-white/60 hover:text-white transition-colors">
+    Contact
+  </a>
+</li>
+<li>
+  <a href="/Faq" className="text-white/60 hover:text-white transition-colors">
+    Faq
+  </a>
+</li>
                 </ul>
               </div>
 
             </div>
 
             <div className="border-t border-white/10 mt-8 pt-8 text-center text-white/40 text-sm">
-              © 2025 AI Creator Chat. Tous droits réservés.
+              © 2025 MyDouble. Tous droits réservés.
             </div>
           </div>
         </footer>

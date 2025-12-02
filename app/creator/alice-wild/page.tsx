@@ -17,7 +17,7 @@ export default function AliceWildPage() {
 
   // 🔥 DONNÉES UNIQUES POUR ALICE
   const price = 4.97;
-  const audio = "/audio/alice-voice.mp3";
+  const audio = "/audio/alice.mp3";
   const photos = ["/alice/photo1.jpg", "/alice/photo2.jpg", "/alice/photo3.jpg"];
   const subscribers = 4200;
   const messagesCount = 28000;
