@@ -1,22 +1,27 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getCreatorByUsername } from "@/data/creators";
 import { MessageCircle, Users, Star } from "lucide-react";
 import { storage } from "@/lib/storage";
 import { useState, useEffect, useRef } from "react";
 import PaypalButton from "@/components/PaypalButton";
 
-export default function CreatorPage() {
-  const params = useParams();
+export default function AliceWildPage() {
   const router = useRouter();
-  const username = params.username as string;
-
-  const creator = getCreatorByUsername(username);
+  const creator = getCreatorByUsername("alice-wild");
 
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // 🔥 DONNÉES UNIQUES POUR ALICE
+  const price = 4.97;
+  const audio = "/audio/alice-voice.mp3";
+  const photos = ["/alice/photo1.jpg", "/alice/photo2.jpg", "/alice/photo3.jpg"];
+  const subscribers = 4200;
+  const messagesCount = 28000;
+  const rating = 4.9;
 
   useEffect(() => {
     if (creator) {
@@ -25,7 +30,7 @@ export default function CreatorPage() {
   }, [creator]);
 
   useEffect(() => {
-    audioRef.current = new Audio("/audio/sarah-voice.mp3");
+    audioRef.current = new Audio(audio);
   }, []);
 
   const toggleAudio = () => {
@@ -76,8 +81,7 @@ export default function CreatorPage() {
   return (
     <main className="bg-white">
       {/* HAUT */}
-       <div className="w-full h-[28rem] md:h-[52rem] relative">
-        {/* Image dynamique */}
+      <div className="w-full h-[28rem] md:h-[52rem] relative">
         <div
           className="absolute inset-0 flex z-0"
           style={{
@@ -99,10 +103,8 @@ export default function CreatorPage() {
           />
         </div>
 
-        {/* Fondu bas */}
         <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-white to-transparent z-10" />
 
-        {/* Nom */}
         <div className="absolute bottom-6 left-0 w-full z-20 flex justify-center">
           <h1 className="text-3xl md:text-4xl font-bold text-black drop-shadow-md">
             {creator.name}
@@ -114,34 +116,31 @@ export default function CreatorPage() {
       <div className="px-4 md:px-8 py-10">
         {/* Stats */}
         <div className="flex justify-center gap-6 md:gap-10 mb-10">
-          {/* Abonnés */}
           <div className="text-center">
             <div className="flex items-center gap-2 justify-center mb-1">
               <Users size={20} className="text-gray-400" />
               <span className="text-xl md:text-2xl font-bold text-gray-900">
-                {creator.subscribers?.toLocaleString()}
+                {subscribers.toLocaleString()}
               </span>
             </div>
             <span className="text-gray-500 text-sm">abonnés</span>
           </div>
 
-          {/* Messages */}
           <div className="text-center">
             <div className="flex items-center gap-2 justify-center mb-1">
               <MessageCircle size={20} className="text-gray-400" />
               <span className="text-xl md:text-2xl font-bold text-gray-900">
-                {creator.messagesCount?.toLocaleString()}
+                {messagesCount.toLocaleString()}
               </span>
             </div>
             <span className="text-gray-500 text-sm">messages</span>
           </div>
 
-          {/* Note */}
           <div className="text-center">
             <div className="flex items-center gap-2 justify-center mb-1">
               <Star size={20} className="text-yellow-400" fill="currentColor" />
               <span className="text-xl md:text-2xl font-bold text-gray-900">
-                5.0
+                {rating}
               </span>
             </div>
             <span className="text-gray-500 text-sm">note</span>
@@ -166,7 +165,7 @@ export default function CreatorPage() {
           </div>
         </div>
 
-        {/* AUDIO – on le laisse comme il est, sous le bloc style */}
+        {/* AUDIO */}
         <div className="w-full flex justify-center mt-2 mb-8">
           <div className="flex items-center gap-4">
             <button
@@ -201,32 +200,31 @@ export default function CreatorPage() {
         {/* Prix */}
         <div className="text-center mb-6">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-            4.97€
+            {price.toFixed(2)}€
             <span className="text-lg font-medium text-gray-600"> /mois</span>
           </h2>
           <p className="text-gray-500 mt-2">
             Messages illimités • Annulation à tout moment
           </p>
         </div>
-         <div className="flex flex-col items-center gap-2 mt-4">
 
-  <div className="flex items-center gap-2">
-    <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
-      ✔
-    </span>
-    <p className="text-gray-600 text-lg">Messages illimités</p>
-  </div>
+        <div className="flex flex-col items-center gap-2 mt-4">
+          <div className="flex items-center gap-2">
+            <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
+              ✓
+            </span>
+            <p className="text-gray-600 text-lg">Messages illimités</p>
+          </div>
 
-  <div className="flex items-center gap-2">
-    <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
-      ✔
-    </span>
-    <p className="text-gray-600 text-lg">Annulation à tout moment</p>
-  </div>
+          <div className="flex items-center gap-2">
+            <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
+              ✓
+            </span>
+            <p className="text-gray-600 text-lg">Annulation à tout moment</p>
+          </div>
+        </div>
 
-</div>
-
-        {/* CTA + PayPal centrés comme avant */}
+        {/* CTA + PayPal */}
         <div className="max-w-md mx-auto w-full">
           {isSubscribed ? (
             <button
@@ -248,6 +246,56 @@ export default function CreatorPage() {
           <div className="mt-4">
             <PaypalButton />
           </div>
+        </div>
+      </div>
+
+      {/* GALERIE VERROUILLÉE */}
+      <div className="px-4 md:px-8 pb-16 mt-10">
+        <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">
+          Contenu exclusif
+        </h2>
+
+        <div className="grid grid-cols-3 gap-2 max-w-3xl mx-auto">
+          {photos.map((photo, i) => (
+            <div
+              key={i}
+              className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-square"
+            >
+              <img
+                src={photo}
+                alt={`Photo ${i + 1}`}
+                className="w-full h-full object-cover blur-lg scale-110"
+              />
+
+              <div className="absolute inset-0 bg-black/40"></div>
+
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="black"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+              </div>
+
+              {i === 1 && (
+                <div className="absolute inset-0 flex items-end justify-center pb-4">
+                  <button className="bg-white/90 text-black px-3 py-1 rounded-full text-xs font-medium shadow-md transition backdrop-blur-sm">
+                    Débloquer
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </main>

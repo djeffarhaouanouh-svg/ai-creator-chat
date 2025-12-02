@@ -26,6 +26,10 @@ export default function ChatPage() {
   const [isModeOpen, setIsModeOpen] = useState(false);
   const [mode, setMode] = useState<'friend' | 'girlfriend' | 'seductive'>('friend'); // mode par défaut = amie
 
+  // 🔹 NOUVEAU : état pour la demande de contenu personnalisé
+  const [isRequestOpen, setIsRequestOpen] = useState(false);
+  const [requestInput, setRequestInput] = useState('');
+
   // Si créateur introuvable
   if (!creator) {
     return (
@@ -145,6 +149,27 @@ export default function ChatPage() {
     }
   };
 
+  // 🔹 NOUVEAU : envoi "fake" de la demande de contenu personnalisé
+  const sendRequest = () => {
+    if (!requestInput.trim() || !creator) return;
+
+    console.log('Demande de contenu personnalisé : ', requestInput);
+
+    const confirmation: Message = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: 'Ta demande de contenu personnalisé a bien été envoyée ✔️',
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, confirmation]);
+    storage.addMessage(creator.id, confirmation);
+
+    setRequestInput('');
+    setIsRequestOpen(false);
+  };
+
+  // 🔹 handleKeyPress comme dans ta capture 2
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -351,25 +376,53 @@ export default function ChatPage() {
 
       {/* INPUT */}
       <div className="bg-white border-t px-4 py-4">
-        <div className="max-w-3xl mx-auto flex gap-2">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder={`Message à ${creator.name}...`}
-            className="flex-1 resize-none rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
-            rows={1}
-            disabled={isLoading}
-          />
-          <Button
-            onClick={sendMessage}
-            disabled={!input.trim() || isLoading}
-            className="px-6"
-          >
-            <Send size={20} />
-          </Button>
+        <div className="max-w-3xl mx-auto flex flex-col gap-3">
+          {/* Champ de demande de contenu personnalisé */}
+          {isRequestOpen && (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={requestInput}
+                onChange={(e) => setRequestInput(e.target.value)}
+                placeholder="Ici, demande du contenu personnalisé..."
+                className="flex-1 rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
+              />
+              <Button onClick={sendRequest} disabled={!requestInput.trim()}>
+                <Send size={20} />
+              </Button>
+            </div>
+          )}
+
+          {/* Barre de message principale + bouton + */}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setIsRequestOpen((prev) => !prev)}
+              className="w-11 h-11 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-2xl text-gray-700"
+            >
+              +
+            </button>
+
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={`Message à ${creator.name}...`}
+              className="flex-1 resize-none rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
+              rows={1}
+              disabled={isLoading}
+            />
+            <Button
+              onClick={sendMessage}
+              disabled={!input.trim() || isLoading}
+              className="px-6"
+            >
+              <Send size={20} />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
