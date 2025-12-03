@@ -10,6 +10,29 @@ import { Message } from '@/lib/types';
 import Button from '@/components/ui/Button';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 
+async function saveMessageToDB(
+  message: Message,
+  creatorId: string,
+  userId: string = "demo"
+) {
+  try {
+    await fetch("/api/messages/add", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId,
+        creatorId,
+        role: message.role,
+        content: message.content,
+      }),
+    });
+  } catch (err) {
+    console.error("DB Save Error:", err);
+  }
+}
+
 export default function ChatPage() {
   const params = useParams();
   const router = useRouter();
@@ -99,9 +122,10 @@ export default function ChatPage() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    storage.addMessage(creator.id, userMessage);
-    setInput('');
-    setIsLoading(true);
+storage.addMessage(creator.id, userMessage);
+saveMessageToDB(userMessage, creator.id);
+setInput('');
+setIsLoading(true);
 
     try {
       const response = await fetch('/api/chat', {
@@ -132,8 +156,9 @@ export default function ChatPage() {
         timestamp: new Date(),
       };
 
-      setMessages((prev) => [...prev, assistantMessage]);
-      storage.addMessage(creator.id, assistantMessage);
+       setMessages((prev) => [...prev, assistantMessage]);
+storage.addMessage(creator.id, assistantMessage);
+saveMessageToDB(assistantMessage, creator.id);
     } catch (error) {
       console.error('Erreur:', error);
       const errorMessage: Message = {

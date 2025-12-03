@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.0",
+    "@neondatabase/serverless": "^1.0.2",
     "@supabase/supabase-js": "^2.83.0",
     "@vercel/postgres": "^0.10.0",
     "bcryptjs": "^3.0.3",
