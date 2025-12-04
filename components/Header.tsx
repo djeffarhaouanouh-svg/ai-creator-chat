@@ -56,12 +56,13 @@ export default function Header() {
             Mon compte
           </Link>
           <Link
-            href="/"
-            className="block text-white px-4 py-2"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Explorer
-          </Link>
+  href="/home-page"
+  className="block text-white px-4 py-2"
+  onClick={() => setIsMenuOpen(false)}
+>
+  Explorer
+</Link>
+
         </div>
       )}
     </nav>
