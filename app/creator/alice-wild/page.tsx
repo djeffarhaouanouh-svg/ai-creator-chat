@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { getCreatorByUsername } from "@/data/creators";
 import { MessageCircle, Users, Star } from "lucide-react";
-import { storage } from "@/lib/storage";
 import { useState, useEffect, useRef } from "react";
 import PaypalButton from "@/components/PaypalButton";
 
@@ -15,6 +14,16 @@ export default function AliceWildPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // ✅ Après paiement PayPal (localStorage.subscribed = "yes")
+  // on remet isSubscribed à true au rechargement
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (localStorage.getItem("subscribed") === "yes") {
+        setIsSubscribed(true);
+      }
+    }
+  }, []);
+
   // 🔥 DONNÉES UNIQUES POUR ALICE
   const price = 4.97;
   const audio = "/audio/alice.mp3";
@@ -23,12 +32,7 @@ export default function AliceWildPage() {
   const messagesCount = 28000;
   const rating = 4.9;
 
-  useEffect(() => {
-    if (creator) {
-      setIsSubscribed(storage.isSubscribed(creator.id));
-    }
-  }, [creator]);
-
+  // Prépare l’audio
   useEffect(() => {
     audioRef.current = new Audio(audio);
   }, []);
@@ -67,12 +71,6 @@ export default function AliceWildPage() {
       </div>
     );
   }
-
-  const handleSubscribe = () => {
-    storage.subscribe(creator.id);
-    setIsSubscribed(true);
-    router.push(`/chat/${creator.id}`);
-  };
 
   const handleChat = () => {
     router.push(`/chat/${creator.id}`);
@@ -225,8 +223,9 @@ export default function AliceWildPage() {
         </div>
 
         {/* CTA + PayPal */}
-        <div className="max-w-md mx-auto w-full">
+        <div className="max-w-md mx-auto w-full mt-6">
           {isSubscribed ? (
+            // ✅ Déjà abonné → bouton chat
             <button
               onClick={handleChat}
               className="w-full px-8 py-4 rounded-xl font-semibold text-lg text-white bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] hover:opacity-90 transition flex items-center justify-center"
@@ -235,17 +234,11 @@ export default function AliceWildPage() {
               Discutez gratuitement
             </button>
           ) : (
-            <button
-              onClick={handleSubscribe}
-              className="w-full bg-[#e31fc1] hover:bg-[#c919a3] text-white px-8 py-4 rounded-xl font-semibold text-lg transition"
-            >
-              Commencer à discuter
-            </button>
+            // ❌ Pas abonné → bouton PayPal
+            <div className="w-full">
+              <PaypalButton />
+            </div>
           )}
-
-          <div className="mt-4">
-            <PaypalButton />
-          </div>
         </div>
       </div>
 
@@ -261,6 +254,8 @@ export default function AliceWildPage() {
               key={i}
               className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-square"
             >
+              {/* Pour l’instant : toujours flouté, on pourra plus tard
+                  enlever le blur si isSubscribed === true */}
               <img
                 src={photo}
                 alt={`Photo ${i + 1}`}
