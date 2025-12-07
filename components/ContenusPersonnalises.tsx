@@ -100,11 +100,12 @@ const ContenusPersonnalises = () => {
           {/* Content - Right Side */}
           <div className="space-y-10">
             <h2 className="text-4xl md:text-5xl font-bold leading-tight">
-              Demande des
+              Demande des contenus
               <br />
               <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-                contenus personnalisés
-              </span>
+                personnalisés 
+              </span>{" "}
+               👀
             </h2>
 
             <p className="text-xl text-gray-300 leading-relaxed">
