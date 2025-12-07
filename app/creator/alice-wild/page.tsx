@@ -27,7 +27,7 @@ export default function AliceWildPage() {
   // 🔥 DONNÉES UNIQUES POUR ALICE
   const price = 4.97;
   const audio = "/audio/alice.mp3";
-  const photos = ["/alice/photo1.jpg", "/alice/photo2.jpg", "/alice/photo3.jpg"];
+  const photos = ["/laurin.png", "/alice/photo2.jpg", "/alice/photo3.jpg", "/alice/photo4.jpg", "/alice/photo5.jpg", "/alice/photo6.jpg"];
   const subscribers = 4200;
   const messagesCount = 28000;
   const rating = 4.9;
@@ -242,55 +242,65 @@ export default function AliceWildPage() {
         </div>
       </div>
 
-      {/* GALERIE VERROUILLÉE */}
+             {/* GALERIE VERROUILLÉE */}
       <div className="px-4 md:px-8 pb-16 mt-10">
         <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">
           Contenu exclusif
         </h2>
 
-        <div className="grid grid-cols-3 gap-2 max-w-3xl mx-auto">
-          {photos.map((photo, i) => (
-            <div
-              key={i}
-              className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-square"
-            >
-              {/* Pour l’instant : toujours flouté, on pourra plus tard
-                  enlever le blur si isSubscribed === true */}
-              <img
-                src={photo}
-                alt={`Photo ${i + 1}`}
-                className="w-full h-full object-cover blur-lg scale-110"
-              />
+                 <div className="grid grid-cols-3 gap-2 max-w-3xl mx-auto">
+          {photos.map((photo, i) => {
+            const isLaurin = i === 0; // 🔥 première photo = Laurin
 
-              <div className="absolute inset-0 bg-black/40"></div>
+            return (
+              <div
+                key={i}
+                className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-square"
+              >
+                {/* Laurin claire, les autres floutées */}
+                <img
+                  src={photo}
+                  alt={`Photo ${i + 1}`}
+                  className={`w-full h-full object-cover ${
+                    isLaurin ? "" : "blur-lg scale-110"
+                  }`}
+                />
 
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
-                  <svg
-                    width="28"
-                    height="28"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="black"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                </div>
+                {/* Overlay + cadenas UNIQUEMENT si ce n’est pas Laurin */}
+                {!isLaurin && (
+                  <>
+                    <div className="absolute inset-0 bg-black/40" />
+
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
+                        <svg
+                          width="28"
+                          height="28"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="black"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <rect x="3" y="11" width="18" height="11" rx="2" />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                      </div>
+                    </div>
+
+                    {i === 1 && (
+                      <div className="absolute inset-0 flex items-end justify-center pb-4">
+                        <button className="bg-white/90 text-black px-3 py-1 rounded-full text-xs font-medium shadow-md transition backdrop-blur-sm">
+                          Débloquer
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
-
-              {i === 1 && (
-                <div className="absolute inset-0 flex items-end justify-center pb-4">
-                  <button className="bg-white/90 text-black px-3 py-1 rounded-full text-xs font-medium shadow-md transition backdrop-blur-sm">
-                    Débloquer
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </main>
