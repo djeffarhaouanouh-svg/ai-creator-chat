@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,7 +34,7 @@ export default function Header() {
 
         {/* TITRE / LOGO CENTRÉ */}
         <Link href="/" className="text-white font-bold text-xl text-center flex-1">
-          AI Creator Chat
+          MyDouble
         </Link>
 
         {/* BOUTON CONNEXION */}
@@ -60,9 +61,8 @@ export default function Header() {
   className="block text-white px-4 py-2"
   onClick={() => setIsMenuOpen(false)}
 >
-  Explorer
+  Acceuil
 </Link>
-
         </div>
       )}
     </nav>

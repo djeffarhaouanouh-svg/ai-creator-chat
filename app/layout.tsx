@@ -7,7 +7,7 @@ import Header from "@/components/Header";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AI Creator Chat - Discutez avec vos créatrices préférées",
+  title: "MyDouble - Discutez avec vos créatrices préférées",
   description: "Conversations personnalisées avec des créatrices via IA",
 };
 
@@ -35,7 +35,7 @@ export default function RootLayout({
 
               {/* Colonne 1 */}
               <div>
-                <h3 className="text-xl font-bold text-white mb-4">AI Creator Chat</h3>
+                <h3 className="text-xl font-bold text-white mb-4">MyDouble</h3>
                 <p className="text-white/60 text-sm">
                   Conversations personnalisées avec vos créatrices préférées, alimentées par l'IA.
                 </p>

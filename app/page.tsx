@@ -69,6 +69,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white">
+    
 
       {/* Titre section */}
       <section className="py-12 px-4">
@@ -139,98 +140,115 @@ export default function Home() {
               ))}
             </div>
           </div>
-
-          {/* --------------------- MOBILE CAROUSEL --------------------- */}
-          <div
-            className="md:hidden relative overflow-hidden"
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-          >
-            <div
-              ref={carouselRef}
-              className="flex transition-transform duration-500"
-              style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-            >
-              {duplicatedCreators.map((creator, index) => (
-                <div key={`${creator.id}-${index}`} className="w-full flex-shrink-0 px-2">
-                  <div className="bg-white rounded-xl shadow-md overflow-hidden">
-
-                    {/* IMAGE */}
-            <div className="relative h-48 w-full">
-                      <Image src={creator.coverImage} alt={creator.name} fill className="object-cover"
-                     style={{ objectPosition: `center ${creator.imageY || "50%"}`,}}
-                     />
-            <div className="absolute -bottom-10 left-6">
-            <div className="relative w-20 h-20 rounded-full border-4 border-white overflow-hidden">
-                      <Image src={creator.avatar} alt={creator.name} fill className="object-cover" />
-                     </div>
-                   </div>
-                 </div>
-                    {/* CONTENT MOBILE */}
-                    <div className="pt-12 px-6 pb-6 text-black">
-                      <h3 className="text-xl font-bold mb-1">{creator.name}</h3>
-                      <p className="text-sm text-gray-600 mb-3">@{creator.username}</p>
-
-                      <p className="text-gray-700 text-sm mb-4 line-clamp-2">{creator.bio}</p>
-
-                      {/* TAGS */}
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {creator.tags.map((tag) => (
-                          <span key={tag} className="px-3 py-1 bg-gray-100 text-[#e31fc1] text-xs rounded-full font-medium">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-
-                      {/* STATS */}
-                      <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                        <div className="flex items-center gap-1">
-                          <Users size={16} />
-                          <span>{creator.subscribers.toLocaleString()} abonnés</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MessageCircle size={16} />
-                          <span>{(creator.messagesCount / 1000).toFixed(0)}k messages</span>
-                        </div>
-                      </div>
-
-                      {/* PRICE + CTA */}
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-2xl font-bold text-gray-900">{creator.price}€</span>
-                          <span className="text-gray-600 text-sm">/mois</span>
-                        </div>
-
-                        {/* BTN MOBILE — CLICKABLE */}
-                         <Link
-  href={`/creator/${creator.username}`}
-  onClick={(e) => e.stopPropagation()}
-  onTouchStart={(e) => e.stopPropagation()}
-  onTouchEnd={(e) => e.stopPropagation()}
-  className="inline-flex items-center justify-center px-6 py-2 rounded-lg text-white font-semibold bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]"
+ {/* --------------------- MOBILE CAROUSEL --------------------- */}
+<div
+  className="md:hidden relative overflow-hidden"
+  onTouchStart={onTouchStart}
+  onTouchMove={onTouchMove}
+  onTouchEnd={onTouchEnd}
 >
-  Discuter
-</Link>
-                      </div>
-
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* DOTS */}
-            <div className="flex justify-center mt-4 gap-2">
-              {creators.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentIndex(idx)}
-                  className={`w-2 h-2 rounded-full ${idx === currentIndex ? "bg-[#e31fc1]" : "bg-gray-500"}`}
-                />
-              ))}
+  <div
+    ref={carouselRef}
+    className="flex transition-transform duration-500"
+    style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+  >
+    {duplicatedCreators.map((creator, index) => (
+      <div
+        key={`${creator.id}-${index}`}
+        className="w-full flex-shrink-0 px-4"               // 🔹 un peu plus de marge
+      >
+        <div
+          className="bg-white rounded-2xl shadow-md overflow-hidden max-w-sm mx-auto" 
+          // 🔹 carte plus petite et centrée
+        >
+          {/* IMAGE */}
+          <div className="relative h-40 w-full">           {/* 🔹 moins haute (48 -> 40) */}
+            <Image
+              src={creator.coverImage}
+              alt={creator.name}
+              fill
+              className="object-cover"
+              style={{ objectPosition: `center ${creator.imageY || "50%"}` }}
+            />
+            <div className="absolute -bottom-8 left-4">    {/* 🔹 avatar un peu plus haut et plus petit */}
+              <div className="relative w-16 h-16 rounded-full border-4 border-white overflow-hidden">
+                <Image src={creator.avatar} alt={creator.name} fill className="object-cover" />
+              </div>
             </div>
           </div>
+
+          {/* CONTENT MOBILE */}
+          <div className="pt-10 px-4 pb-4 text-black">     {/* 🔹 moins de padding */}
+            <h3 className="text-lg font-bold mb-1">{creator.name}</h3>   {/* 🔹 texte plus petit */}
+            <p className="text-xs text-gray-600 mb-2">@{creator.username}</p>
+
+            <p className="text-gray-700 text-xs mb-3 line-clamp-2">
+              {creator.bio}
+            </p>
+
+            {/* TAGS */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {creator.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="px-2 py-1 bg-gray-100 text-[#e31fc1] text-[10px] rounded-full font-medium"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+
+            {/* STATS */}
+            <div className="flex items-center justify-between text-[11px] text-gray-600 mb-3">
+              <div className="flex items-center gap-1">
+                <Users size={14} />
+                <span>{creator.subscribers.toLocaleString()} abonnés</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <MessageCircle size={14} />
+                <span>{(creator.messagesCount / 1000).toFixed(0)}k messages</span>
+              </div>
+            </div>
+
+            {/* PRICE + CTA */}
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-xl font-bold text-gray-900">
+                  {creator.price}€
+                </span>
+                <span className="text-gray-600 text-xs">/mois</span>
+              </div>
+
+              {/* BTN MOBILE — CLICKABLE */}
+              <Link
+                href={`/creator/${creator.username}`}
+                onClick={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
+                className="inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm text-white font-semibold bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]"
+              >
+                Discuter
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  {/* DOTS */}
+  <div className="flex justify-center mt-4 gap-2">
+    {creators.map((_, idx) => (
+      <button
+        key={idx}
+        onClick={() => setCurrentIndex(idx)}
+        className={`w-2 h-2 rounded-full ${
+          idx === currentIndex ? "bg-[#e31fc1]" : "bg-gray-500"
+        }`}
+      />
+    ))}
+  </div>
+</div>
         </div>
       </section>
 
