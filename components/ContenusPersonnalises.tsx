@@ -11,7 +11,7 @@ const ContenusPersonnalises = () => {
           <div className="relative">
             <div className="bg-gray-950 rounded-2xl p-6 shadow-2xl border border-gray-800 max-w-md">
               
-              {/* Message - Girl (NO MEDIA) */}
+              {/* Message - Girl (AVEC MÉDIAS) */}
               <div className="flex items-start gap-3 mb-5">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex-shrink-0 overflow-hidden">
                   <img 
@@ -24,8 +24,33 @@ const ContenusPersonnalises = () => {
                 <div className="flex-1">
                   <div className="bg-gray-800 rounded-xl rounded-tl-sm p-4 inline-block">
                     <p className="text-white text-sm">
-                      Regarde ce que je viens de faire !
+                      Hey, voici les médias que tu as demandé !
                     </p>
+
+                    {/* Miniatures des médias envoyés */}
+                    <div className="flex gap-2 mt-3">
+                      <div className="w-14 h-14 rounded-md overflow-hidden">
+                        <img
+                          src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=200&h=200&fit=crop"
+                          alt="Media 1"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="w-14 h-14 rounded-md overflow-hidden">
+                        <img
+                          src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop"
+                          alt="Media 2"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="w-14 h-14 rounded-md overflow-hidden">
+                        <img
+                          src="https://images.unsplash.com/photo-1525134479668-1bee5c7c6845?w=200&h=200&fit=crop"
+                          alt="Media 3"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -43,7 +68,7 @@ const ContenusPersonnalises = () => {
                 <div className="flex-1 flex justify-end">
                   <div className="bg-[#e31fc1] rounded-xl rounded-tr-sm p-4 inline-block max-w-[80%]">
                     <p className="text-white text-sm">
-                      Wow c’est superbe ! Magnifique 😍
+                      Merci ! Parfait c’est exactement ce que je voulais ! À bientôt 👌
                     </p>
                   </div>
                 </div>
@@ -58,8 +83,10 @@ const ContenusPersonnalises = () => {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                  <div className="flex-1">
-                 <div className="bg-gray-800 rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-xl"> 😘 </div>
+                <div className="flex-1">
+                  <div className="bg-gray-800 rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-xl">
+                    😘
+                  </div>
                 </div>
               </div>
 
@@ -72,18 +99,16 @@ const ContenusPersonnalises = () => {
 
           {/* Content - Right Side */}
           <div className="space-y-10">
-             <h2 className="text-3xl md:text-5xl font-bold leading-tight">
-                Discute et crée un lien que ton créateur
-             <br />
-             <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-                peut suivre
-           </span>{" "}
-                👀
+            <h2 className="text-4xl md:text-5xl font-bold leading-tight">
+              Demande des
+              <br />
+              <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
+                contenus personnalisés
+              </span>
             </h2>
 
             <p className="text-xl text-gray-300 leading-relaxed">
-                Échange librement : ton Créateur peut lire vos messages et suivre l’évolution de votre relation.
-                Tu n’es pas juste un fan, Tu deviens un ami!
+              Via le Chat, tu peux échanger directement avec le Créateur, lui demander des contenus personnalisés à tes envies et recevoir ses nouveaux médias exclusifs.
             </p>
 
             <div className="flex flex-wrap gap-5 pt-6">
@@ -104,4 +129,3 @@ const ContenusPersonnalises = () => {
 };
 
 export default ContenusPersonnalises;
-
