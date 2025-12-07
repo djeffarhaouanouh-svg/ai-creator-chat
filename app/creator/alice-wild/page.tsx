@@ -13,6 +13,8 @@ export default function AliceWildPage() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+
 
   // ✅ Après paiement PayPal (localStorage.subscribed = "yes")
   // on remet isSubscribed à true au rechargement
@@ -255,6 +257,7 @@ export default function AliceWildPage() {
             return (
               <div
                 key={i}
+                 onClick={() => setSelectedPhoto(photo)} 
                 className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-square"
               >
                 {/* Laurin claire, les autres floutées */}
@@ -303,6 +306,20 @@ export default function AliceWildPage() {
           })}
         </div>
       </div>
+             {selectedPhoto && (
+  <div
+    className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]"
+    onClick={() => setSelectedPhoto(null)}
+  >
+    <div className="max-w-3xl w-[90vw] md:w-auto max-h-[90vh]">
+      <img
+        src={selectedPhoto}
+        alt="Photo agrandie"
+        className="w-full h-auto max-h-[90vh] object-contain rounded-2xl"
+      />
+    </div>
+  </div>
+)}
     </main>
   );
 }
