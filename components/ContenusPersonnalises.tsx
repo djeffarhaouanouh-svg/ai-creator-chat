@@ -103,7 +103,7 @@ const ContenusPersonnalises = () => {
               Demande des contenus
               <br />
               <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-                personnalisés 
+                exclusifs 
               </span>{" "}
                👀
             </h2>

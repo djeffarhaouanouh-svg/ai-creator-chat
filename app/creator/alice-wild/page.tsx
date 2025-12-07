@@ -7,6 +7,36 @@ import { useState, useEffect, useRef } from "react";
 import PaypalButton from "@/components/PaypalButton";
 
 export default function AliceWildPage() {
+  // FAQ state
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  // FAQ content
+  const faqData = [
+    {
+      question: "Est-ce que les messages sont vraiment illimités ?",
+      answer: "Oui, une fois abonné, tu peux discuter sans limite, 24h/24.",
+    },
+    {
+      question: "Est-ce que Alice est une vraie personne ?",
+      answer: "Alice est une IA basée sur la personnalité de la créatrice.",
+    },
+    {
+      question: "Puis-je annuler mon abonnement ?",
+      answer: "Oui, tu peux annuler à tout moment en un clic.",
+    },
+    {
+      question: "Que débloque l'abonnement ?",
+      answer:
+        "Messages illimités, vocaux personnalisés, mémoire, contenu exclusif.",
+    },
+  ];
+
+  const toggle = (i: number) => {
+    setOpenIndex(openIndex === i ? null : i);
+  };
+
+  // --- APRES ça vient TON RETURN ---
+
   const router = useRouter();
   const creator = getCreatorByUsername("alice-wild");
 
@@ -79,7 +109,7 @@ export default function AliceWildPage() {
   };
 
   return (
-    <main className="bg-white">
+     <main className="bg-white min-h-screen pb-1">
       {/* HAUT */}
       <div className="w-full h-[28rem] md:h-[52rem] relative">
         <div
@@ -147,23 +177,76 @@ export default function AliceWildPage() {
           </div>
         </div>
 
-        {/* Bio + style de conversation */}
-        <div className="max-w-2xl mx-auto mb-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
-            À propos
-          </h2>
+        {/* GALERIE VERROUILLÉE */}
+<div className="px-4 md:px-8 pb-16 mt-10">
+  <div className="grid grid-cols-3 gap-2 max-w-3xl mx-auto">
+    {photos.map((photo, i) => {
+      const isLaurin = i === 0;
 
-          <p className="text-gray-700 leading-relaxed text-center mb-6">
-            {creator.bio}
-          </p>
+      return (
+        <div
+          key={i}
+          onClick={() => setSelectedPhoto(photo)}
+          className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-square"
+        >
+          <img
+            src={photo}
+            alt={`Photo ${i + 1}`}
+            className={`w-full h-full object-cover ${
+              isLaurin ? "" : "blur-lg scale-110"
+            }`}
+          />
 
-          <div className="bg-gray-50 rounded-xl p-6">
-            <h3 className="font-semibold text-gray-900 mb-2 text-center">
-              Style de conversation
-            </h3>
-            <p className="text-gray-600 text-center">{creator.personality}</p>
-          </div>
+          {!isLaurin && (
+            <>
+              <div className="absolute inset-0 bg-black/40" />
+
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="black"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+              </div>
+
+              {i === 1 && (
+                <div className="absolute inset-0 flex items-end justify-center pb-4">
+                  <button className="bg-white/90 text-black px-3 py-1 rounded-full text-xs font-medium shadow-md transition backdrop-blur-sm">
+                    Débloquer
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
+      );
+    })}
+  </div>
+</div>
+
+         {/* Style de conversation */}
+<div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 max-w-2xl mx-auto mb-10">
+  <h3 className="font-semibold text-gray-900 mb-4 text-center">
+    Comment Alice parle avec toi 💕
+  </h3>
+
+  <ul className="space-y-2 text-gray-700">
+    <li>• Elle te répond comme une vraie copine</li>
+    <li>• Elle se souvient de ce que tu lui racontes</li>
+    <li>• Elle t'envoie des messages vocaux personnalisés</li>
+    <li>• Elle peut être douce, taquine ou coquine selon tes envies</li>
+  </ul>
+</div>
 
         {/* AUDIO */}
         <div className="w-full flex justify-center mt-2 mb-8">
@@ -243,69 +326,6 @@ export default function AliceWildPage() {
           )}
         </div>
       </div>
-
-             {/* GALERIE VERROUILLÉE */}
-      <div className="px-4 md:px-8 pb-16 mt-10">
-        <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">
-          Contenu exclusif
-        </h2>
-
-                 <div className="grid grid-cols-3 gap-2 max-w-3xl mx-auto">
-          {photos.map((photo, i) => {
-            const isLaurin = i === 0; // 🔥 première photo = Laurin
-
-            return (
-              <div
-                key={i}
-                 onClick={() => setSelectedPhoto(photo)} 
-                className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-square"
-              >
-                {/* Laurin claire, les autres floutées */}
-                <img
-                  src={photo}
-                  alt={`Photo ${i + 1}`}
-                  className={`w-full h-full object-cover ${
-                    isLaurin ? "" : "blur-lg scale-110"
-                  }`}
-                />
-
-                {/* Overlay + cadenas UNIQUEMENT si ce n’est pas Laurin */}
-                {!isLaurin && (
-                  <>
-                    <div className="absolute inset-0 bg-black/40" />
-
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
-                        <svg
-                          width="28"
-                          height="28"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="black"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <rect x="3" y="11" width="18" height="11" rx="2" />
-                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                        </svg>
-                      </div>
-                    </div>
-
-                    {i === 1 && (
-                      <div className="absolute inset-0 flex items-end justify-center pb-4">
-                        <button className="bg-white/90 text-black px-3 py-1 rounded-full text-xs font-medium shadow-md transition backdrop-blur-sm">
-                          Débloquer
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
              {selectedPhoto && (
   <div
     className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]"
@@ -320,6 +340,43 @@ export default function AliceWildPage() {
     </div>
   </div>
 )}
+ {/* FAQ */}
+<div className="max-w-2xl mx-auto mt-12 mb-20 px-4">
+  <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">
+    FAQ — Questions fréquentes
+  </h2>
+
+  <div className="space-y-3">
+    {faqData.map((item, i) => (
+      <div
+        key={i}
+        className="border border-gray-200 rounded-xl overflow-hidden"
+      >
+        {/* HEADER */}
+        <button
+          onClick={() => toggle(i)}
+          className="w-full px-4 py-3 flex justify-between items-center text-left"
+        >
+          <span className="font-medium text-gray-900">{item.question}</span>
+
+          <span className="text-gray-600 text-xl">
+            {openIndex === i ? "−" : "+"}
+          </span>
+        </button>
+
+        {/* CONTENU */}
+        <div
+          className={`px-4 pb-3 text-gray-600 text-sm transition-all duration-300 ${
+            openIndex === i ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+          } overflow-hidden`}
+        >
+          {item.answer}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
     </main>
   );
 }
