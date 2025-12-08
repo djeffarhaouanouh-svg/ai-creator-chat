@@ -18,11 +18,23 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
+       <head>
+       {/* HOTJAR */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(h,o,t,j,a,r){
+              h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+              h._hjSettings={hjid: VOTRE_ID_HOTJAR , hjsv: 6};
+              a=o.getElementsByTagName('head')[0];
+              r=o.createElement('script');r.async=1;
+              r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+              a.appendChild(r);
+            })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');`,
+          }}
+        />
+        </head>
       <body className={`${inter.className} bg-black text-white`}>
-        
-        {/* HEADER FIXÉ */}
-        <Header />
-
+    
         {/* WRAPPER CONTENU — padding pour compenser le header */}
         <div className="pt-20">
           {children}
