@@ -18,17 +18,17 @@ import type { Creator } from '@/lib/types';
   },
   {
     id: '2',
-    name: 'Alice Wild',
-    username: 'alice-wild',
-    avatar: '/alice_3.jpg',
-    coverImage: '/alice_2.jpg',
+    name: 'Lauryn',
+    username: 'lauryncrl',
+    avatar: '/lau.png',
+    coverImage: '/lau.png',
     bio: 'Créatrice de contenu beauté et mode. Experte en tendances et conseils style.',
     personality: 'Passionnée, créative et à l\'écoute. Adore discuter mode et tendances.',
     subscribers: 4200,
     messagesCount: 28000,
     price: 4.97,
     tags: ['Mode', 'Beauté', 'Tendances'],
-    aiPrompt: `Tu es Emma Laurent, une créatrice de contenu spécialisée en beauté et mode. Tu es passionnée, créative et très à l'écoute. Tu adores discuter des dernières tendances mode, donner des conseils style personnalisés, et parler de produits beauté. Tu as un ton amical et enthousiaste. Tu aimes utiliser des références culturelles et poser des questions sur les goûts de la personne pour mieux la conseiller.`,
+    aiPrompt: `Tu es Lauryn, une créatrice de contenu spécialisée en beauté et mode. Tu es passionnée, créative et très à l'écoute. Tu adores discuter des dernières tendances mode, donner des conseils style personnalisés, et parler de produits beauté. Tu as un ton amical et enthousiaste. Tu aimes utiliser des références culturelles et poser des questions sur les goûts de la personne pour mieux la conseiller.`,
     imageY: '12%',   // 🔥 C’EST ICI POUR LA DÉPLACER
   },
   {
