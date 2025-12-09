@@ -11,15 +11,11 @@ export const metadata: Metadata = {
   description: "Conversations personnalisées avec des créatrices via IA",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-       <head>
-       {/* HOTJAR */}
+      <head>
+        {/* HOTJAR */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(h,o,t,j,a,r){
@@ -32,10 +28,14 @@ export default function RootLayout({
             })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');`,
           }}
         />
-        </head>
+      </head>
+
       <body className={`${inter.className} bg-black text-white`}>
-    
-        {/* WRAPPER CONTENU — padding pour compenser le header */}
+
+        {/* 🔥🔴 TU AVAIS OUBLIÉ CECI → LE HEADER !!! */}
+        <Header />
+
+        {/* padding pour laisser la place au header */}
         <div className="pt-20">
           {children}
         </div>
@@ -44,7 +44,7 @@ export default function RootLayout({
         <footer className="bg-black border-t border-white/10 mt-20">
           <div className="max-w-7xl mx-auto px-4 py-12">
             <div className="grid md:grid-cols-3 gap-8">
-
+              
               {/* Colonne 1 */}
               <div>
                 <h3 className="text-xl font-bold text-white mb-4">MyDouble</h3>
@@ -56,42 +56,19 @@ export default function RootLayout({
               {/* Colonne 2 */}
               <div>
                 <ul className="space-y-2 text-sm">
-  <li>
-    <a href="/mentions-legales" className="text-white/60 hover:text-white transition-colors">
-      Mentions légales
-    </a>
-  </li>
-  <li>
-    <a href="/cgv" className="text-white/60 hover:text-white transition-colors">
-      CGV
-    </a>
-  </li>
-  <li>
-    <a href="/confidentialite" className="text-white/60 hover:text-white transition-colors">
-      Confidentialité
-    </a>
-  </li>
-  <li>
-    <a href="/cookies" className="text-white/60 hover:text-white transition-colors">
-      Cookies
-    </a>
-  </li>
-</ul>
+                  <li><a href="/mentions-legales" className="text-white/60 hover:text-white">Mentions légales</a></li>
+                  <li><a href="/cgv" className="text-white/60 hover:text-white">CGV</a></li>
+                  <li><a href="/confidentialite" className="text-white/60 hover:text-white">Confidentialité</a></li>
+                  <li><a href="/cookies" className="text-white/60 hover:text-white">Cookies</a></li>
+                </ul>
               </div>
+
               {/* Colonne 3 */}
               <div>
                 <h4 className="text-white font-semibold mb-4">Support</h4>
                 <ul className="space-y-2 text-sm">
-                  <li>
-  <a href="/contact" className="text-white/60 hover:text-white transition-colors">
-    Contact
-  </a>
-</li>
-<li>
-  <a href="/Faq" className="text-white/60 hover:text-white transition-colors">
-    Faq
-  </a>
-</li>
+                  <li><a href="/contact" className="text-white/60 hover:text-white">Contact</a></li>
+                  <li><a href="/Faq" className="text-white/60 hover:text-white">FAQ</a></li>
                 </ul>
               </div>
 
