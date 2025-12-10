@@ -33,14 +33,14 @@ export default function Header() {
         </button>
 
         {/* TITRE / LOGO CENTRÉ */}
-        <Link href="/" className="text-white font-bold text-xl text-center flex-1">
+        <Link href="/" className="text-white font-bold text-xl text-center flex-1 ml-10">
           MyDouble
         </Link>
 
         {/* BOUTON CONNEXION */}
         <Link
           href="/login"
-          className="text-white border border-white px-4 py-2 rounded-md whitespace-nowrap"
+           className="text-white border border-white px-3 py-1.5 text-sm rounded-md whitespace-nowrap"
         >
           Connexion
         </Link>
