@@ -3,13 +3,38 @@
 import { useRouter } from "next/navigation";
 import { getCreatorByUsername } from "@/data/creators";
 import { MessageCircle, Users, Star } from "lucide-react";
-import { storage } from "@/lib/storage";
 import { useState, useEffect, useRef } from "react";
 import PaypalButton from "@/components/PaypalButton";
 
 export default function TootatisPage() {
   const router = useRouter();
   const creator = getCreatorByUsername("Tootatis");
+
+  // FAQ
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const faqData = [
+    {
+      question: "Les messages sont-ils illimités ?",
+      answer: "Oui, une fois abonné, tu peux discuter sans limite 24h/24.",
+    },
+    {
+      question: "Est-ce que Tootatis est réelle ?",
+      answer:
+        "Tootatis est une intelligence artificielle basée sur la personnalité de la créatrice.",
+    },
+    {
+      question: "Comment se passe l’annulation ?",
+      answer: "Tu peux annuler ton abonnement à tout moment en un clic.",
+    },
+    {
+      question: "Que débloque l’abonnement ?",
+      answer:
+        "Messages illimités, vocaux personnalisés, mémoire, contenu exclusif.",
+    },
+  ];
+  const toggle = (i: number) => {
+    setOpenIndex(openIndex === i ? null : i);
+  };
 
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -18,17 +43,21 @@ export default function TootatisPage() {
   // 🔥 DONNÉES UNIQUES POUR TOOTATIS
   const price = 4.97;
   const audio = "/audio/tootatis.mp3";
-  const photos = ["/tootatis/photo1.jpg", "/tootatis/photo2.jpg", "/tootatis/photo3.jpg"];
+  const photos = ["/tootatis-1.jpg", "/tootatis-2.jpg", "/tootatis-3.jpg"];
   const subscribers = 3800;
   const messagesCount = 22000;
-  const rating = 5.0;
+  const rating = 4.9;
 
+  // Vérifie abonnement dans le localStorage (comme Lucile)
   useEffect(() => {
-    if (creator) {
-      setIsSubscribed(storage.isSubscribed(creator.id));
+    if (typeof window !== "undefined") {
+      if (localStorage.getItem("subscribed") === "yes") {
+        setIsSubscribed(true);
+      }
     }
-  }, [creator]);
+  }, []);
 
+  // Préparer l'audio
   useEffect(() => {
     audioRef.current = new Audio(audio);
   }, []);
@@ -51,15 +80,11 @@ export default function TootatisPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Créatrice introuvable
-          </h1>
-          <p className="text-gray-600 mb-4">
-            Cette créatrice n&apos;existe pas ou plus.
-          </p>
+          <h1 className="text-2xl font-bold mb-2">Créatrice introuvable</h1>
+          <p className="mb-4">Cette créatrice n&apos;existe pas ou plus.</p>
           <button
             onClick={() => router.push("/")}
-            className="bg-[#e31fc1] hover:bg-[#c919a3] text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
+            className="bg-[#e31fc1] text-white px-6 py-2 rounded-lg"
           >
             Retour à l&apos;accueil
           </button>
@@ -68,38 +93,20 @@ export default function TootatisPage() {
     );
   }
 
-  const handleSubscribe = () => {
-    storage.subscribe(creator.id);
-    setIsSubscribed(true);
-    router.push(`/chat/${creator.id}`);
-  };
-
   const handleChat = () => {
     router.push(`/chat/${creator.id}`);
   };
 
   return (
-    <main className="bg-white">
-      {/* HAUT */}
+    <main className="bg-white min-h-screen pb-1">
+      {/* HERO IMAGE */}
       <div className="w-full h-[28rem] md:h-[52rem] relative">
-        <div
-          className="absolute inset-0 flex z-0"
-          style={{
-            alignItems:
-              creator.imageY === "top"
-                ? "flex-start"
-                : creator.imageY === "bottom"
-                ? "flex-end"
-                : "center",
-          }}
-        >
+        <div className="absolute inset-0 flex z-0 items-center">
           <img
             src={creator.coverImage || creator.avatar || "/fallback.jpg"}
             alt={creator.name}
             className="w-full h-full object-cover"
-            style={{
-              objectPosition: `center ${creator.imageY || "50%"}`,
-            }}
+            style={{ objectPosition: "center 30%" }}
           />
         </div>
 
@@ -112,9 +119,9 @@ export default function TootatisPage() {
         </div>
       </div>
 
-      {/* BAS */}
+      {/* CONTENU BAS */}
       <div className="px-4 md:px-8 py-10">
-        {/* Stats */}
+        {/* STATS */}
         <div className="flex justify-center gap-6 md:gap-10 mb-10">
           <div className="text-center">
             <div className="flex items-center gap-2 justify-center mb-1">
@@ -147,22 +154,70 @@ export default function TootatisPage() {
           </div>
         </div>
 
-        {/* Bio + style de conversation */}
-        <div className="max-w-2xl mx-auto mb-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
-            À propos
+        {/* GALERIE EN HAUT (comme Lucile) */}
+        <div className="px-4 md:px-8 pb-16 mt-10">
+          <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">
+            Contenu exclusif
           </h2>
 
+          <div className="grid grid-cols-3 gap-2 max-w-3xl mx-auto">
+            {photos.map((photo, i) => (
+              <div
+                key={i}
+                className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-square"
+              >
+                <img
+                  src={photo}
+                  alt={`Photo ${i + 1}`}
+                  className="w-full h-full object-cover blur-lg scale-110"
+                />
+
+                <div className="absolute inset-0 bg-black/40"></div>
+
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
+                    <svg
+                      width="28"
+                      height="28"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="black"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect x="3" y="11" width="18" height="11" rx="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* bouton Débloquer sur la 2e photo */}
+                {i === 1 && (
+                  <div className="absolute inset-0 flex items-end justify-center pb-4">
+                    <button className="bg-white/90 text-black px-3 py-1 rounded-full text-xs font-medium shadow-md transition backdrop-blur-sm">
+                      Débloquer
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* STYLE DE CONVERSATION / BIO */}
+        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 max-w-2xl mx-auto mb-10">
+          <h3 className="font-semibold text-gray-900 mb-4 text-center">
+            Qui est {creator.name} ?
+          </h3>
           <p className="text-gray-700 leading-relaxed text-center mb-6">
             {creator.bio}
           </p>
 
-          <div className="bg-gray-50 rounded-xl p-6">
-            <h3 className="font-semibold text-gray-900 mb-2 text-center">
-              Style de conversation
-            </h3>
-            <p className="text-gray-600 text-center">{creator.personality}</p>
-          </div>
+          <h3 className="font-semibold text-gray-900 mb-2 text-center">
+            Comment elle parle avec toi 💕
+          </h3>
+          <p className="text-gray-700 text-center">{creator.personality}</p>
         </div>
 
         {/* AUDIO */}
@@ -178,12 +233,7 @@ export default function TootatisPage() {
                   <rect x="12" y="3" width="5" height="14" rx="2" />
                 </svg>
               ) : (
-                <svg
-                  width="22"
-                  height="22"
-                  viewBox="0 0 20 20"
-                  fill="#4a4a4a"
-                >
+                <svg width="22" height="22" viewBox="0 0 20 20" fill="#4a4a4a">
                   <polygon points="3,2 17,10 3,18" />
                 </svg>
               )}
@@ -197,7 +247,7 @@ export default function TootatisPage() {
           </div>
         </div>
 
-        {/* Prix */}
+        {/* PRIX */}
         <div className="text-center mb-6">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
             {price.toFixed(2)}€
@@ -208,24 +258,8 @@ export default function TootatisPage() {
           </p>
         </div>
 
-        <div className="flex flex-col items-center gap-2 mt-4">
-          <div className="flex items-center gap-2">
-            <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
-              ✓
-            </span>
-            <p className="text-gray-600 text-lg">Messages illimités</p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
-              ✓
-            </span>
-            <p className="text-gray-600 text-lg">Annulation à tout moment</p>
-          </div>
-        </div>
-
-        {/* CTA + PayPal */}
-        <div className="max-w-md mx-auto w-full">
+        {/* CTA PAYPAL / CHAT — identique à Lucile */}
+        <div className="max-w-md mx-auto w-full mt-6">
           {isSubscribed ? (
             <button
               onClick={handleChat}
@@ -235,65 +269,41 @@ export default function TootatisPage() {
               Discutez gratuitement
             </button>
           ) : (
-            <button
-              onClick={handleSubscribe}
-              className="w-full bg-[#e31fc1] hover:bg-[#c919a3] text-white px-8 py-4 rounded-xl font-semibold text-lg transition"
-            >
-              Commencer à discuter
-            </button>
+            <div className="w-full">
+              <PaypalButton />
+            </div>
           )}
-
-          <div className="mt-4">
-            <PaypalButton />
-          </div>
         </div>
       </div>
 
-      {/* GALERIE VERROUILLÉE */}
-      <div className="px-4 md:px-8 pb-16 mt-10">
+      {/* FAQ */}
+      <div className="max-w-2xl mx-auto mt-12 mb-20 px-4">
         <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">
-          Contenu exclusif
+          FAQ — Questions fréquentes
         </h2>
 
-        <div className="grid grid-cols-3 gap-2 max-w-3xl mx-auto">
-          {photos.map((photo, i) => (
-            <div
-              key={i}
-              className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-square"
-            >
-              <img
-                src={photo}
-                alt={`Photo ${i + 1}`}
-                className="w-full h-full object-cover blur-lg scale-110"
-              />
+        <div className="space-y-3">
+          {faqData.map((item, i) => (
+            <div key={i} className="border border-gray-200 rounded-xl overflow-hidden">
+              <button
+                onClick={() => toggle(i)}
+                className="w-full px-4 py-3 flex justify-between items-center text-left"
+              >
+                <span className="font-medium text-gray-900">
+                  {item.question}
+                </span>
+                <span className="text-gray-600 text-xl">
+                  {openIndex === i ? "−" : "+"}
+                </span>
+              </button>
 
-              <div className="absolute inset-0 bg-black/40"></div>
-
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
-                  <svg
-                    width="28"
-                    height="28"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="black"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                </div>
+              <div
+                className={`px-4 pb-3 text-gray-600 text-sm transition-all duration-300 ${
+                  openIndex === i ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                } overflow-hidden`}
+              >
+                {item.answer}
               </div>
-
-              {i === 1 && (
-                <div className="absolute inset-0 flex items-end justify-center pb-4">
-                  <button className="bg-white/90 text-black px-3 py-1 rounded-full text-xs font-medium shadow-md transition backdrop-blur-sm">
-                    Débloquer
-                  </button>
-                </div>
-              )}
             </div>
           ))}
         </div>
