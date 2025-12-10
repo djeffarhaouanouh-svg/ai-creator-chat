@@ -29,7 +29,7 @@ export default function TootatisPage() {
     {
       question: "Que débloque l’abonnement ?",
       answer:
-        "Messages illimités, vocaux personnalisés, mémoire, contenu exclusif.",
+        "Messages illimités, vocaux personnalisés, mémoire et contenu exclusif.",
     },
   ];
   const toggle = (i: number) => {
@@ -257,6 +257,19 @@ export default function TootatisPage() {
             Messages illimités • Annulation à tout moment
           </p>
         </div>
+         <div className="flex items-center gap-2">
+    <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
+      ✓
+    </span>
+    <p className="text-gray-600 text-lg">Réponses rapides 24h/24</p>
+  </div>
+
+  <div className="flex items-center gap-2">
+    <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
+      ✓
+    </span>
+    <p className="text-gray-600 text-lg">Vocaux personnalisés</p>
+  </div>
 
         {/* CTA PAYPAL / CHAT — identique à Lucile */}
         <div className="max-w-md mx-auto w-full mt-6">

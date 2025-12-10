@@ -260,6 +260,20 @@ export default function LucilePage() {
           </p>
         </div>
 
+         <div className="flex items-center gap-2">
+    <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
+      ✓
+    </span>
+    <p className="text-gray-600 text-lg">Réponses rapides 24h/24</p>
+  </div>
+
+  <div className="flex items-center gap-2">
+    <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
+      ✓
+    </span>
+    <p className="text-gray-600 text-lg">Vocaux personnalisés</p>
+  </div>
+
         {/* CTA PAYPAL / CHAT — même logique que Lauryn */}
         <div className="max-w-md mx-auto w-full mt-6">
           {isSubscribed ? (

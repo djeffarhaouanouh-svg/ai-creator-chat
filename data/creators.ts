@@ -26,7 +26,7 @@ import type { Creator } from '@/lib/types';
     personality: 'Passionnée, créative et à l\'écoute. Adore discuter mode et tendances.',
     subscribers: 2500,
     messagesCount: 12000,
-    price: 4.97,
+    price: 6.97,
     tags: ['Mode', 'Beauté', 'Tendances'],
     aiPrompt: `Tu es Lauryn, une créatrice de contenu spécialisée en beauté et mode. Tu es passionnée, créative et très à l'écoute. Tu adores discuter des dernières tendances mode, donner des conseils style personnalisés, et parler de produits beauté. Tu as un ton amical et enthousiaste. Tu aimes utiliser des références culturelles et poser des questions sur les goûts de la personne pour mieux la conseiller.`,
     imageY: '12%',   // 🔥 C’EST ICI POUR LA DÉPLACER

@@ -50,7 +50,7 @@ export default function LaurynPage() {
   }, []);
 
   // Données Lauryn
-  const price = 4.97;
+  const price = 6.97;
   const audio = "/audio/alice.mp3";
   const photos = [
     "/laurin.png",
@@ -217,45 +217,68 @@ export default function LaurynPage() {
           </div>
         </div>
 
-        {/* STYLE DE CONVERSATION */}
-        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 max-w-2xl mx-auto mb-10">
-          <h3 className="font-semibold text-gray-900 mb-4 text-center">
-            Comment Lauryn parle avec toi 💕
-          </h3>
-          <ul className="space-y-2 text-gray-700">
-            <li>• Elle te répond comme une vraie copine</li>
-            <li>• Elle se souvient de ce que tu lui racontes</li>
-            <li>• Elle t&apos;envoie des vocaux personnalisés</li>
-            <li>• Elle peut être douce, taquine ou coquine selon tes envies</li>
-          </ul>
-        </div>
+<div className="bg-gray-50 border border-gray-200 rounded-2xl p-8 max-w-2xl mx-auto mb-10">
 
-        {/* AUDIO */}
-        <div className="w-full flex justify-center mt-2 mb-8">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={toggleAudio}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-[#e9edef] border border-gray-300"
-            >
-              {isPlaying ? (
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="#4a4a4a">
-                  <rect x="3" y="3" width="5" height="14" rx="2" />
-                  <rect x="12" y="3" width="5" height="14" rx="2" />
-                </svg>
-              ) : (
-                <svg width="22" height="22" viewBox="0 0 20 20" fill="#4a4a4a">
-                  <polygon points="3,2 17,10 3,18" />
-                </svg>
-              )}
-            </button>
+  {/* LIGNE 1 */}
+  <p className="text-gray-900 font-semibold text-center text-lg mb-1">
+    T’en as marre de parler à des agences de chatting❗️
+  </p>
 
-            <div className={`bespona-wave ${isPlaying ? "playing" : ""}`}>
-              {Array.from({ length: 10 }).map((_, i) => (
-                <span key={i}></span>
-              ))}
-            </div>
-          </div>
-        </div>
+  {/* LIGNE 2 */}
+  <p className="text-gray-700 text-center text-base mb-3">
+    et d’attendre des heures pour une réponse ?
+  </p>
+
+  {/* LIGNE 3 */}
+  <p className="text-gray-600 text-center leading-relaxed mb-6 text-[15px]">
+  Découvre l’IA inspirée de ta créatrice : sa façon d’écrire,<br />
+  ses souvenirs et sa voix, dispo 24h/24.
+</p>
+
+  {/* TITRE ORIGINAL */}
+  <h3 className="font-semibold text-gray-900 mb-4 text-center text-lg">
+    Comment Lauryn parle avec toi 💕
+  </h3>
+
+  <ul className="space-y-2 text-gray-700 text-[15px]">
+    <li>• Elle te répond comme une vraie copine</li>
+    <li>• Elle se souvient de ce que tu lui racontes</li>
+    <li>• Elle t’envoie des vocaux personnalisés</li>
+    <li>• Elle peut être douce, taquine ou coquine selon tes envies</li>
+  </ul>
+</div>
+
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl px-6 py-4 max-w-2xl mx-auto mt-8 mb-10">
+  <div className="flex items-center justify-center gap-5">
+
+    {/* BOUTON PLAY */}
+    <button
+      onClick={toggleAudio}
+      className="w-10 h-10 flex items-center justify-center rounded-full bg-[#e9edef] border border-gray-300"
+    >
+      {isPlaying ? (
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="#4a4a4a">
+          <rect x="3" y="3" width="5" height="14" rx="2" />
+          <rect x="12" y="3" width="5" height="14" rx="2" />
+        </svg>
+      ) : (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="#4a4a4a">
+          <polygon points="3,2 17,10 3,18" />
+        </svg>
+      )}
+    </button>
+
+    {/* WAVEFORM */}
+    <div className="flex items-center">
+      <div className={`bespona-wave ${isPlaying ? "playing" : ""}`}>
+        {Array.from({ length: 18 }).map((_, i) => (
+          <span key={i}></span>
+        ))}
+      </div>
+    </div>
+
+  </div>
+</div>
 
         {/* PRIX */}
         <div className="text-center mb-6">
@@ -267,6 +290,24 @@ export default function LaurynPage() {
             Messages illimités • Annulation à tout moment
           </p>
         </div>
+
+        <div className="flex flex-col items-center gap-2 mt-4">
+
+  <div className="flex items-center gap-2">
+    <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
+      ✓
+    </span>
+    <p className="text-gray-600 text-lg">Réponses rapides 24h/24</p>
+  </div>
+
+  <div className="flex items-center gap-2">
+    <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
+      ✓
+    </span>
+    <p className="text-gray-600 text-lg">Vocaux personnalisés</p>
+  </div>
+
+</div>
 
         {/* CTA PAYPAL / CHAT */}
         <div className="max-w-md mx-auto w-full mt-6">
