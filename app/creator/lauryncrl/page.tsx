@@ -7,10 +7,11 @@ import { useState, useEffect, useRef } from "react";
 import PaypalButton from "@/components/PaypalButton";
 
 export default function LaurynPage() {
-  // FAQ state
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const router = useRouter();
+  const creator = getCreatorByUsername("lauryncrl");
 
-  // FAQ content
+  // FAQ
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
   const faqData = [
     {
       question: "Est-ce que les messages sont vraiment illimités ?",
@@ -30,22 +31,16 @@ export default function LaurynPage() {
         "Messages illimités, vocaux personnalisés, mémoire, contenu exclusif.",
     },
   ];
-
   const toggle = (i: number) => {
     setOpenIndex(openIndex === i ? null : i);
   };
-
-  const router = useRouter();
-
-  // ✅ ICI : on charge Lauryn
-  const creator = getCreatorByUsername("lauryncrl");
 
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
-  // Vérifie abonnement
+  // Vérifie abonnement dans le localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (localStorage.getItem("subscribed") === "yes") {
@@ -54,9 +49,9 @@ export default function LaurynPage() {
     }
   }, []);
 
-  // 🔥 DONNÉES : Lauryn
+  // Données Lauryn
   const price = 4.97;
-  const audio = "/audio/alice.mp3"; // tu peux changer si tu veux
+  const audio = "/audio/alice.mp3";
   const photos = [
     "/laurin.png",
     "/alice/photo5.jpg",
@@ -65,12 +60,11 @@ export default function LaurynPage() {
     "/laurin-3.png",
     "/alice/photo6.jpg",
   ];
-
   const subscribers = 4200;
   const messagesCount = 28000;
   const rating = 4.9;
 
-  // Prépare audio
+  // Préparer l'audio
   useEffect(() => {
     audioRef.current = new Audio(audio);
   }, []);
@@ -94,45 +88,31 @@ export default function LaurynPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-2">Créatrice introuvable</h1>
-          <p className="mb-4">Cette créatrice n'existe pas ou plus.</p>
+          <p className="mb-4">Cette créatrice n&apos;existe pas ou plus.</p>
           <button
             onClick={() => router.push("/")}
             className="bg-[#e31fc1] text-white px-6 py-2 rounded-lg"
           >
-            Retour à l'accueil
+            Retour à l&apos;accueil
           </button>
         </div>
       </div>
     );
   }
 
-  // ✅ Version PROPRE, sans erreur
   const handleChat = () => {
     router.push(`/chat/${creator.id}`);
   };
 
   return (
     <main className="bg-white min-h-screen pb-1">
-      {/* HAUT */}
+      {/* HERO IMAGE */}
       <div className="w-full h-[28rem] md:h-[52rem] relative">
-        <div
-          className="absolute inset-0 flex z-0"
-          style={{
-            alignItems:
-              creator.imageY === "top"
-                ? "flex-start"
-                : creator.imageY === "bottom"
-                ? "flex-end"
-                : "center",
-          }}
-        >
+        <div className="absolute inset-0 flex z-0 items-center">
           <img
             src={creator.coverImage || creator.avatar || "/fallback.jpg"}
             alt={creator.name}
             className="w-full h-full object-cover"
-            style={{
-              objectPosition: `center ${creator.imageY || "50%"}`,
-            }}
           />
         </div>
 
@@ -145,9 +125,9 @@ export default function LaurynPage() {
         </div>
       </div>
 
-      {/* BAS */}
+      {/* CONTENU BAS */}
       <div className="px-4 md:px-8 py-10">
-        {/* Stats */}
+        {/* STATS */}
         <div className="flex justify-center gap-6 md:gap-10 mb-10">
           <div className="text-center">
             <div className="flex items-center gap-2 justify-center mb-1">
@@ -180,28 +160,35 @@ export default function LaurynPage() {
           </div>
         </div>
 
-        {/* GALERIE */}
+        {/* GALERIE 2x3 */}
         <div className="px-4 md:px-8 pb-16 mt-10">
           <div className="grid grid-cols-3 gap-2 max-w-3xl mx-auto">
             {photos.map((photo, i) => {
-              // 🔥 1ère et 3ème (index 0 et 2) visibles
-              const isLaurin = i === 0 || i === 2;
+              // 🟩 1ère et 3ème visibles (index 0 et 2)
+              const isUnlocked = i === 0 || i === 2;
 
               return (
                 <div
                   key={i}
-                  onClick={() => setSelectedPhoto(photo)}
-                  className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-square"
+                  onClick={() => {
+                    if (isUnlocked) {
+                      setSelectedPhoto(photo);
+                    }
+                  }}
+                  className={`relative rounded-2xl overflow-hidden bg-gray-200 aspect-square ${
+                    isUnlocked ? "cursor-pointer" : "cursor-default"
+                  }`}
                 >
                   <img
                     src={photo}
                     alt={`Photo ${i + 1}`}
                     className={`w-full h-full object-cover ${
-                      isLaurin ? "" : "blur-lg scale-110"
+                      isUnlocked ? "" : "blur-lg scale-110"
                     }`}
                   />
 
-                  {!isLaurin && (
+                  {/* Overlay + cadenas uniquement si verrouillé */}
+                  {!isUnlocked && (
                     <>
                       <div className="absolute inset-0 bg-black/40" />
                       <div className="absolute inset-0 flex items-center justify-center">
@@ -229,16 +216,15 @@ export default function LaurynPage() {
           </div>
         </div>
 
-        {/* STYLE */}
+        {/* STYLE DE CONVERSATION */}
         <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 max-w-2xl mx-auto mb-10">
           <h3 className="font-semibold text-gray-900 mb-4 text-center">
             Comment Lauryn parle avec toi 💕
           </h3>
-
           <ul className="space-y-2 text-gray-700">
             <li>• Elle te répond comme une vraie copine</li>
             <li>• Elle se souvient de ce que tu lui racontes</li>
-            <li>• Elle t'envoie des vocaux personnalisés</li>
+            <li>• Elle t&apos;envoie des vocaux personnalisés</li>
             <li>• Elle peut être douce, taquine ou coquine selon tes envies</li>
           </ul>
         </div>
@@ -281,7 +267,7 @@ export default function LaurynPage() {
           </p>
         </div>
 
-        {/* CTA */}
+        {/* CTA PAYPAL / CHAT */}
         <div className="max-w-md mx-auto w-full mt-6">
           {isSubscribed ? (
             <button
@@ -299,7 +285,7 @@ export default function LaurynPage() {
         </div>
       </div>
 
-      {/* ZOOM IMAGE */}
+      {/* ZOOM IMAGE (uniquement sur les photos débloquées) */}
       {selectedPhoto && (
         <div
           className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]"
