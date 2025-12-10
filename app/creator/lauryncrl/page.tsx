@@ -113,6 +113,7 @@ export default function LaurynPage() {
             src={creator.coverImage || creator.avatar || "/fallback.jpg"}
             alt={creator.name}
             className="w-full h-full object-cover"
+            style={{ objectPosition: "center 30%" }}
           />
         </div>
 
