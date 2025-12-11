@@ -42,5 +42,7 @@ export interface Creator {
   price: number;
   tags: string[];
   aiPrompt: string;
-  imageY?: string; // optionnel
+  imageY?: string;
+  mymLink?: string;
+  onlyfansLink?: string;
 }

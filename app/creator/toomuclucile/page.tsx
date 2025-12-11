@@ -29,7 +29,7 @@ export default function LucilePage() {
     {
       question: "Que débloque l’abonnement ?",
       answer:
-        "Messages illimités, vocaux personnalisés, mémoire, contenu exclusif.",
+        "Messages illimités, vocaux personnalisés, mémoire agrandie, contenu exclusif.",
     },
   ];
   const toggle = (i: number) => {

@@ -10,16 +10,45 @@ import { Message } from '@/lib/types';
 import Button from '@/components/ui/Button';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 
+/* -------------------------------------------------------------------------- */
+/*   🔗 Fonction : rendre cliquable UNIQUEMENT les liens MYM / ONLYFANS       */
+/*   + afficher un texte court : "Accéder à mon espace officiel 🔥"           */
+/* -------------------------------------------------------------------------- */
+function linkifyMYMOF(text: string) {
+  const regex = /(https?:\/\/[^\s]+)/g;
+
+  return text.split(regex).map((part, i) => {
+    const isOFOrMYM =
+      part.includes('mym.fans') || part.includes('onlyfans.com');
+
+    if (isOFOrMYM) {
+      return (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#e31fc1] underline break-words hover:opacity-80"
+        >
+          Accéder à mon espace officiel 🔥
+        </a>
+      );
+    }
+
+    return part;
+  });
+}
+
 async function saveMessageToDB(
   message: Message,
   creatorId: string,
-  userId: string = "demo"
+  userId: string = 'demo'
 ) {
   try {
-    await fetch("/api/messages/add", {
-      method: "POST",
+    await fetch('/api/messages/add', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         userId,
@@ -29,7 +58,7 @@ async function saveMessageToDB(
       }),
     });
   } catch (err) {
-    console.error("DB Save Error:", err);
+    console.error('DB Save Error:', err);
   }
 }
 
@@ -44,16 +73,15 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { isPlaying, playingMessageId, playAudio, stopAudio } = useTextToSpeech();
+  const { playingMessageId, playAudio, stopAudio } = useTextToSpeech();
 
   const [isModeOpen, setIsModeOpen] = useState(false);
-  const [mode, setMode] = useState<'friend' | 'girlfriend' | 'seductive'>('friend'); // mode par défaut = amie
+  const [mode, setMode] =
+    useState<'friend' | 'girlfriend' | 'seductive'>('friend');
 
-  // 🔹 NOUVEAU : état pour la demande de contenu personnalisé
   const [isRequestOpen, setIsRequestOpen] = useState(false);
   const [requestInput, setRequestInput] = useState('');
 
-  // Si créateur introuvable
   if (!creator) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -62,10 +90,8 @@ export default function ChatPage() {
     );
   }
 
-  // Charger l'historique + message de bienvenue
+  /* ---------------------------- Chargement session --------------------------- */
   useEffect(() => {
-    if (!creator) return;
-
     const subscribed = storage.isSubscribed(creator.id);
     setIsSubscribed(subscribed);
 
@@ -76,7 +102,7 @@ export default function ChatPage() {
 
     const session = storage.getChatSession(creator.id);
 
-    if (session && session.messages && session.messages.length > 0) {
+    if (session && session.messages?.length > 0) {
       setMessages(session.messages);
     } else {
       const welcomeMessage: Message = {
@@ -90,14 +116,9 @@ export default function ChatPage() {
     }
   }, [creator, router]);
 
-  // Scroll automatiquement en bas
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, [messages]);
 
   const getModeLabel = () => {
     switch (mode) {
@@ -105,12 +126,12 @@ export default function ChatPage() {
         return 'Petite copine 💕';
       case 'seductive':
         return 'Séduisante 😏';
-      case 'friend':
       default:
         return 'Amie 💛';
     }
   };
 
+  /* ------------------------------- Envoi message ----------------------------- */
   const sendMessage = async () => {
     if (!input.trim() || !creator || isLoading) return;
 
@@ -122,30 +143,25 @@ export default function ChatPage() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
-storage.addMessage(creator.id, userMessage);
-saveMessageToDB(userMessage, creator.id);
-setInput('');
-setIsLoading(true);
+    storage.addMessage(creator.id, userMessage);
+    saveMessageToDB(userMessage, creator.id);
+
+    setInput('');
+    setIsLoading(true);
 
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           creatorId: creator.id,
-          mode: mode, // IMPORTANT : mode actuel
+          mode: mode,
           messages: [...messages, userMessage].map((m) => ({
             role: m.role,
             content: m.content,
           })),
         }),
       });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de l'envoi du message");
-      }
 
       const data = await response.json();
 
@@ -156,56 +172,66 @@ setIsLoading(true);
         timestamp: new Date(),
       };
 
-       setMessages((prev) => [...prev, assistantMessage]);
-storage.addMessage(creator.id, assistantMessage);
-saveMessageToDB(assistantMessage, creator.id);
-    } catch (error) {
-      console.error('Erreur:', error);
-      const errorMessage: Message = {
+      setMessages((prev) => [...prev, assistantMessage]);
+      storage.addMessage(creator.id, assistantMessage);
+      saveMessageToDB(assistantMessage, creator.id);
+    } catch {
+      const errMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content:
-          "Oups, j'ai un petit souci technique 😅 Tu peux réessayer dans un instant ?",
+        content: "Oups, petit souci 😅 Réessaie dans un instant !",
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
+      setMessages((prev) => [...prev, errMsg]);
     }
+
+    setIsLoading(false);
   };
 
-  // 🔹 NOUVEAU : envoi "fake" de la demande de contenu personnalisé
+  /* ------------ Envoi FAKE pour demande de contenu personnalisé ------------- */
   const sendRequest = () => {
-    if (!requestInput.trim() || !creator) return;
+    if (!requestInput.trim()) return;
 
-    console.log('Demande de contenu personnalisé : ', requestInput);
+    const link = creator.mymLink || creator.onlyfansLink || null;
 
-    const confirmation: Message = {
+    let replyText = '';
+
+    if (link) {
+      replyText = `
+Je peux pas encore envoyer du contenu privé directement ici 😔  
+Mais tu peux l’obtenir sur mon espace officiel 🔥  
+
+👉 ${link}
+      `;
+    } else {
+      replyText = `
+Impossible d'envoyer du contenu ici 😔  
+La créatrice doit ajouter son lien MYM / OF dans l'administration.
+      `;
+    }
+
+    const assistantMessage: Message = {
       id: Date.now().toString(),
       role: 'assistant',
-      content: 'Ta demande de contenu personnalisé a bien été envoyée ✔️',
+      content: replyText,
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, confirmation]);
-    storage.addMessage(creator.id, confirmation);
+    setMessages((prev) => [...prev, assistantMessage]);
+    storage.addMessage(creator.id, assistantMessage);
 
     setRequestInput('');
     setIsRequestOpen(false);
   };
 
-  // 🔹 handleKeyPress comme dans ta capture 2
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
+  /* -------------------------------------------------------------------------- */
+  /*                                 RENDER PAGE                                */
+  /* -------------------------------------------------------------------------- */
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* HEADER */}
-      <div className="bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm relative">
+      <div className="bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -229,7 +255,7 @@ saveMessageToDB(assistantMessage, creator.id);
             <h2 className="font-semibold text-gray-900">{creator.name}</h2>
             <p className="text-xs text-green-600">En ligne</p>
             <p className="text-[11px] text-gray-500">
-              Mode de discussion : <span className="font-medium">{getModeLabel()}</span>
+              Mode : <span className="font-medium">{getModeLabel()}</span>
             </p>
           </div>
         </div>
@@ -239,44 +265,40 @@ saveMessageToDB(assistantMessage, creator.id);
             variant="ghost"
             size="sm"
             onClick={() => setIsModeOpen((v) => !v)}
-            className="flex items-center gap-1"
           >
             <MoreVertical size={20} />
           </Button>
 
-          {/* MENU MODE DE DISCUSSION */}
           {isModeOpen && (
-            <div className="absolute right-0 mt-2 w-52 bg-white shadow-lg rounded-xl border border-gray-200 py-2 z-50">
-              <p className="px-4 pb-2 text-xs text-gray-500 uppercase tracking-wide">
+            <div className="absolute right-0 mt-2 w-52 bg-white shadow-lg rounded-xl border p-2 z-50">
+              <p className="px-4 pb-2 text-xs text-gray-500 uppercase">
                 Mode de discussion
               </p>
 
               <button
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                 onClick={() => {
                   setMode('girlfriend');
                   setIsModeOpen(false);
                 }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-100"
               >
                 💕 Petite copine
               </button>
-
               <button
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                 onClick={() => {
                   setMode('friend');
                   setIsModeOpen(false);
                 }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-100"
               >
                 💛 Amie
               </button>
-
               <button
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                 onClick={() => {
                   setMode('seductive');
                   setIsModeOpen(false);
                 }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-100"
               >
                 😏 Séduisante
               </button>
@@ -285,7 +307,7 @@ saveMessageToDB(assistantMessage, creator.id);
         </div>
       </div>
 
-      {/* ZONE MESSAGES */}
+      {/* MESSAGES */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="max-w-3xl mx-auto space-y-4">
           {messages.map((message) => (
@@ -297,7 +319,7 @@ saveMessageToDB(assistantMessage, creator.id);
             >
               <div className="flex gap-2 max-w-[70%]">
                 {message.role === 'assistant' && (
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden">
                     <Image
                       src={creator.avatar}
                       alt={creator.name}
@@ -307,7 +329,7 @@ saveMessageToDB(assistantMessage, creator.id);
                   </div>
                 )}
 
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col">
                   <div
                     className={`rounded-2xl px-4 py-2 ${
                       message.role === 'user'
@@ -315,9 +337,11 @@ saveMessageToDB(assistantMessage, creator.id);
                         : 'bg-white text-gray-900 shadow-sm'
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">
-                      {message.content}
+                    {/* TEXTE AVEC LIEN MYM/OF UNIQUEMENT */}
+                    <p className="text-sm whitespace-pre-wrap break-words">
+                      {linkifyMYMOF(message.content)}
                     </p>
+
                     <p
                       className={`text-xs mt-1 ${
                         message.role === 'user'
@@ -332,15 +356,19 @@ saveMessageToDB(assistantMessage, creator.id);
                     </p>
                   </div>
 
-                  {/* Bouton audio pour les messages IA */}
+                  {/* BOUTON AUDIO */}
                   {message.role === 'assistant' && (
                     <button
                       onClick={() =>
                         playingMessageId === message.id
                           ? stopAudio()
-                          : playAudio(message.content, message.id, creator.id)
+                          : playAudio(
+                              message.content,
+                              message.id,
+                              creator.id
+                            )
                       }
-                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-all ${
+                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg ${
                         playingMessageId === message.id
                           ? 'bg-[#FFE4F7] text-[#E31FC1]'
                           : 'text-gray-500 hover:bg-gray-100'
@@ -367,7 +395,7 @@ saveMessageToDB(assistantMessage, creator.id);
           {isLoading && (
             <div className="flex justify-start">
               <div className="flex gap-2 max-w-[70%]">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                <div className="relative w-8 h-8 rounded-full overflow-hidden">
                   <Image
                     src={creator.avatar}
                     alt={creator.name}
@@ -375,20 +403,12 @@ saveMessageToDB(assistantMessage, creator.id);
                     className="object-cover"
                   />
                 </div>
+
                 <div className="bg-white rounded-2xl px-4 py-3 shadow-sm">
                   <div className="flex gap-1">
-                    <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                      style={{ animationDelay: '0ms' }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                      style={{ animationDelay: '150ms' }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                      style={{ animationDelay: '300ms' }}
-                    ></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-300"></div>
                   </div>
                 </div>
               </div>
@@ -401,8 +421,8 @@ saveMessageToDB(assistantMessage, creator.id);
 
       {/* INPUT */}
       <div className="bg-white border-t px-4 py-4">
-        <div className="max-w-3xl mx-auto flex flex-col gap-3">
-          {/* Champ de demande de contenu personnalisé */}
+        <div className="max-w-3xl mx-auto flex flex.col gap-3">
+          {/* Demande contenu privé */}
           {isRequestOpen && (
             <div className="flex gap-2">
               <input
@@ -410,7 +430,7 @@ saveMessageToDB(assistantMessage, creator.id);
                 value={requestInput}
                 onChange={(e) => setRequestInput(e.target.value)}
                 placeholder="Ici, demande du contenu personnalisé..."
-                className="flex-1 rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#E31FC1] focus:border-transparent text-gray-900 placeholder:text-gray-400"
+                className="flex-1 rounded-2xl border px-4 py-3"
               />
               <Button onClick={sendRequest} disabled={!requestInput.trim()}>
                 <Send size={20} />
@@ -418,12 +438,10 @@ saveMessageToDB(assistantMessage, creator.id);
             </div>
           )}
 
-          {/* Barre de message principale + bouton + */}
           <div className="flex gap-2">
             <button
-              type="button"
               onClick={() => setIsRequestOpen((prev) => !prev)}
-              className="w-11 h-11 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-2xl text-gray-700"
+              className="w-11 h-11 rounded-full bg-gray-200 flex justify-center items-center text-2xl"
             >
               +
             </button>
@@ -431,12 +449,18 @@ saveMessageToDB(assistantMessage, creator.id);
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
               placeholder={`Message à ${creator.name}...`}
-              className="flex-1 resize-none rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#E31FC1] focus:border-transparent text-gray-900 placeholder:text-gray-400"
+              className="flex-1 resize-none rounded-2xl border px-4 py-3"
               rows={1}
               disabled={isLoading}
             />
+
             <Button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
