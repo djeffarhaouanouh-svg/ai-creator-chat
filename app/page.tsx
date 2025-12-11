@@ -280,7 +280,7 @@ export default function Home() {
   </div>
 </section>
 
- {/* SECTION 3 — COMMENT ÇA MARCHE */}
+ {/* SECTION 1— COMMENT ÇA MARCHE */}
 <section className="w-full py-20 md:py-32 bg-black text-white">
   <div className="
       max-w-4xl mx-auto px-6 
@@ -298,8 +298,10 @@ export default function Home() {
 >
   Ton double IA<br />
   <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-    en 3 étapes simples ⚡
+    en 3 étapes simples
   </span>
+  {" "}
+  <span className="inline-block">⚡</span>
 </motion.h2>
 
 
@@ -355,21 +357,31 @@ export default function Home() {
     {/* BOUTONS CENTRÉS */}
     <div className="mt-14 flex flex-wrap justify-center gap-5">
 
-      {/* CTA principal */}
-      <motion.button
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 2, delay: 0.8, ease: "easeOut" }}
-        viewport={{ once: true }}
-        className="
-          bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]
-          text-white font-semibold px-8 py-4 rounded-full
-          hover:shadow-2xl hover:shadow-[#e31fc1]/50
-          hover:scale-105 transition-all duration-300
-        "
-      >
-        Rejoindre la bêta →
-      </motion.button>
+       <motion.button
+  initial={{ opacity: 0, y: 30 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 2, delay: 0.8, ease: "easeOut" }}
+  viewport={{ once: true }}
+
+  whileHover={{
+    scale: 1.07,
+    transition: { type: "spring", stiffness: 260, damping: 15 }
+  }}
+
+  whileTap={{
+    scale: 0.95,
+    transition: { type: "spring", stiffness: 300, damping: 20 }
+  }}
+
+  className="
+    bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]
+    text-white font-semibold px-8 py-4 rounded-full
+    shadow-lg hover:shadow-2xl hover:shadow-[#e31fc1]/50
+    transition-all duration-300
+  "
+>
+  Rejoindre la bêta →
+</motion.button>
 
       {/* CTA secondaire */}
       <motion.button
@@ -390,27 +402,26 @@ export default function Home() {
   
 </section>
 
-
-{/* SECTION — BENEFICES */}
-<section className="w-full py-20 md:py-32 bg-black text-white">
+{/* SECTION2— BENEFICES */}
+ <section className="w-full pt-20 pb-4 md:py-32 bg-black text-white">
   <div className="max-w-7xl mx-auto px-6 md:px-12 grid md:grid-cols-2 gap-16 items-start">
 
     {/* COLONNE GAUCHE — TEXTE + BOUTONS */}
     <div className="flex flex-col justify-center">
 
-       {/* TITRE */}
-<motion.h2
-  initial={{ opacity: 0, y: 30 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.8 }}
-  viewport={{ once: true }}
-  className="text-4xl md:text-5xl font-bold leading-tight"
->
-  Pourquoi les créateurs<br />
-  <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-    utilisent MyDouble
-  </span>
-</motion.h2>
+      {/* TITRE */}
+      <motion.h2
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+        className="text-4xl md:text-5xl font-bold leading-tight"
+      >
+        Pourquoi les créateurs<br />
+        <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
+          utilisent MyDouble
+        </span>
+      </motion.h2>
 
       {/* TEXTE */}
       <motion.p
@@ -423,6 +434,29 @@ export default function Home() {
         Ton IA ne remplace pas ton image : elle la multiplie.
         MyDouble t’aide à gagner du temps, de l’argent et à renforcer ta communauté.
       </motion.p>
+
+      {/* BOUTONS */}
+      <div className="mt-10 flex gap-4">
+        <button
+          className="
+            bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]
+            text-white font-semibold px-8 py-4 rounded-full
+            hover:shadow-2xl hover:shadow-[#e31fc1]/50
+            hover:scale-105 transition-all duration-300
+          "
+        >
+          Je veux mon double →
+        </button>
+
+        <button
+          className="
+            border-2 border-white text-white font-semibold px-8 py-4 rounded-full
+            hover:bg-white hover:text-black transition-all duration-300
+          "
+        >
+          Voir démo
+        </button>
+      </div>
     </div>
 
     {/* COLONNE DROITE — CARTES */}
@@ -434,6 +468,8 @@ export default function Home() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.3 }}
         viewport={{ once: true }}
+        whileHover={{ scale: 1.03, transition: { duration: 0.15 } }}
+        whileTap={{ scale: 1.05, transition: { duration: 0.12 } }}
         className="p-5 rounded-2xl bg-gradient-to-b from-gray-900 to-black border border-gray-800"
       >
         <div className="text-3xl mb-3">💸</div>
@@ -449,6 +485,8 @@ export default function Home() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.4 }}
         viewport={{ once: true }}
+        whileHover={{ scale: 1.03, transition: { duration: 0.15 } }}
+        whileTap={{ scale: 1.05, transition: { duration: 0.12 } }}
         className="p-5 rounded-2xl bg-gradient-to-b from-gray-900 to-black border border-gray-800"
       >
         <div className="text-3xl mb-3">⏳</div>
@@ -464,6 +502,8 @@ export default function Home() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.5 }}
         viewport={{ once: true }}
+        whileHover={{ scale: 1.03, transition: { duration: 0.15 } }}
+        whileTap={{ scale: 1.05, transition: { duration: 0.12 } }}
         className="p-5 rounded-2xl bg-gradient-to-b from-gray-900 to-black border border-gray-800"
       >
         <div className="text-3xl mb-3">💬</div>
@@ -479,6 +519,8 @@ export default function Home() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.6 }}
         viewport={{ once: true }}
+        whileHover={{ scale: 1.03, transition: { duration: 0.15 } }}
+        whileTap={{ scale: 1.05, transition: { duration: 0.12 } }}
         className="p-5 rounded-2xl bg-gradient-to-b from-gray-900 to-black border border-gray-800"
       >
         <div className="text-3xl mb-3">🚀</div>
@@ -492,10 +534,7 @@ export default function Home() {
   </div>
 </section>
 
-        
-
-
-{/* SECTION — CE QUE LA COMMUNAUTÉ Y GAGNE */}
+{/* SECTION3— CE QUE LA COMMUNAUTÉ Y GAGNE */}
 <section className="w-full py-32 bg-black text-white">
   <div className="max-w-6xl mx-auto px-8 md:px-16 grid md:grid-cols-2 gap-16 items-center">
 
@@ -508,12 +547,14 @@ export default function Home() {
   whileInView={{ opacity: 1, y: 0 }}
   transition={{ duration: 0.8, ease: "easeOut" }}
   viewport={{ once: true }}
-  className="text-4xl md:text-5xl font-bold leading-tight"
+  className="text-3xl md:text-4xl font-bold leading-tight"
 >
   Une meilleure expérience<br />
   <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-    pour ta communauté 💜
+    pour ta communauté
   </span>
+  {" "}
+  <span className="inline-block">💖</span>
 </motion.h2>
 
       <div className="mt-8 space-y-10">
