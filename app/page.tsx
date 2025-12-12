@@ -672,7 +672,7 @@ export default function Home() {
     pour ta communauté
   </span>
   {" "}
-  <span className="inline-block">💖</span>
+  <span className="inline-block"></span>
 </motion.h2>
 
       <div className="mt-8 space-y-10">
