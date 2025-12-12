@@ -10,6 +10,43 @@ import CreatorsSection from "@/components/CreatorsSection";
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 
+ function FAQItem({ question, answer }: { question: string; answer: string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="border border-gray-800 rounded-2xl bg-gradient-to-b from-gray-900 to-black overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex justify-between items-center px-4 py-4 md:px-6 md:py-5 text-left"
+      >
+        <span className="text-base md:text-lg font-semibold pr-4">
+          {question}
+        </span>
+        <span
+          className={`text-xl md:text-2xl transition-transform duration-300 ${
+            open ? "rotate-45 text-[#e31fc1]" : "text-gray-400"
+          }`}
+        >
+          +
+        </span>
+      </button>
+
+      {open && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
+          <p className="px-4 pb-4 md:px-6 md:pb-6 text-sm md:text-base text-gray-400">
+            {answer}
+          </p>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+
 export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -75,9 +112,10 @@ export default function Home() {
       {/* Titre section */}
       <section className="py-12 px-4">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-            Créatrices disponibles
-          </h2>
+           <h2 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
+  Créatrices disponibles
+</h2>
+
 
           {/* Desktop Grid */}
           <div className="hidden md:block">
@@ -281,12 +319,88 @@ export default function Home() {
 </section>
 
  {/* SECTION 1— COMMENT ÇA MARCHE */}
-<section className="w-full py-20 md:py-32 bg-black text-white">
+<section className="relative w-full py-32 bg-black text-white overflow-hidden">
   <div className="
       max-w-4xl mx-auto px-6 
       flex flex-col items-center text-center
       md:px-0
   ">
+
+ {/* ARC FULL PAGE – RESPONSIVE */}
+
+{/* DESKTOP */}
+<div className="absolute left-0 right-0 top-8 pointer-events-none z-0 hidden md:block">
+  <svg
+    viewBox="0 0 1440 200"
+    preserveAspectRatio="none"
+    className="w-screen h-[160px]"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <filter id="whiteGlowDesktop">
+        <feGaussianBlur stdDeviation="8" result="blur" />
+        <feMerge>
+          <feMergeNode in="blur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+    </defs>
+
+      <motion.path
+  d="M0 160 Q720 -60 1440 160"
+  stroke="white"
+  strokeWidth="2"
+  fill="none"
+  strokeLinecap="round"
+  filter="url(#whiteGlowDesktop)"
+  initial={{ opacity: 0, pathLength: 0 }}
+  whileInView={{ opacity: 0.9, pathLength: 1 }}
+  transition={{
+    opacity: { duration: 1.2, ease: "easeOut" },
+    pathLength: { duration: 1.8, ease: "easeOut" }
+  }}
+  viewport={{ once: true }}
+/>
+  </svg>
+</div>
+
+{/* MOBILE */}
+<div className="absolute left-0 right-0 top-10 pointer-events-none z-0 block md:hidden">
+  <svg
+    viewBox="0 0 390 120"
+    preserveAspectRatio="none"
+    className="w-screen h-[100px]"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <filter id="whiteGlowMobile">
+        <feGaussianBlur stdDeviation="5" result="blur" />
+        <feMerge>
+          <feMergeNode in="blur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+    </defs>
+
+     <motion.path
+  d="M0 90 Q195 32 390 90"
+  stroke="white"
+  strokeWidth="1.5"
+  fill="none"
+  strokeLinecap="round"
+  filter="url(#whiteGlowMobile)"
+  initial={{ opacity: 0, pathLength: 0 }}
+  whileInView={{ opacity: 0.75, pathLength: 1 }}
+  transition={{
+    opacity: { duration: 1 },
+    pathLength: { duration: 1.6 }
+  }}
+  viewport={{ once: true }}
+/>
+  </svg>
+</div>
+
+
 
      {/* TITRE CENTRÉ */}
 <motion.h2
@@ -397,7 +511,8 @@ export default function Home() {
 
 {/* SECTION2— BENEFICES */}
  <section className="w-full pt-20 pb-4 md:py-32 bg-black text-white">
-  <div className="max-w-7xl mx-auto px-6 md:px-12 grid md:grid-cols-2 gap-16 items-start">
+  <div className="max-w-7xl mx-auto px-6 md:px-12 grid md:grid-cols-2 gap-16 items-center
+">
 
     {/* COLONNE GAUCHE — TEXTE + BOUTONS */}
     <div className="flex flex-col justify-center">
@@ -569,7 +684,7 @@ export default function Home() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 2, delay: 0.6, ease: "easeOut" }}
         viewport={{ once: true }}
-        className="mt-12 flex flex-wrap gap-5"
+        className="mt-12 flex flex-wrap justify-center md:justify-start gap-5"
       >
          {/* CTA PRINCIPAL */}
 <button className="btn-primary">
@@ -602,6 +717,87 @@ export default function Home() {
 
   </div>
 </section>
+
+ {/* SECTION — FAQ CREATEURS */}
+<section className="w-full pt-5 pb-20 md:pt-24 md:pb-32 bg-black text-white">
+  <div className="max-w-4xl mx-auto px-4 md:px-12">
+
+    {/* TITRE */}
+    <motion.h2
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      viewport={{ once: true }}
+      className="text-3xl md:text-5xl font-bold text-center"
+    >
+      Questions fréquentes 🤔
+    </motion.h2>
+
+    <motion.p
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay: 0.15 }}
+      viewport={{ once: true }}
+      className="mt-3 md:mt-4 text-gray-400 text-center text-sm md:text-base max-w-2xl mx-auto"
+    >
+      Tout ce que les créateurs veulent savoir avant de lancer leur double IA.
+    </motion.p>
+
+    {/* FAQ ITEMS */}
+    <div className="mt-10 md:mt-16 space-y-3 md:space-y-4">
+
+      {[
+        {
+          q: "Est-ce que c’est vraiment moi qui parle aux fans ?",
+          a: "Non. C’est un double IA inspiré de ta manière de parler. C’est toujours clairement indiqué que c’est une IA, jamais toi en direct."
+        },
+        {
+          q: "Qu’est-ce que je dois fournir pour créer mon IA ?",
+          a: "Très peu de choses : 2–3 vocaux enregistrés spécialement et éventuellement quelques exemples de réponses. Aucun accès à tes comptes ou DM."
+        },
+        {
+          q: "Est-ce que l’IA peut dire n’importe quoi ?",
+          a: "Non. Tu définis les règles, les sujets autorisés et interdits. Et tout peut être ajusté à tout moment."
+        },
+        {
+          q: "Est-ce que ça peut nuire à mon image ?",
+          a: "Au contraire. MyDouble renforce la proximité avec ta communauté et améliore leur expérience."
+        },
+        {
+          q: "Suis-je obligé(e) de vendre du contenu ?",
+          a: "Non. La vente de contenu est totalement optionnelle. Tu peux utiliser MyDouble uniquement pour le chat."
+        },
+        {
+          q: "Puis-je arrêter quand je veux ?",
+          a: "Oui. Tu peux arrêter à tout moment et demander la suppression de tes données."
+        },
+      ].map((item, index) => (
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: index * 0.08 }}
+          viewport={{ once: true }}
+        >
+          <FAQItem question={item.q} answer={item.a} />
+        </motion.div>
+      ))}
+
+    </div>
+
+    {/* CTA */}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.2 }}
+      viewport={{ once: true }}
+      className="mt-12 md:mt-16 flex justify-center"
+    >
+    </motion.div>
+
+  </div>
+</section>
+
     </main>
   );
 }
