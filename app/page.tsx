@@ -406,12 +406,12 @@ export default function Home() {
 <motion.h2
   initial={{ opacity: 0, y: 40 }}
   whileInView={{ opacity: 1, y: 0 }}
-  transition={{ duration: 2, delay: 0.2, ease: "easeOut" }}
+  transition={{ duration: 1.8, delay: 0.2, ease: "easeOut" }}
   viewport={{ once: true }}
   className="text-4xl md:text-5xl font-bold leading-tight"
 >
-  Pourquoi les créateurs<br />
-  <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
+  Pourquoi les créateurs <br />
+  <span className="inline-block bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
     utilisent MyDouble
   </span>
 </motion.h2>
@@ -589,7 +589,7 @@ export default function Home() {
     <motion.div
       initial={{ opacity: 0, y: 60 }}
       whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 2, delay: 0.3, ease: "easeOut" }}
+      transition={{ duration: 3, delay: 0.3, ease: "easeOut" }}
       viewport={{ once: true }}
       className="flex justify-center"
     >
@@ -602,9 +602,6 @@ export default function Home() {
 
   </div>
 </section>
-
- 
-
     </main>
   );
 }
