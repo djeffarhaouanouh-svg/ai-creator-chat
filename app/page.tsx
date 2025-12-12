@@ -106,8 +106,7 @@ export default function Home() {
   }, [isMobile, currentIndex]);
 
   return (
-    <main className="min-h-screen bg-black text-white">
-    
+     <main className="min-h-screen bg-black text-white flex flex-col">
 
       {/* Titre section */}
       <section className="py-12 px-4">
@@ -511,7 +510,7 @@ export default function Home() {
   whileInView={{ opacity: 1, y: 0 }}
   transition={{ duration: 0.8, ease: "easeOut" }}
   viewport={{ once: true }}
-  className="w-full flex justify-center my-10"
+  className="relative w-full flex justify-center my-10 overflow-visible"
 >
   <div
     className="
@@ -519,7 +518,7 @@ export default function Home() {
       w-48 md:w-80 lg:w-[520px]
       bg-white rounded-full
       shadow-[0_0_20px_rgba(255,255,255,0.6)]
-      translate-y-14 md:translate-y-20
+      translate-y-[76px] md:translate-y-[80px]
     "
   />
 </motion.div>
@@ -639,7 +638,7 @@ export default function Home() {
   whileInView={{ opacity: 1, y: 0 }}
   transition={{ duration: 0.8, ease: "easeOut" }}
   viewport={{ once: true }}
-  className="w-full flex justify-center my-10"
+  className="relative w-full flex justify-center my-10 overflow-visible"
 >
   <div
     className="
@@ -647,7 +646,7 @@ export default function Home() {
       w-48 md:w-80 lg:w-[520px]
       bg-white rounded-full
       shadow-[0_0_20px_rgba(255,255,255,0.6)]
-      translate-y-24 md:translate-y-28
+      translate-y-[76px] md:translate-y-[114px]
     "
   />
 </motion.div>
@@ -754,7 +753,7 @@ export default function Home() {
   whileInView={{ opacity: 1, y: 0 }}
   transition={{ duration: 0.8, ease: "easeOut" }}
   viewport={{ once: true }}
-  className="w-full flex justify-center my-10"
+  className="relative w-full flex justify-center my-10 overflow-visible"
 >
   <div
     className="
@@ -762,14 +761,14 @@ export default function Home() {
       w-48 md:w-80 lg:w-[520px]
       bg-white rounded-full
       shadow-[0_0_20px_rgba(255,255,255,0.6)]
-      translate-y-24 md:translate-y-28
+      translate-y-[66px] md:translate-y-[114px]
     "
   />
 </motion.div>
 </section>
 
  {/* SECTION — FAQ CREATEURS */}
-<section className="w-full pt-5 pb-20 md:pt-24 md:pb-32 bg-black text-white">
+<section className="w-full pt-5 pb-2 md:pt-24 md:pb-16 bg-black text-white">
   <div className="max-w-4xl mx-auto px-4 md:px-12">
 
     {/* TITRE */}
@@ -847,7 +846,6 @@ export default function Home() {
 
   </div>
 </section>
-
     </main>
   );
 }
