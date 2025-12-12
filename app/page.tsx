@@ -373,12 +373,8 @@ export default function Home() {
     transition: { type: "spring", stiffness: 300, damping: 20 }
   }}
 
-  className="
-    bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]
-    text-white font-semibold px-8 py-4 rounded-full
-    shadow-lg hover:shadow-2xl hover:shadow-[#e31fc1]/50
-    transition-all duration-300
-  "
+   className="btn-primary"
+   
 >
   Rejoindre la bêta →
 </motion.button>
@@ -389,12 +385,9 @@ export default function Home() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 2, delay: 1, ease: "easeOut" }}
         viewport={{ once: true }}
-        className="
-          border-2 border-white text-white font-semibold px-8 py-4 rounded-full
-          hover:bg-white hover:text-black transition-all duration-300
-        "
-      >
-        Voir une démo
+         className="btn-secondary"
+>
+   Voir une démo
       </motion.button>
 
     </div>
@@ -409,54 +402,32 @@ export default function Home() {
     {/* COLONNE GAUCHE — TEXTE + BOUTONS */}
     <div className="flex flex-col justify-center">
 
-      {/* TITRE */}
-      <motion.h2
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-        className="text-4xl md:text-5xl font-bold leading-tight"
-      >
-        Pourquoi les créateurs<br />
-        <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-          utilisent MyDouble
-        </span>
-      </motion.h2>
+       {/* TITRE */}
+<motion.h2
+  initial={{ opacity: 0, y: 40 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 2, delay: 0.2, ease: "easeOut" }}
+  viewport={{ once: true }}
+  className="text-4xl md:text-5xl font-bold leading-tight"
+>
+  Pourquoi les créateurs<br />
+  <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
+    utilisent MyDouble
+  </span>
+</motion.h2>
 
-      {/* TEXTE */}
-      <motion.p
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-        viewport={{ once: true }}
-        className="mt-6 text-gray-300 text-lg max-w-md"
-      >
-        Ton IA ne remplace pas ton image : elle la multiplie.
-        MyDouble t’aide à gagner du temps, de l’argent et à renforcer ta communauté.
-      </motion.p>
+{/* TEXTE */}
+<motion.p
+  initial={{ opacity: 0, y: 40 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 2, delay: 0.4, ease: "easeOut" }}
+  viewport={{ once: true }}
+  className="mt-6 text-gray-300 text-lg max-w-md"
+>
+  Ton IA ne remplace pas ton image : elle la multiplie.
+  MyDouble t’aide à gagner du temps, de l’argent et à renforcer ta communauté.
+</motion.p>
 
-      {/* BOUTONS */}
-      <div className="mt-10 flex gap-4">
-        <button
-          className="
-            bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]
-            text-white font-semibold px-8 py-4 rounded-full
-            hover:shadow-2xl hover:shadow-[#e31fc1]/50
-            hover:scale-105 transition-all duration-300
-          "
-        >
-          Je veux mon double →
-        </button>
-
-        <button
-          className="
-            border-2 border-white text-white font-semibold px-8 py-4 rounded-full
-            hover:bg-white hover:text-black transition-all duration-300
-          "
-        >
-          Voir démo
-        </button>
-      </div>
     </div>
 
     {/* COLONNE DROITE — CARTES */}
@@ -600,27 +571,16 @@ export default function Home() {
         viewport={{ once: true }}
         className="mt-12 flex flex-wrap gap-5"
       >
-        {/* CTA PRINCIPAL */}
-        <button
-          className="
-            bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]
-            text-white font-semibold px-8 py-4 rounded-full
-            hover:shadow-2xl hover:shadow-[#e31fc1]/50
-            hover:scale-105 transition-all duration-300
-          "
-        >
-          Je veux offrir →
-        </button>
+         {/* CTA PRINCIPAL */}
+<button className="btn-primary">
+  Je veux offrir →
+</button>
 
-        {/* CTA SECONDAIRE */}
-        <button
-          className="
-            border-2 border-white text-white font-semibold px-8 py-4 rounded-full
-            hover:bg-white hover:text-black transition-all duration-300
-          "
-        >
-          En savoir plus
-        </button>
+{/* CTA SECONDAIRE */}
+<button className="btn-secondary">
+  En savoir plus
+</button>
+
       </motion.div>
 
     </div>
