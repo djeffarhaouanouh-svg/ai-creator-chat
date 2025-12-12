@@ -319,7 +319,7 @@ export default function Home() {
 </section>
 
  {/* SECTION 1— COMMENT ÇA MARCHE */}
-<section className="relative w-full py-32 bg-black text-white overflow-hidden">
+  <section className="relative w-full pt-32 pb-16 bg-black text-white">
   <div className="
       max-w-4xl mx-auto px-6 
       flex flex-col items-center text-center
@@ -506,7 +506,23 @@ export default function Home() {
 
     </div>
   </div>
-  
+ <motion.div
+  initial={{ opacity: 0, y: -6 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.8, ease: "easeOut" }}
+  viewport={{ once: true }}
+  className="w-full flex justify-center my-10"
+>
+  <div
+    className="
+      h-[2px]
+      w-48 md:w-80 lg:w-[520px]
+      bg-white rounded-full
+      shadow-[0_0_20px_rgba(255,255,255,0.6)]
+      translate-y-14 md:translate-y-20
+    "
+  />
+</motion.div>
 </section>
 
 {/* SECTION2— BENEFICES */}
@@ -618,6 +634,23 @@ export default function Home() {
 
     </div>
   </div>
+  <motion.div
+  initial={{ opacity: 0, y: -6 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.8, ease: "easeOut" }}
+  viewport={{ once: true }}
+  className="w-full flex justify-center my-10"
+>
+  <div
+    className="
+      h-[2px]
+      w-48 md:w-80 lg:w-[520px]
+      bg-white rounded-full
+      shadow-[0_0_20px_rgba(255,255,255,0.6)]
+      translate-y-24 md:translate-y-28
+    "
+  />
+</motion.div>
 </section>
 
 {/* SECTION3— CE QUE LA COMMUNAUTÉ Y GAGNE */}
@@ -716,6 +749,23 @@ export default function Home() {
     </motion.div>
 
   </div>
+  <motion.div
+  initial={{ opacity: 0, y: -6 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.8, ease: "easeOut" }}
+  viewport={{ once: true }}
+  className="w-full flex justify-center my-10"
+>
+  <div
+    className="
+      h-[2px]
+      w-48 md:w-80 lg:w-[520px]
+      bg-white rounded-full
+      shadow-[0_0_20px_rgba(255,255,255,0.6)]
+      translate-y-24 md:translate-y-28
+    "
+  />
+</motion.div>
 </section>
 
  {/* SECTION — FAQ CREATEURS */}
