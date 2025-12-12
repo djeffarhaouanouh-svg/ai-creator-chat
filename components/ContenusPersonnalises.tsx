@@ -114,7 +114,7 @@ const ContenusPersonnalises = () => {
 
             <div className="flex flex-wrap gap-5 pt-6">
               <button className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-8 py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all duration-300 hover:scale-105">
-                Découvrir les Créateurs →
+                Découvrir →
               </button>
               
               <button className="border-2 border-white hover:bg-white hover:text-black text-white font-semibold px-8 py-4 rounded-full transition-all duration-300">

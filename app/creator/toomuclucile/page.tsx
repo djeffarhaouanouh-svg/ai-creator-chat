@@ -249,30 +249,37 @@ export default function LucilePage() {
           </div>
         </div>
 
-        {/* PRIX */}
-        <div className="text-center mb-6">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-            {price.toFixed(2)}€
-            <span className="text-lg font-medium text-gray-600"> /mois</span>
-          </h2>
-          <p className="text-gray-500 mt-2">
-            Messages illimités • Annulation à tout moment
-          </p>
-        </div>
+         {/* PRIX */}
+<div className="text-center mb-6">
+  <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+    {price.toFixed(2)}€
+    <span className="text-lg font-medium text-gray-600"> /mois</span>
+  </h2>
+  <p className="text-gray-500 mt-2">
+    Messages illimités • Annulation à tout moment
+  </p>
+</div>
 
-         <div className="flex items-center gap-2">
+{/* AVANTAGES */}
+<div className="flex flex-col items-center gap-2 mb-8">
+  <div className="flex items-center justify-center gap-2">
     <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
       ✓
     </span>
-    <p className="text-gray-600 text-lg">Réponses rapides 24h/24</p>
+    <p className="text-gray-600 text-lg text-center">
+      Réponses rapides 24h/24
+    </p>
   </div>
 
-  <div className="flex items-center gap-2">
+  <div className="flex items-center justify-center gap-2">
     <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
       ✓
     </span>
-    <p className="text-gray-600 text-lg">Vocaux personnalisés</p>
+    <p className="text-gray-600 text-lg text-center">
+      Vocaux personnalisés
+    </p>
   </div>
+</div>
 
         {/* CTA PAYPAL / CHAT — même logique que Lauryn */}
         <div className="max-w-md mx-auto w-full mt-6">

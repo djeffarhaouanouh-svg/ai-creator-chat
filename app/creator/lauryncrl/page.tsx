@@ -54,11 +54,11 @@ export default function LaurynPage() {
   const audio = "/audio/alice.mp3";
   const photos = [
     "/laurin.png",
-    "/alice/photo5.jpg",
+    "/laurin-4.png",
     "/laurin-2.png",
-    "/alice/photo4.jpg",
+    "/laurin-5.png",
     "/laurin-3.png",
-    "/alice/photo6.jpg",
+    "/laurin-6.png",
   ];
   const subscribers = 4200;
   const messagesCount = 28000;
@@ -319,11 +319,20 @@ export default function LaurynPage() {
               <MessageCircle size={20} className="mr-2" />
               Discutez gratuitement
             </button>
-          ) : (
-            <div className="w-full">
-              <PaypalButton />
-            </div>
-          )}
+          )  : (
+  <button
+    onClick={() =>
+      window.location.href =
+        "https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-0MJ608195A3341825NE57WBY"
+    }
+    className="w-full px-8 py-4 rounded-xl font-semibold text-lg text-white
+    bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]
+    hover:opacity-90 transition"
+  >
+    S’abonner pour discuter
+  </button>
+)
+}
         </div>
       </div>
 

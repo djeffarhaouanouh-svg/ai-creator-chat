@@ -57,11 +57,18 @@ export default function Header() {
             Mon compte
           </Link>
           <Link
-  href="/home-page"
+  href="/"
   className="block text-white px-4 py-2"
   onClick={() => setIsMenuOpen(false)}
 >
-  Acceuil
+  Découvrir
+</Link>
+<Link
+  href="/pourquoi-nous-rejoindre"
+  className="block text-white px-4 py-2"
+  onClick={() => setIsMenuOpen(false)}
+>
+  Pourquoi nous rejoindre ?
 </Link>
         </div>
       )}
