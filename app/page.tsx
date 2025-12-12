@@ -376,7 +376,7 @@ export default function Home() {
    className="btn-primary"
    
 >
-  Rejoindre la bêta →
+  Rejoindre →
 </motion.button>
 
       {/* CTA secondaire */}
@@ -387,7 +387,7 @@ export default function Home() {
         viewport={{ once: true }}
          className="btn-secondary"
 >
-   Voir une démo
+   testez
       </motion.button>
 
     </div>
@@ -573,12 +573,12 @@ export default function Home() {
       >
          {/* CTA PRINCIPAL */}
 <button className="btn-primary">
-  Je veux offrir →
+   Rejoindre →
 </button>
 
 {/* CTA SECONDAIRE */}
 <button className="btn-secondary">
-  En savoir plus
+  testez
 </button>
 
       </motion.div>
