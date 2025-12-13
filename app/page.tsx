@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { creators } from "@/data/creators";
 import { Users, MessageCircle } from "lucide-react";
 import ContenusPersonnalises from "@/components/ContenusPersonnalises";
 import PrivateContentSection from "@/components/PrivateContentSection";
 import CreatorsSection from "@/components/CreatorsSection";
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";   // ⭐ AJOUT
+import { motion } from "framer-motion";
+
+// 🔥 FIX : On ne peut PAS appeler getCreators() directement côté client.
+// Donc on crée une route API serveur : /api/creators
 
 export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
@@ -27,14 +29,28 @@ export default function Home() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // ⭐ AFFICHE ENFIN LES CRÉATRICES
+  const [creators, setCreators] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function load() {
+      const res = await fetch("/api/creators");
+      const data = await res.json();
+      setCreators(data || []);
+    }
+    load();
+  }, []);
+
   const duplicatedCreators = [...creators, ...creators];
 
   const handleNext = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % creators.length);
+    if (creators.length === 0) return;
+    setCurrentIndex((prev) => (prev + 1) % creators.length);
   };
 
   const handlePrev = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + creators.length) % creators.length);
+    if (creators.length === 0) return;
+    setCurrentIndex((prev) => (prev - 1 + creators.length) % creators.length);
   };
 
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -64,7 +80,7 @@ export default function Home() {
   return (
     <main className="pt-6 md:pt-16 bg-black min-h-screen">
 
-      {/* ==================== TITRE ==================== */}
+      {/* ================= TITRE ================= */}
       <section className="py-12 px-4">
         <div className="max-w-7xl mx-auto">
 
@@ -78,24 +94,24 @@ export default function Home() {
             Créatrices disponibles
           </motion.h2>
 
-          {/* ==================== DESKTOP ==================== */}
+          {/* ================= DESKTOP ================= */}
           <div className="hidden md:block">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {creators.map((creator, index) => (
                 <motion.div
-                  key={creator.id}
+                  key={creator.id || index}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.08 }}
                   viewport={{ once: true }}
                 >
-                  <Link href={`/creator/${creator.username}`}>
+                  <Link href={`/creator/${creator.slug}`}>
                     <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer">
 
                       {/* IMAGE */}
                       <div className="relative h-48 w-full">
                         <Image
-                          src={creator.coverImage}
+                          src={creator.coverImage || "/default-cover.jpg"}
                           alt={creator.name}
                           fill
                           className="object-cover"
@@ -103,7 +119,12 @@ export default function Home() {
                         />
                         <div className="absolute -bottom-10 left-6">
                           <div className="relative w-20 h-20 rounded-full border-4 border-white overflow-hidden">
-                            <Image src={creator.avatar} alt={creator.name} fill className="object-cover" />
+                            <Image
+                              src={creator.avatar || creator.avatar_url || "/default-avatar.png"}
+                              alt={creator.name}
+                              fill
+                              className="object-cover"
+                            />
                           </div>
                         </div>
                       </div>
@@ -111,12 +132,19 @@ export default function Home() {
                       {/* CONTENT */}
                       <div className="pt-12 px-6 pb-6 text-black">
                         <h3 className="text-xl font-bold mb-1">{creator.name}</h3>
-                        <p className="text-sm text-gray-600 mb-3">@{creator.username}</p>
-                        <p className="text-gray-700 text-sm mb-4 line-clamp-2">{creator.bio}</p>
+                        <p className="text-sm text-gray-600 mb-3">@{creator.slug}</p>
+                        <p className="text-gray-700 text-sm mb-4 line-clamp-2">
+  {creator.bio || creator.bio_local || ""}
+</p>
+
+
 
                         <div className="flex flex-wrap gap-2 mb-4">
-                          {creator.tags.map((tag) => (
-                            <span key={tag} className="px-3 py-1 bg-gray-100 text-[#e31fc1] text-xs rounded-full font-medium">
+                          {(creator.tags || []).map((tag: string) => (
+                            <span
+                              key={tag}
+                              className="px-3 py-1 bg-gray-100 text-[#e31fc1] text-xs rounded-full font-medium"
+                            >
                               {tag}
                             </span>
                           ))}
@@ -125,19 +153,22 @@ export default function Home() {
                         <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
                           <div className="flex items-center gap-1">
                             <Users size={16} />
-                            <span>{creator.subscribers.toLocaleString()} abonnés</span>
+                            <span>{(creator.subscribers || 0).toLocaleString()} abonnés</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <MessageCircle size={16} />
-                            <span>{(creator.messagesCount / 1000).toFixed(0)}k messages</span>
+                            <span>{((creator.messagesCount || 0) / 1000).toFixed(0)}k messages</span>
                           </div>
                         </div>
 
                         <div className="flex items-center justify-between">
                           <div>
-                            <span className="text-2xl font-bold text-gray-900">{creator.price}€</span>
+                            <span className="text-2xl font-bold text-gray-900">
+                              {creator.price || 4.97}€
+                            </span>
                             <span className="text-gray-600 text-sm">/mois</span>
                           </div>
+
                           <button className="px-6 py-2 rounded-lg text-white font-semibold bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]">
                             Discuter
                           </button>
@@ -151,7 +182,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ==================== MOBILE CAROUSEL ==================== */}
+          {/* ================= MOBILE ================= */}
           <div
             className="md:hidden relative overflow-hidden"
             onTouchStart={onTouchStart}
@@ -176,7 +207,7 @@ export default function Home() {
                     {/* IMAGE */}
                     <div className="relative h-40 w-full">
                       <Image
-                        src={creator.coverImage}
+                        src={creator.coverImage || "/default-cover.jpg"}
                         alt={creator.name}
                         fill
                         className="object-cover"
@@ -184,7 +215,12 @@ export default function Home() {
                       />
                       <div className="absolute -bottom-8 left-4">
                         <div className="relative w-16 h-16 rounded-full border-4 border-white overflow-hidden">
-                          <Image src={creator.avatar} alt={creator.name} fill className="object-cover" />
+                          <Image
+                            src={creator.avatar || creator.avatar_url || "/default-avatar.png"}
+                            alt={creator.name}
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                       </div>
                     </div>
@@ -192,13 +228,18 @@ export default function Home() {
                     {/* CONTENT */}
                     <div className="pt-10 px-4 pb-4 text-black">
                       <h3 className="text-lg font-bold mb-1">{creator.name}</h3>
-                      <p className="text-xs text-gray-600 mb-2">@{creator.username}</p>
+                      <p className="text-xs text-gray-600 mb-2">@{creator.slug}</p>
 
-                      <p className="text-gray-700 text-xs mb-3 line-clamp-2">{creator.bio}</p>
+                      <p className="text-gray-700 text-xs mb-3 line-clamp-2">
+                        {creator.bio || creator.bio_local || ""}
+                          </p>
 
                       <div className="flex flex-wrap gap-2 mb-3">
-                        {creator.tags.map((tag) => (
-                          <span key={tag} className="px-2 py-1 bg-gray-100 text-[#e31fc1] text-[10px] rounded-full font-medium">
+                        {(creator.tags || []).map((tag: string) => (
+                          <span
+                            key={tag}
+                            className="px-2 py-1 bg-gray-100 text-[#e31fc1] text-[10px] rounded-full font-medium"
+                          >
                             {tag}
                           </span>
                         ))}
@@ -207,22 +248,24 @@ export default function Home() {
                       <div className="flex items-center justify-between text-[11px] text-gray-600 mb-3">
                         <div className="flex items-center gap-1">
                           <Users size={14} />
-                          <span>{creator.subscribers.toLocaleString()} abonnés</span>
+                          <span>{(creator.subscribers || 0).toLocaleString()} abonnés</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <MessageCircle size={14} />
-                          <span>{(creator.messagesCount / 1000).toFixed(0)}k messages</span>
+                          <span>{((creator.messagesCount || 0) / 1000).toFixed(0)}k messages</span>
                         </div>
                       </div>
 
                       <div className="flex items-center justify-between">
                         <div>
-                          <span className="text-xl font-bold text-gray-900">{creator.price}€</span>
+                          <span className="text-xl font-bold text-gray-900">
+                            {creator.price || 4.97}€
+                          </span>
                           <span className="text-gray-600 text-xs">/mois</span>
                         </div>
 
                         <Link
-                          href={`/creator/${creator.username}`}
+                          href={`/creator/${creator.slug}`}
                           className="inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm text-white font-semibold bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]"
                         >
                           Discuter
@@ -235,6 +278,7 @@ export default function Home() {
               ))}
             </div>
 
+            {/* BULLETS */}
             <div className="flex justify-center mt-4 gap-2">
               {creators.map((_, idx) => (
                 <button
@@ -251,7 +295,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ==================== AUTRES SECTIONS ==================== */}
+      {/* ================= AUTRES SECTIONS ================= */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -266,5 +310,3 @@ export default function Home() {
     </main>
   );
 }
-
-

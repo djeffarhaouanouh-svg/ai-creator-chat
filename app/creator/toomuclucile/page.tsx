@@ -1,14 +1,22 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { getCreatorByUsername } from "@/data/creators";
+import { getCreatorBySlug } from "@/data/creators-merged";
 import { MessageCircle, Users, Star } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import PaypalButton from "@/components/PaypalButton";
 
 export default function LucilePage() {
   const router = useRouter();
-  const creator = getCreatorByUsername("toomuclucile");
+ const [creator, setCreator] = useState<any>(null);
+
+useEffect(() => {
+  async function load() {
+    const data = await getCreatorBySlug("toomuculucile");
+    setCreator(data);
+  }
+  load();
+}, []);
 
   // FAQ
   const [openIndex, setOpenIndex] = useState<number | null>(null);

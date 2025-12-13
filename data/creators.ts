@@ -1,63 +1,31 @@
-import type { Creator } from '@/lib/types';
+// data/creators.ts
 
- export const creators: Creator[] = [
+export const localCreators = [
   {
-    id: '1',
-    name: 'Lucile',
-    username: 'toomuclucile',
-    avatar: "/mon-avatar.png",
-    mymLink: "https://mym.fans/NOM",
-    onlyfansLink: "https://onlyfans.com/xxx",
-    coverImage: "/ma-couverture.jpg",
-    bio: 'Influenceuse lifestyle et coach en développement personnel. Passionnée par le bien-être et la motivation.',
-    personality: 'Énergique, motivante et bienveillante. Aime partager des conseils pratiques.',
-    subscribers: 4200,
-    messagesCount: 28000,
-    price: 9.97,
-    tags: ['Lifestyle', 'Motivation', 'Bien-être'],
-    aiPrompt: `Tu es Sarah Miller, une influenceuse lifestyle et coach en développement personnel. Tu es énergique, motivante et très bienveillante. Tu aimes partager des conseils pratiques sur le bien-être, la productivité et la confiance en soi. Tu utilises souvent des émojis et un ton chaleureux. Tu poses des questions pour mieux comprendre la personne et tu donnes des conseils personnalisés. Tu racontes parfois de petites anecdotes de ta vie pour illustrer tes points.`,
-    imageY: "15%",   // optionnel
-  },
-  {
-    id: '2',
-    name: 'Lauryn',
-    username: 'lauryncrl',
-    avatar: '/lau.png',
-    mymLink: "https://mym.fans/Lauwyn?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAQ0xDSwOmoTVleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA8xMjQwMjQ1NzQyODc0MTQAAaeuFZ5U6-NuaAP7UBrHFEUzC3HG2-vE1_ki3rmyKfRxzkMxhf59_Ah5XNAuXQ_aem_9gSnJ17LaEjmqW1nTmyNKg",
-    onlyfansLink: "https://onlyfans.com/xxx",
-    coverImage: '/lau.png',
-    bio: 'Créatrice de contenu beauté et mode. Experte en tendances et conseils style.',
-    personality: 'Passionnée, créative et à l\'écoute. Adore discuter mode et tendances.',
-    subscribers: 2500,
-    messagesCount: 12000,
-    price: 6.97,
-    tags: ['Mode', 'Beauté', 'Tendances'],
-    aiPrompt: `Tu es Lauryn, une créatrice de contenu spécialisée en beauté et mode. Tu es passionnée, créative et très à l'écoute. Tu adores discuter des dernières tendances mode, donner des conseils style personnalisés, et parler de produits beauté. Tu as un ton amical et enthousiaste. Tu aimes utiliser des références culturelles et poser des questions sur les goûts de la personne pour mieux la conseiller.`,
-    imageY: '12%',   // 🔥 C’EST ICI POUR LA DÉPLACER
-  },
-  {
-    id: '3',
-    name: 'Tootatis',
-    username: 'Tootatis',
-    avatar: '/toota_1.jpg',
-    mymLink: "https://mym.fans/NOM",
-    onlyfansLink: "https://onlyfans.com/xxx",
-    coverImage: '/toota_2.jpg',
-    bio: 'Fitness coach et nutritionniste. Aide les gens à atteindre leurs objectifs santé.',
-    personality: 'Énergique, disciplinée et encourageante. Focus sur la santé et le sport.',
-    subscribers: 3800,
-    messagesCount: 22000,
+    slug: "lauryncrl",
+    name: "Lauryn",
     price: 4.97,
-    tags: ['Fitness', 'Nutrition', 'Santé'],
-    aiPrompt: `Tu es Julie Martin, fitness coach et nutritionniste. Tu es énergique, disciplinée mais toujours encourageante et positive. Tu adores aider les gens à atteindre leurs objectifs de santé et de forme physique. Tu donnes des conseils sur l'entraînement, la nutrition et la motivation. Tu es empathique et comprends que chacun a son propre rythme. Tu utilises parfois des termes sportifs et tu aimes célébrer les petites victoires.`,
-    imageY: '30%',   // si tu veux la descendre
+    photos: [],
+    avatar: "/lau.png",                // ✔ existe réellement
+    coverImage: "/laurin.png",         // ✔ existe réellement
+    bio_local: "Créatrice de contenu…"
+  },
+  {
+    slug: "toomuclucile",
+    name: "Lucile",
+    price: 4.97,
+    photos: [],
+    avatar: "/lucile-1.png",           // ✔ existe réellement
+    coverImage: "/lucile-2.png",       // ✔ existe réellement
+    bio_local: "Fitness & lifestyle…"
+  },
+  {
+    slug: "tootatis",
+    name: "Tootatis",
+    price: 4.97,
+    photos: [],
+    avatar: "/tootatis-1.jpg",         // ✔ existe réellement
+    coverImage: "/tootatis-2.jpg",     // ✔ existe réellement
+    bio_local: "Influenceuse…"
   }
 ];
-
-export function getCreatorById(id: string) {
-  return creators.find(c => c.id === id);
-}
-
-export function getCreatorByUsername(username: string) {
-  return creators.find(c => c.username === username);
-}

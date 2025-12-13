@@ -1,14 +1,32 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { getCreatorByUsername } from "@/data/creators";
+import { getCreatorBySlug } from "@/data/creators-merged";
 import { MessageCircle, Users, Star } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import PaypalButton from "@/components/PaypalButton";
 
-export default function LaurynPage() {
+export default function Page({ params }: { params: { slug: string } }) {
   const router = useRouter();
-  const creator = getCreatorByUsername("lauryncrl");
+  const [creator, setCreator] = useState<any>(null);
+
+  // CHARGEMENT DYNAMIQUE
+  useEffect(() => {
+    async function load() {
+      const data = await getCreatorBySlug(params.slug);
+      setCreator(data);
+    }
+    load();
+  }, [params.slug]);
+
+  // ⚠️ CHARGEMENT
+  if (!creator) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Chargement...</p>
+      </div>
+    );
+  }
 
   // FAQ
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -82,23 +100,6 @@ export default function LaurynPage() {
       audioRef.current.onended = () => setIsPlaying(false);
     }
   };
-
-  if (!creator) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Créatrice introuvable</h1>
-          <p className="mb-4">Cette créatrice n&apos;existe pas ou plus.</p>
-          <button
-            onClick={() => router.push("/")}
-            className="bg-[#e31fc1] text-white px-6 py-2 rounded-lg"
-          >
-            Retour à l&apos;accueil
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   const handleChat = () => {
     router.push(`/chat/${creator.id}`);

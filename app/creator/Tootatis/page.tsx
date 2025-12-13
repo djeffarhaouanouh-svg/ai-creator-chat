@@ -1,14 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { getCreatorByUsername } from "@/data/creators";
+import { getCreatorBySlug } from "@/data/creators-merged";
 import { MessageCircle, Users, Star } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import PaypalButton from "@/components/PaypalButton";
 
 export default function TootatisPage() {
   const router = useRouter();
-  const creator = getCreatorByUsername("Tootatis");
+ const [creator, setCreator] = useState<any>(null);
+
+useEffect(() => {
+  async function load() {
+    const data = await getCreatorBySlug("tootatis");
+     console.log(data);
+    setCreator(data);
+  }
+  load();
+}, []);
 
   // FAQ
   const [openIndex, setOpenIndex] = useState<number | null>(null);
