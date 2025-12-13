@@ -319,3 +319,8 @@
     filter: blur(160px);
   }
 }
+
+html,
+body {
+  background-color: #000;
+}

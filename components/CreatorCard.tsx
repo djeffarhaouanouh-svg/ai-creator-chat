@@ -1,7 +1,18 @@
+"use client";
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Creator } from '@/lib/types';
 import { MessageCircle, Users } from 'lucide-react';
+import { motion } from "framer-motion";
+
+/* ------------------ FADE IN PRESET ------------------ */
+const fadeUp = {
+  initial: { opacity: 0, y: 40 },
+  whileInView: { opacity: 1, y: 0 },
+  transition: { duration: 0.8, ease: "easeOut" },
+  viewport: { once: true },
+};
+
 
 interface CreatorCardProps {
   creator: Creator;
