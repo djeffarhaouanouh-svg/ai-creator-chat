@@ -1,69 +1,51 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { pool } from "@/lib/db";
-import bcrypt from "bcryptjs";
+import { sql } from "@vercel/postgres";
 
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const { slug, password } = await request.json();
+    const body = await req.json().catch(() => ({}));
+    const slug = String(body.slug ?? "").trim().toLowerCase();
+    const password = String(body.password ?? "");
 
     if (!slug || !password) {
       return NextResponse.json(
-        { error: "Slug et mot de passe requis" },
+        { error: "Slug ou mot de passe manquant" },
         { status: 400 }
       );
     }
 
-    // Vérifie que la DB est bien initialisée
-    if (!pool) {
-      console.error("❌ Database non initialisée !");
-      return NextResponse.json(
-        { error: "Erreur interne : base de données non initialisée" },
-        { status: 500 }
-      );
-    }
-
-    // Requête SQL
-    const query = `
-      SELECT id, name, slug, password_hash
+    const { rows } = await sql`
+      SELECT slug, name, password, is_active
       FROM creators
-      WHERE slug = $1
+      WHERE slug = ${slug}
       LIMIT 1
     `;
 
-    const result = await pool.query(query, [slug]);
-    const creator = result.rows[0];
+    const creator = rows[0];
 
-    // Vérifie si la créatrice existe
-    if (!creator) {
+    if (!creator || creator.is_active !== true) {
       return NextResponse.json(
-        { error: "Identifiants incorrects" },
+        { error: "Créatrice introuvable ou inactive" },
         { status: 401 }
       );
     }
 
-    // Vérifie le mot de passe
-    const valid = await bcrypt.compare(password, creator.password_hash);
-
-    if (!valid) {
+    if (creator.password !== password) {
       return NextResponse.json(
-        { error: "Identifiants incorrects" },
+        { error: "Mot de passe incorrect" },
         { status: 401 }
       );
     }
 
-    // Succès : on renvoie les infos publiques
     return NextResponse.json({
       success: true,
       creator: {
-        id: creator.id,
-        name: creator.name,
         slug: creator.slug,
+        name: creator.name,
       },
     });
-
-  } catch (error) {
-    console.error("🔥 Erreur login créatrice :", error);
+  } catch (error: any) {
+    console.error("🔥 Erreur login créatrice:", error?.message, error);
     return NextResponse.json(
       { error: "Erreur interne du serveur" },
       { status: 500 }

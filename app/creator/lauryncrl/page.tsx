@@ -5,28 +5,20 @@ import { getCreatorBySlug } from "@/data/creators-merged";
 import { MessageCircle, Users, Star } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import PaypalButton from "@/components/PaypalButton";
+import { storage } from "@/lib/storage";
 
-export default function Page({ params }: { params: { slug: string } }) {
+export default function LaurynPage() {
   const router = useRouter();
-  const [creator, setCreator] = useState<any>(null);
+ const [creator, setCreator] = useState<any>(null);
 
-  // CHARGEMENT DYNAMIQUE
-  useEffect(() => {
-    async function load() {
-      const data = await getCreatorBySlug(params.slug);
-      setCreator(data);
-    }
-    load();
-  }, [params.slug]);
-
-  // ⚠️ CHARGEMENT
-  if (!creator) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Chargement...</p>
-      </div>
-    );
+useEffect(() => {
+  async function load() {
+    const res = await fetch("/api/creators/lauryncrl");
+const data = await res.json();
+    setCreator(data);
   }
+  load();
+}, []);
 
   // FAQ
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -56,18 +48,8 @@ export default function Page({ params }: { params: { slug: string } }) {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
-  // Vérifie abonnement dans le localStorage
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      if (localStorage.getItem("subscribed") === "yes") {
-        setIsSubscribed(true);
-      }
-    }
-  }, []);
-
-  // Données Lauryn
+  // 🔥 DONNÉES UNIQUES POUR LAURYN
   const price = 6.97;
   const audio = "/audio/alice.mp3";
   const photos = [
@@ -78,9 +60,31 @@ export default function Page({ params }: { params: { slug: string } }) {
     "/laurin-3.png",
     "/laurin-6.png",
   ];
-  const subscribers = 4200;
-  const messagesCount = 28000;
   const rating = 4.9;
+
+  // Vérifie abonnement dans le localStorage
+  useEffect(() => {
+    if (creator && typeof window !== "undefined") {
+      // Vérifier si l'utilisateur est la créatrice elle-même
+      const creatorSlug = localStorage.getItem('creatorSlug');
+      const isOwnProfile = creatorSlug === (creator.slug || creator.id);
+
+      // Vérifier l'abonnement
+      const isSubbed = storage.isSubscribed(creator.slug || creator.id);
+
+      console.log('🔍 Debug subscription:', {
+        creatorSlug,
+        creatorId: creator.slug || creator.id,
+        isOwnProfile,
+        isSubbed,
+        subscriptions: localStorage.getItem('subscriptions')
+      });
+
+      // Accorder l'accès si c'est la créatrice ou si l'utilisateur est abonné
+      const hasAccess = isOwnProfile || isSubbed;
+      setIsSubscribed(hasAccess);
+    }
+  }, [creator]);
 
   // Préparer l'audio
   useEffect(() => {
@@ -101,20 +105,37 @@ export default function Page({ params }: { params: { slug: string } }) {
     }
   };
 
+  if (!creator) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Créatrice introuvable</h1>
+          <p className="mb-4">Cette créatrice n&apos;existe pas ou plus.</p>
+          <button
+            onClick={() => router.push("/")}
+            className="bg-[#e31fc1] text-white px-6 py-2 rounded-lg"
+          >
+            Retour à l&apos;accueil
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const handleChat = () => {
-    router.push(`/chat/${creator.id}`);
+    router.push(`/chat/${creator.slug || creator.id}`);
   };
 
   return (
     <main className="bg-white min-h-screen pb-1">
-      {/* HERO IMAGE */}
+      {/* HERO IMAGE (même structure que Lucile) */}
       <div className="w-full h-[28rem] md:h-[52rem] relative">
         <div className="absolute inset-0 flex z-0 items-center">
           <img
             src={creator.coverImage || creator.avatar || "/fallback.jpg"}
             alt={creator.name}
             className="w-full h-full object-cover"
-            style={{ objectPosition: "center 13%" }}
+            style={{ objectPosition: "center 30%" }}
           />
         </div>
 
@@ -135,7 +156,7 @@ export default function Page({ params }: { params: { slug: string } }) {
             <div className="flex items-center gap-2 justify-center mb-1">
               <Users size={20} className="text-gray-400" />
               <span className="text-xl md:text-2xl font-bold text-gray-900">
-                {subscribers.toLocaleString()}
+                {creator.totalSubscribers?.toLocaleString() || 0}
               </span>
             </div>
             <span className="text-gray-500 text-sm">abonnés</span>
@@ -145,7 +166,7 @@ export default function Page({ params }: { params: { slug: string } }) {
             <div className="flex items-center gap-2 justify-center mb-1">
               <MessageCircle size={20} className="text-gray-400" />
               <span className="text-xl md:text-2xl font-bold text-gray-900">
-                {messagesCount.toLocaleString()}
+                {creator.totalMessages?.toLocaleString() || 0}
               </span>
             </div>
             <span className="text-gray-500 text-sm">messages</span>
@@ -162,52 +183,36 @@ export default function Page({ params }: { params: { slug: string } }) {
           </div>
         </div>
 
-        {/* GALERIE 2x3 */}
+        {/* GALERIE EN HAUT (position comme Lucile) */}
         <div className="px-4 md:px-8 pb-16 mt-10">
+          <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">
+            Contenu exclusif
+          </h2>
+
           <div className="grid grid-cols-3 gap-2 max-w-3xl mx-auto">
             {photos.map((photo, i) => {
-              // 🟩 1ère et 3ème visibles (index 0 et 2)
-              const isUnlocked = i === 0 || i === 2;
+              const isUnlocked = isSubscribed || i === 0 || i === 2;
 
               return (
                 <div
                   key={i}
-                  onClick={() => {
-                    if (isUnlocked) {
-                      setSelectedPhoto(photo);
-                    }
-                  }}
-                  className={`relative rounded-2xl overflow-hidden bg-gray-200 aspect-square ${
-                    isUnlocked ? "cursor-pointer" : "cursor-default"
-                  }`}
+                  className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-square"
                 >
                   <img
                     src={photo}
                     alt={`Photo ${i + 1}`}
-                    className={`w-full h-full object-cover ${
-                      isUnlocked ? "" : "blur-lg scale-110"
-                    }`}
+                    className={`w-full h-full object-cover ${isUnlocked ? '' : 'blur-lg scale-110'}`}
                   />
 
-                  {/* Overlay + cadenas uniquement si verrouillé */}
                   {!isUnlocked && (
                     <>
-                      <div className="absolute inset-0 bg-black/40" />
+                      {/* overlay foncé */}
+                      <div className="absolute inset-0 bg-black/40"></div>
+
+                      {/* cadenas */}
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
-                          <svg
-                            width="28"
-                            height="28"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="black"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <rect x="3" y="11" width="18" height="11" rx="2" />
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                          </svg>
+                          🔒
                         </div>
                       </div>
                     </>
@@ -218,96 +223,78 @@ export default function Page({ params }: { params: { slug: string } }) {
           </div>
         </div>
 
-<div className="bg-gray-50 border border-gray-200 rounded-2xl p-8 max-w-2xl mx-auto mb-10">
-
-  {/* LIGNE 1 */}
-  <p className="text-gray-900 font-semibold text-center text-lg mb-1">
-    T’en as marre de parler à des agences de chatting❗️
-  </p>
-
-  {/* LIGNE 2 */}
-  <p className="text-gray-700 text-center text-base mb-3">
-    et d’attendre des heures pour une réponse ?
-  </p>
-
-  {/* LIGNE 3 */}
-  <p className="text-gray-600 text-center leading-relaxed mb-6 text-[15px]">
-  Découvre l’IA inspirée de ta créatrice : sa façon d’écrire,<br />
-  ses souvenirs et sa voix, dispo 24h/24.
-</p>
-
-  {/* TITRE ORIGINAL */}
-  <h3 className="font-semibold text-gray-900 mb-4 text-center text-lg">
-    Comment Lauryn parle avec toi 💕
-  </h3>
-
-  <ul className="space-y-2 text-gray-700 text-[15px]">
-    <li>• Elle te répond comme une vraie copine</li>
-    <li>• Elle se souvient de ce que tu lui racontes</li>
-    <li>• Elle t’envoie des vocaux personnalisés</li>
-    <li>• Elle peut être douce, taquine ou coquine selon tes envies</li>
-  </ul>
-</div>
-
-          <div className="bg-gray-50 border border-gray-200 rounded-2xl px-6 py-4 max-w-2xl mx-auto mt-8 mb-10">
-  <div className="flex items-center justify-center gap-5">
-
-    {/* BOUTON PLAY */}
-    <button
-      onClick={toggleAudio}
-      className="w-10 h-10 flex items-center justify-center rounded-full bg-[#e9edef] border border-gray-300"
-    >
-      {isPlaying ? (
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="#4a4a4a">
-          <rect x="3" y="3" width="5" height="14" rx="2" />
-          <rect x="12" y="3" width="5" height="14" rx="2" />
-        </svg>
-      ) : (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="#4a4a4a">
-          <polygon points="3,2 17,10 3,18" />
-        </svg>
-      )}
-    </button>
-
-    {/* WAVEFORM */}
-    <div className="flex items-center">
-      <div className={`bespona-wave ${isPlaying ? "playing" : ""}`}>
-        {Array.from({ length: 18 }).map((_, i) => (
-          <span key={i}></span>
-        ))}
-      </div>
-    </div>
-
-  </div>
-</div>
-
-        {/* PRIX */}
-        <div className="text-center mb-6">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-            {price.toFixed(2)}€
-            <span className="text-lg font-medium text-gray-600"> /mois</span>
-          </h2>
-          <p className="text-gray-500 mt-2">
-            Messages illimités • Annulation à tout moment
+        {/* STYLE DE CONVERSATION / BIO */}
+        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 max-w-2xl mx-auto mb-10">
+          <h3 className="font-semibold text-gray-900 mb-4 text-center">
+            Qui est {creator.name} ?
+          </h3>
+          <p className="text-gray-700 leading-relaxed text-center mb-6">
+            {creator.bio}
           </p>
+
+          <h3 className="font-semibold text-gray-900 mb-2 text-center">
+            Comment elle parle avec toi 💕
+          </h3>
+          <p className="text-gray-700 text-center">{creator.personality}</p>
         </div>
 
-        <div className="flex flex-col items-center gap-2 mt-4">
+        {/* AUDIO */}
+        <div className="w-full flex justify-center mt-2 mb-8">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleAudio}
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-[#e9edef] border border-gray-300"
+            >
+              {isPlaying ? (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="#4a4a4a">
+                  <rect x="3" y="3" width="5" height="14" rx="2" />
+                  <rect x="12" y="3" width="5" height="14" rx="2" />
+                </svg>
+              ) : (
+                <svg width="22" height="22" viewBox="0 0 20 20" fill="#4a4a4a">
+                  <polygon points="3,2 17,10 3,18" />
+                </svg>
+              )}
+            </button>
 
-  <div className="flex items-center gap-2">
+            <div className={`bespona-wave ${isPlaying ? "playing" : ""}`}>
+              {Array.from({ length: 10 }).map((_, i) => (
+                <span key={i}></span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+         {/* PRIX */}
+<div className="text-center mb-6">
+  <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+    {price.toFixed(2)}€
+    <span className="text-lg font-medium text-gray-600"> /mois</span>
+  </h2>
+  <p className="text-gray-500 mt-2">
+    Messages illimités • Annulation à tout moment
+  </p>
+</div>
+
+{/* AVANTAGES */}
+<div className="flex flex-col items-center gap-2 mb-8">
+  <div className="flex items-center justify-center gap-2">
     <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
       ✓
     </span>
-    <p className="text-gray-600 text-lg">Réponses rapides 24h/24</p>
+    <p className="text-gray-600 text-lg text-center">
+      Réponses rapides 24h/24
+    </p>
   </div>
 
-  <div className="flex items-center gap-2">
+  <div className="flex items-center justify-center gap-2">
     <span className="text-transparent bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-2xl">
       ✓
     </span>
-    <p className="text-gray-600 text-lg">Vocaux personnalisés</p>
+    <p className="text-gray-600 text-lg text-center">
+      Vocaux personnalisés
+    </p>
   </div>
-
 </div>
 
         {/* CTA PAYPAL / CHAT */}
@@ -320,38 +307,19 @@ export default function Page({ params }: { params: { slug: string } }) {
               <MessageCircle size={20} className="mr-2" />
               Discutez gratuitement
             </button>
-          )  : (
-  <button
-    onClick={() =>
-      window.location.href =
-        "https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-0MJ608195A3341825NE57WBY"
-    }
-    className="w-full px-8 py-4 rounded-xl font-semibold text-lg text-white
-    bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]
-    hover:opacity-90 transition"
-  >
-    S’abonner pour discuter
-  </button>
-)
-}
+          ) : (
+            <div className="text-center">
+              <p className="text-gray-600 mb-3">
+                Abonnez-vous pour accéder au chat et aux photos exclusives
+              </p>
+              <PaypalButton
+                creatorId={creator.slug || creator.id}
+                price={price}
+              />
+            </div>
+          )}
         </div>
       </div>
-
-      {/* ZOOM IMAGE (uniquement sur les photos débloquées) */}
-      {selectedPhoto && (
-        <div
-          className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]"
-          onClick={() => setSelectedPhoto(null)}
-        >
-          <div className="max-w-3xl w-[90vw] md:w-auto max-h-[90vh]">
-            <img
-              src={selectedPhoto}
-              alt="Photo agrandie"
-              className="w-full h-auto max-h-[90vh] object-contain rounded-2xl"
-            />
-          </div>
-        </div>
-      )}
 
       {/* FAQ */}
       <div className="max-w-2xl mx-auto mt-12 mb-20 px-4">
@@ -366,7 +334,9 @@ export default function Page({ params }: { params: { slug: string } }) {
                 onClick={() => toggle(i)}
                 className="w-full px-4 py-3 flex justify-between items-center text-left"
               >
-                <span className="font-medium text-gray-900">{item.question}</span>
+                <span className="font-medium text-gray-900">
+                  {item.question}
+                </span>
                 <span className="text-gray-600 text-xl">
                   {openIndex === i ? "−" : "+"}
                 </span>

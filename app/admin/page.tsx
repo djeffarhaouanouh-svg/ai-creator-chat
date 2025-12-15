@@ -5,6 +5,9 @@ import StatsCard from '@/components/admin/StatsCard'
 import RevenueChart from '@/components/admin/RevenueChart'
 import UsersList from '@/components/admin/UsersList'
 import RecentMessages from '@/components/admin/RecentMessages'
+import CohortAnalysis from '@/components/admin/CohortAnalysis'
+import MetricsGrid from '@/components/admin/MetricsGrid'
+import RetentionTrendChart from '@/components/admin/RetentionTrendChart'
 
 interface DashboardData {
   stats: {
@@ -27,6 +30,13 @@ interface DashboardData {
   }
   users: any[]
   messages: any[]
+  cohorts?: {
+    retention_type: string
+    cohorts: any[]
+    activity_metrics: any
+    value_metrics: any
+    retention_trend: any[]
+  }
 }
 
 export default function AdminDashboard() {
@@ -36,13 +46,14 @@ export default function AdminDashboard() {
   const [error, setError] = useState('')
   const [data, setData] = useState<DashboardData | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'messages'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'users' | 'messages'>('overview')
+  const [retentionType, setRetentionType] = useState<'classic' | 'rolling'>('rolling')
 
   // Fonction pour charger les données
-  const fetchData = async (adminPassword: string) => {
+  const fetchData = async (adminPassword: string, isInitialLogin: boolean = false) => {
     try {
       setLoading(true)
-      
+
       const headers = {
         'Authorization': `Bearer ${adminPassword}`,
         'Content-Type': 'application/json'
@@ -61,20 +72,33 @@ export default function AdminDashboard() {
       const messagesRes = await fetch('/api/admin/messages?limit=20', { headers })
       const messages = await messagesRes.json()
 
+      // Charger cohorts (si onglet analytics)
+      let cohorts = undefined
+      if (activeTab === 'analytics') {
+        const cohortsRes = await fetch(`/api/admin/cohorts?type=${retentionType}`, { headers })
+        if (cohortsRes.ok) {
+          cohorts = await cohortsRes.json()
+        }
+      }
+
       setData({
         stats,
         users: users.users || [],
-        messages: messages.messages || []
+        messages: messages.messages || [],
+        cohorts
       })
 
       setIsAuthenticated(true)
       setError('')
-      
+
       // Sauvegarder le mot de passe dans sessionStorage
       sessionStorage.setItem('adminPassword', adminPassword)
     } catch (err) {
-      setError('Mot de passe incorrect')
-      setIsAuthenticated(false)
+      // Ne déconnecter que si c'est le login initial, pas lors des refresh
+      if (isInitialLogin) {
+        setError('Mot de passe incorrect')
+        setIsAuthenticated(false)
+      }
     } finally {
       setLoading(false)
     }
@@ -83,31 +107,31 @@ export default function AdminDashboard() {
   // Login
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    fetchData(password)
+    fetchData(password, true)
   }
 
   // Vérifier si déjà connecté
   useEffect(() => {
     const savedPassword = sessionStorage.getItem('adminPassword')
     if (savedPassword) {
-      fetchData(savedPassword)
+      fetchData(savedPassword, true)
     }
   }, [])
 
-  // Refresh data when page changes
+  // Refresh data when tab changes or retention type changes
   useEffect(() => {
     const savedPassword = sessionStorage.getItem('adminPassword')
     if (isAuthenticated && savedPassword) {
-      fetchData(savedPassword)
+      fetchData(savedPassword, false)
     }
-  }, [currentPage])
+  }, [activeTab, retentionType])
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
     const savedPassword = sessionStorage.getItem('adminPassword')
     if (isAuthenticated && savedPassword) {
       const interval = setInterval(() => {
-        fetchData(savedPassword)
+        fetchData(savedPassword, false)
       }, 30000)
       return () => clearInterval(interval)
     }
@@ -138,7 +162,7 @@ export default function AdminDashboard() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-gray-900"
                 placeholder="Entrez le mot de passe admin"
                 required
               />
@@ -202,7 +226,7 @@ export default function AdminDashboard() {
 
           {/* Tabs */}
           <div className="flex gap-4 mt-6 border-b border-gray-200">
-            {['overview', 'users', 'messages'].map((tab) => (
+            {['overview', 'analytics', 'users', 'messages'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab as any)}
@@ -213,6 +237,7 @@ export default function AdminDashboard() {
                 }`}
               >
                 {tab === 'overview' && '📊 Vue d\'ensemble'}
+                {tab === 'analytics' && '📈 Analytics'}
                 {tab === 'users' && '👥 Utilisateurs'}
                 {tab === 'messages' && '💬 Messages'}
               </button>
@@ -273,6 +298,41 @@ export default function AdminDashboard() {
             {/* Recent Messages */}
             <RecentMessages messages={messages} limit={10} />
           </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <>
+            {loading && !data.cohorts ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Chargement des analytics...</p>
+                </div>
+              </div>
+            ) : data.cohorts ? (
+              <div className="space-y-8">
+                {/* Metrics Grid */}
+                <MetricsGrid
+                  activityMetrics={data.cohorts.activity_metrics}
+                  valueMetrics={data.cohorts.value_metrics}
+                />
+
+                {/* Retention Trend Chart */}
+                <RetentionTrendChart data={data.cohorts.retention_trend} />
+
+                {/* Cohort Analysis Table */}
+                <CohortAnalysis
+                  cohorts={data.cohorts.cohorts}
+                  retentionType={data.cohorts.retention_type}
+                  onRetentionTypeChange={(type) => setRetentionType(type)}
+                />
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                Aucune donnée disponible
+              </div>
+            )}
+          </>
         )}
 
         {activeTab === 'users' && (

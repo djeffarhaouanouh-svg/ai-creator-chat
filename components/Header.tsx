@@ -1,11 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Vérifier si l'utilisateur est connecté (créatrice ou utilisateur)
+    const accountType = localStorage.getItem('accountType');
+    const creatorSlug = localStorage.getItem('creatorSlug');
+    const userId = localStorage.getItem('userId');
+
+    setIsLoggedIn(!!(accountType && (creatorSlug || userId)));
+  }, []);
 
   return (
      <nav className="bg-black fixed top-0 left-0 w-full z-[999999] border-b border-gray-900">
@@ -37,12 +47,12 @@ export default function Header() {
           MyDouble
         </Link>
 
-        {/* BOUTON CONNEXION */}
+        {/* BOUTON CONNEXION / MON COMPTE */}
         <Link
-          href="/login"
+          href={isLoggedIn ? "/mon-compte" : "/login"}
            className="text-white border border-white px-3 py-1.5 text-sm rounded-md whitespace-nowrap"
         >
-          Connexion
+          {isLoggedIn ? "Mon compte" : "Connexion"}
         </Link>
       </div>
 
@@ -50,26 +60,33 @@ export default function Header() {
       {isMenuOpen && (
         <div className="bg-black border-t border-gray-900 py-2">
           <Link
-            href="/dashboard"
-            className="block text-white px-4 py-2"
+            href="/mon-compte"
+            className="block text-white px-4 py-2 hover:bg-gray-900 transition-colors"
             onClick={() => setIsMenuOpen(false)}
           >
             Mon compte
           </Link>
           <Link
-  href="/"
-  className="block text-white px-4 py-2"
-  onClick={() => setIsMenuOpen(false)}
->
-  Découvrir
-</Link>
-<Link
-  href="/pourquoi-nous-rejoindre"
-  className="block text-white px-4 py-2"
-  onClick={() => setIsMenuOpen(false)}
->
-  Pourquoi nous rejoindre ?
-</Link>
+            href="/mes-messages"
+            className="block text-white px-4 py-2 hover:bg-gray-900 transition-colors"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Mes messages
+          </Link>
+          <Link
+            href="/"
+            className="block text-white px-4 py-2 hover:bg-gray-900 transition-colors"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Découvrir
+          </Link>
+          <Link
+            href="/pourquoi-nous-rejoindre"
+            className="block text-white px-4 py-2 hover:bg-gray-900 transition-colors"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Pourquoi nous rejoindre ?
+          </Link>
         </div>
       )}
     </nav>

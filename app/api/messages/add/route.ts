@@ -6,15 +6,29 @@ export const fetchCache = "force-no-store";
 
 export async function POST(req: Request) {
   try {
-    const { userId, creatorId, role, content } = await req.json();
+    const { userId, creatorSlug, role, content } = await req.json();
 
-    if (!userId || !creatorId || !role || !content) {
-      console.error("Missing field:", { userId, creatorId, role, content });
+    if (!userId || !creatorSlug || !role || !content) {
+      console.error("Missing field:", { userId, creatorSlug, role, content });
       return NextResponse.json(
         { success: false, error: "Missing fields" },
         { status: 400 }
       );
     }
+
+    // Récupérer l'UUID du créateur depuis son slug
+    const creatorResult = await sql`
+      SELECT id FROM creators WHERE slug = ${creatorSlug} LIMIT 1
+    `;
+
+    if (creatorResult.rows.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Creator not found" },
+        { status: 404 }
+      );
+    }
+
+    const creatorId = creatorResult.rows[0].id;
 
     await sql`
       INSERT INTO messages (user_id, creator_id, role, content)

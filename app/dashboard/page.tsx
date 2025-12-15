@@ -2,121 +2,100 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { sql } from '@vercel/postgres'
 import { Users, MessageCircle, DollarSign, TrendingUp, CreditCard, Settings, LogOut, X } from 'lucide-react'
-import { creators } from '@/data/creators'
 import Image from 'next/image'
+import { storage } from '@/lib/storage'
+
+interface UserStats {
+  totalSubscriptions: number
+  totalMessages: number
+  totalSpent: number
+  monthlySpent: number
+  newSubscriptionsThisMonth: number
+  messagesThisMonth: number
+  avgMessagesPerCreator: number
+}
+
+interface Subscription {
+  id: string
+  user_id: string
+  creator_id: string
+  creator_name: string
+  creator_slug: string
+  creator_avatar: string
+  creator_bio: string
+  plan: string
+  status: string
+  started_at: string
+  expires_at: string
+}
 
 export default function MonCompte() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
-  const [subscriptions, setSubscriptions] = useState<any[]>([])
-  const [stats, setStats] = useState({
-    totalSubscribers: 0,
-    totalMessages: 0,
-    monthlyRevenue: 0,
-    growthRate: 15.3
-  })
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+  const [stats, setStats] = useState<UserStats | null>(null)
+  const [statsLoading, setStatsLoading] = useState(false)
+  const [statsError, setStatsError] = useState<string | null>(null)
 
   useEffect(() => {
-    loadUserData()
-  }, [])
+    const userId = localStorage.getItem('userId')
 
-  const loadUserData = async () => {
+    if (!userId) {
+      router.push('/login')
+      return
+    }
+
+    setLoading(false)
+    loadStats(userId)
+  }, [router])
+
+  const loadStats = async (userId: string) => {
+    setStatsLoading(true)
+    setStatsError(null)
+
     try {
-      const userId = sessionStorage.getItem('userId')
+      const response = await fetch(`/api/user/stats?userId=${userId}`)
 
-      if (!userId) {
-        router.push('/login')
-        return
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement des statistiques')
       }
 
-      // Charger USER
-      const { rows: userRows } = await sql`
-        SELECT * FROM users WHERE id = ${userId} LIMIT 1
-      `
-      const userData = userRows[0]
+      const data = await response.json()
+      setUser(data.user)
+      setStats(data.stats)
+      setSubscriptions(data.subscriptions)
 
-      if (!userData) {
-        router.push('/login')
-        return
+      // Synchroniser les abonnements avec localStorage pour les pages créatrices
+      if (data.subscriptions && data.subscriptions.length > 0) {
+        data.subscriptions.forEach((sub: Subscription) => {
+          if (sub.status === 'active' && sub.creator_slug) {
+            storage.subscribe(sub.creator_slug)
+          }
+        })
       }
-
-      setUser(userData)
-
-      // Charger SUBSCRIPTIONS (avec jointure creators)
-      const { rows: subsData } = await sql`
-        SELECT s.*, 
-               c.id AS creator_id, 
-               c.name AS creator_name, 
-               c.slug AS creator_slug,
-               c.price AS creator_price,
-               c.avatar AS creator_avatar
-        FROM subscriptions s
-        LEFT JOIN creators c ON c.id = s.creator_id
-        WHERE s.user_id = ${userId}
-        AND s.status = 'active'
-      `
-      setSubscriptions(subsData)
-
-      // Charger MESSAGES
-      const { rows: messagesData } = await sql`
-        SELECT * FROM messages WHERE user_id = ${userId}
-      `
-      const totalMessages = messagesData.length
-
-      // Stats basiques
-      const totalSubs = subsData.length
-      const monthlyRevenue = totalSubs * 9.99
-
-      setStats({
-        totalSubscribers: totalSubs,
-        totalMessages,
-        monthlyRevenue,
-        growthRate: 15.3
-      })
-
     } catch (error) {
-      console.error('Erreur:', error)
+      console.error('Erreur stats:', error)
+      setStatsError(error instanceof Error ? error.message : 'Erreur inconnue')
     } finally {
-      setLoading(false)
+      setStatsLoading(false)
     }
   }
 
   // UPDATE USER
   const handleUpdateProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-
-    const name = formData.get('name') as string
-    const email = formData.get('email') as string
-
-    try {
-      await sql`
-        UPDATE users
-        SET name = ${name}, email = ${email.toLowerCase()}
-        WHERE id = ${user.id}
-      `
-
-      alert('Profil mis à jour avec succès !')
-      loadUserData()
-
-    } catch (error) {
-      console.error('Erreur mise à jour:', error)
-      alert('Erreur lors de la mise à jour')
-    }
+    alert('Mise à jour du profil à implémenter via API')
+    // TODO: Créer /api/user/update
   }
 
   const handleLogout = () => {
-    sessionStorage.clear()
+    localStorage.removeItem('accountType')
+    localStorage.removeItem('userId')
+    localStorage.removeItem('userName')
     router.push('/login')
   }
-
-  // Mapping créatrices (selon  creators[] client-side)
-  const subscribedCreators = creators.filter(c => 
-    subscriptions.some(sub => sub.creator_slug === c.username)
-  )
 
   if (loading) {
     return (
@@ -146,9 +125,17 @@ export default function MonCompte() {
                 <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#fce7f3' }}>
                   <Users style={{ color: '#e31fc1' }} size={24} />
                 </div>
-                <span className="text-xs text-green-600 font-semibold">+{stats.growthRate}%</span>
+                {stats && stats.newSubscriptionsThisMonth > 0 && (
+                  <span className="text-xs text-green-600 font-semibold">
+                    +{stats.newSubscriptionsThisMonth} ce mois
+                  </span>
+                )}
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">{stats.totalSubscribers}</h3>
+              {statsLoading ? (
+                <div className="h-8 w-20 bg-gray-200 animate-pulse rounded mb-2"></div>
+              ) : (
+                <h3 className="text-2xl font-bold text-gray-900">{stats?.totalSubscriptions || 0}</h3>
+              )}
               <p className="text-sm text-gray-600">Abonnements actifs</p>
             </div>
 
@@ -158,7 +145,11 @@ export default function MonCompte() {
                   <MessageCircle className="text-blue-600" size={24} />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">{stats.totalMessages}</h3>
+              {statsLoading ? (
+                <div className="h-8 w-20 bg-gray-200 animate-pulse rounded mb-2"></div>
+              ) : (
+                <h3 className="text-2xl font-bold text-gray-900">{stats?.totalMessages || 0}</h3>
+              )}
               <p className="text-sm text-gray-600">Messages envoyés</p>
             </div>
 
@@ -168,7 +159,13 @@ export default function MonCompte() {
                   <DollarSign className="text-green-600" size={24} />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">{stats.monthlyRevenue.toFixed(2)}€</h3>
+              {statsLoading ? (
+                <div className="h-8 w-24 bg-gray-200 animate-pulse rounded mb-2"></div>
+              ) : (
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {stats?.monthlySpent.toFixed(2) || '0.00'}€
+                </h3>
+              )}
               <p className="text-sm text-gray-600">Dépenses mensuelles</p>
             </div>
 
@@ -178,9 +175,13 @@ export default function MonCompte() {
                   <TrendingUp className="text-purple-600" size={24} />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">
-                {(stats.totalMessages / Math.max(stats.totalSubscribers, 1)).toFixed(0)}
-              </h3>
+              {statsLoading ? (
+                <div className="h-8 w-20 bg-gray-200 animate-pulse rounded mb-2"></div>
+              ) : (
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {stats?.avgMessagesPerCreator.toFixed(0) || 0}
+                </h3>
+              )}
               <p className="text-sm text-gray-600">Messages moyens/créatrice</p>
             </div>
           </div>
@@ -225,63 +226,104 @@ export default function MonCompte() {
               <h2 className="text-xl font-bold text-gray-900">Mes abonnements</h2>
             </div>
 
-            {subscribedCreators.length === 0 ? (
-              <div className="text-center py-12">
-                <MessageCircle size={48} className="text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">Vous n'êtes abonné à aucune créatrice</p>
-                <button 
-                  onClick={() => router.push('/')}
-                  className="px-6 py-2 text-white rounded-lg"
-                  style={{ backgroundColor: '#e31fc1' }}
-                >
-                  Explorer les créatrices
-                </button>
+            {statsLoading ? (
+              <div className="space-y-4">
+                {[1, 2].map((i) => (
+                  <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
+                    <div className="w-16 h-16 bg-gray-200 rounded-full animate-pulse"></div>
+                    <div className="flex-1">
+                      <div className="h-5 w-32 bg-gray-200 rounded animate-pulse mb-2"></div>
+                      <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                  </div>
+                ))}
               </div>
+            ) : subscriptions.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">Aucun abonnement actif</p>
             ) : (
               <div className="space-y-4">
-                {subscribedCreators.map((creator) => {
-                  const subscription = subscriptions.find(sub => sub.creator_slug === creator.username)
-
-                  return (
-                    <div key={creator.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-4">
+                {subscriptions.map((subscription) => (
+                  <div
+                    key={subscription.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
+                    <div className="flex items-center gap-4">
+                      {subscription.creator_avatar && (
                         <div className="relative w-16 h-16 rounded-full overflow-hidden">
-                          <Image src={creator.avatar} alt={creator.name} fill className="object-cover" />
+                          <Image
+                            src={subscription.creator_avatar}
+                            alt={subscription.creator_name}
+                            fill
+                            className="object-cover"
+                          />
                         </div>
+                      )}
 
-                        <div>
-                          <h4 className="font-semibold text-gray-900">{creator.name}</h4>
-                          <p className="text-sm text-gray-500">@{creator.username}</p>
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{subscription.creator_name}</h4>
+                        <p className="text-sm text-gray-500">@{subscription.creator_slug}</p>
 
-                          <div className="flex gap-4 mt-1 text-xs text-gray-500">
-                            <span>{creator.price}€/mois</span>
-                            {subscription && (
-                              <>
-                                <span>•</span>
-                                <span>Actif depuis {new Date(subscription.started_at).toLocaleDateString('fr-FR')}</span>
-                              </>
-                            )}
-                          </div>
+                        <div className="flex gap-4 mt-1 text-xs text-gray-500">
+                          <span>
+                            Actif depuis{" "}
+                            {new Date(subscription.started_at).toLocaleDateString("fr-FR")}
+                          </span>
                         </div>
                       </div>
-
-                      <button
-                        className="px-3 py-1 text-sm border rounded-md"
-                        style={{ borderColor: '#e31fc1', color: '#e31fc1' }}
-                        onClick={() => router.push(`/chat/${creator.id}`)}
-                      >
-                        <MessageCircle size={16} className="mr-2 inline" />
-                        Discuter
-                      </button>
                     </div>
-                  )
-                })}
+                    <button
+                      className="px-3 py-1 text-sm border rounded-md"
+                      style={{ borderColor: '#e31fc1', color: '#e31fc1' }}
+                      onClick={() => router.push(`/chat/${subscription.creator_slug || subscription.creator_id}`)}
+                    >
+                      <MessageCircle size={16} className="mr-2 inline" />
+                      Discuter
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
 
+          {/* Message d'erreur */}
+          {statsError && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-8">
+              <div className="flex items-center">
+                <X className="w-5 h-5 text-red-600 mr-2" />
+                <p className="text-sm text-red-700">{statsError}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Bouton de rafraîchissement */}
+          <div className="flex justify-center mb-8">
+            <button
+              onClick={() => {
+                const userId = sessionStorage.getItem('userId')
+                if (userId) loadStats(userId)
+              }}
+              disabled={statsLoading}
+              className="px-6 py-3 bg-white border-2 border-purple-600 text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <svg
+                className={`w-5 h-5 ${statsLoading ? 'animate-spin' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              {statsLoading ? 'Actualisation...' : 'Actualiser les statistiques'}
+            </button>
+          </div>
+
           <div className="flex justify-center pt-8 border-t border-gray-700">
-            <button 
+            <button
               onClick={handleLogout}
               className="flex items-center space-x-3 px-6 py-3 bg-gray-800 text-white rounded-lg"
             >

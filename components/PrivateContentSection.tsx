@@ -33,7 +33,11 @@ const PrivateContentSection = () => {
 
           {/* Texte */}
           <div className="order-2 lg:order-2 space-y-10">
-            <h2
+            <motion.h2
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 2, delay: 0.2 }}
+              viewport={{ once: true }}
               className="text-3xl md:text-5xl font-bold leading-tight"
               style={{ fontSize: "42px" }}
             >
@@ -43,14 +47,26 @@ const PrivateContentSection = () => {
                 avec toi
               </span>{" "}
               💬
-            </h2>
+            </motion.h2>
 
-            <p className="text-xl text-white/70 leading-relaxed">
-              Pas de délais, pas d’absence.
-              Tu peux lui parler à n’importe quel moment, continuer votre histoire et renforcer votre connexion quand tu veux.
-            </p>
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 2, delay: 0.4 }}
+              viewport={{ once: true }}
+              className="text-xl text-white/70 leading-relaxed"
+            >
+              Pas de délais, pas d'absence.
+              Tu peux lui parler à n'importe quel moment, continuer votre histoire et renforcer votre connexion quand tu veux.
+            </motion.p>
 
-            <div className="flex flex-wrap gap-5 pt-6">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 2, delay: 0.6 }}
+              viewport={{ once: true }}
+              className="flex flex-wrap gap-5 pt-6"
+            >
               <button className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-8 py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all duration-300 hover:scale-105">
                 Découvrir →
               </button>
@@ -60,7 +76,7 @@ const PrivateContentSection = () => {
               >
                 Connecte-toi
               </button>
-            </div>
+            </motion.div>
           </div>
 
         </div>

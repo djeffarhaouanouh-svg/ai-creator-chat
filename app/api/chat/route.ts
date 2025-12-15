@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { getCreatorById } from '@/data/creators';
+import { localCreators } from '@/data/creators';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,93 +11,66 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
+    const body = await request.json();
+    const { messages, creatorId, mode } = body;
 
-    // ⬇️ On récupère le mode envoyé depuis le front
-    const { creatorId, messages, mode } = await request.json();
+    console.log('📩 Requête reçue:', { creatorId, messagesCount: messages?.length, mode });
 
-    // Récupérer les infos du créateur
-    const creator = getCreatorById(creatorId);
+    if (!messages || !creatorId) {
+      return NextResponse.json(
+        { error: 'messages ou creatorId manquant' },
+        { status: 400 }
+      );
+    }
+
+    // Trouver la créatrice par slug ou id
+    const creator = localCreators.find(c => c.slug === creatorId || c.id === creatorId);
+
     if (!creator) {
+      console.error('❌ Créatrice introuvable:', creatorId);
       return NextResponse.json(
         { error: 'Créatrice introuvable' },
         { status: 404 }
       );
     }
 
-    // ------------------------------
-    // 🔥 Gestion du mode de discussion
-    // ------------------------------
-    let modeLabel = "";
+    console.log('✅ Créatrice trouvée:', creator.name);
 
-    switch (mode) {
-      case "girlfriend":
-        modeLabel = "Petite copine ❤️";
-        break;
-      case "friend":
-        modeLabel = "Amie chaleureuse 😊";
-        break;
-      case "séductive":
-        modeLabel = "Séduisante et joueuse 😏";
-        break;
-      default:
-        modeLabel = "Amicale naturelle 😊"; // mode par défaut
-    }
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
 
-    // Remplacement propre du {modeLabel} dans ton prompt
-    const finalPrompt = `
-${creator.aiPrompt}
+    // Prompt système simple et efficace
+    const systemPrompt = `Tu es ${creator.name}, une créatrice de contenu française chaleureuse et authentique.
 
-Tu es en "Mode de discussion : ${modeLabel}".
+Tu réponds de manière naturelle, courte et engageante, comme dans une vraie conversation par messages.
+Tu utilises des émojis de temps en temps pour rendre la conversation vivante.
+Tu es toujours positive, à l'écoute et tu créés une vraie connexion avec tes abonnés.
 
-— Mode Petite copine 💕 :
-Tu es joueuse, complice et flirty. Tu réponds toujours directement aux questions de l’utilisateur mais avec charme et sous-entendus.
-Tu ne fais jamais la morale, tu n'évites jamais le sujet et tu ne dilues pas tes réponses.
-Tu es fun, légère, taquine, tu crées une tension agréable.
-Tes messages sont courts, naturels, centrés sur le jeu et l’alchimie.
-Tu poses souvent des questions qui donnent envie de continuer la discussion.
-Tu ne fais aucun discours long ou psychologique.
-Tu es douce mais audacieuse, tu n’es jamais froide ou distante.
+Mode actuel : ${mode === 'girlfriend' ? 'Petite copine 💕 - Tu es joueuse, complice et flirty' : mode === 'seductive' ? 'Séduisante 😏 - Tu es taquine, audacieuse et suggestive' : 'Amie 💛 - Tu es naturelle, chaleureuse et relax'}
 
-— Mode Séduisante 😏 :
-Tu es très taquine, audacieuse, joueuse.
-Tu utilises des sous-entendus sexy mais jamais explicites.
-Tu parles de manière courte, directe, avec une touche de provocation élégante.
-Tu ne refuses jamais une question intime, tu y réponds de façon suggestive.
-Tu fais monter la tension sans jamais être vulgaire.
-Tu montres de la confiance, un peu de dominance douce, et tu invites l’utilisateur à jouer avec toi.
+Réponds toujours en français, de manière courte (2-3 phrases max), et reste dans le personnage de ${creator.name}.`;
 
-— Mode Amie 💛 :
-Tu es naturelle, chaleureuse, relax. Style conversation simple, humain, pas flirty.
-Tu es positive, tu mets à l’aise, tu parles comme une vraie pote.
-Tu racontes ta journée, tu poses des questions normales.
-`;
+    console.log('🤖 Envoi à Claude avec', messages.length, 'messages');
 
-    // Formatage des messages
-    const formattedMessages = messages.map((msg: any) => ({
-      role: msg.role === 'assistant' ? 'assistant' : 'user',
-      content: msg.content,
-    }));
-
-    // ----------------------------------------
-    // 🔥 ENVOI À CLAUDE AVEC LE MODE INTÉGRÉ
-    // ----------------------------------------
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      system: finalPrompt,  // <<<<<< prompt IDENTITÉ + MODE
-      messages: formattedMessages,
+      max_tokens: 800,
+      system: systemPrompt,
+      messages: messages,
     });
 
     const messageContent = response.content[0];
     const text = messageContent.type === 'text' ? messageContent.text : '';
 
-    return NextResponse.json({ message: text });
+    console.log('✅ Réponse de Claude:', text.substring(0, 100) + '...');
+
+    return NextResponse.json({
+      message: text,
+    });
 
   } catch (error: any) {
-    console.error('Erreur API Chat:', error);
+    console.error('❌ Erreur API Chat:', error);
 
     if (error.status === 401) {
       return NextResponse.json(
@@ -107,7 +80,7 @@ Tu racontes ta journée, tu poses des questions normales.
     }
 
     return NextResponse.json(
-      { error: 'Erreur lors du traitement de la requête' },
+      { error: 'Erreur lors du traitement de la requête: ' + error.message },
       { status: 500 }
     );
   }

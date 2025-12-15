@@ -12,6 +12,42 @@ import { motion } from "framer-motion";
 // 🔥 FIX : On ne peut PAS appeler getCreators() directement côté client.
 // Donc on crée une route API serveur : /api/creators
 
+function FAQItem({ question, answer }: { question: string; answer: string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="border border-gray-800 rounded-2xl bg-gradient-to-b from-gray-900 to-black overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex justify-between items-center px-4 py-4 md:px-6 md:py-5 text-left"
+      >
+        <span className="text-base md:text-lg font-semibold pr-4">
+          {question}
+        </span>
+        <span
+          className={`text-xl md:text-2xl transition-transform duration-300 ${
+            open ? "rotate-45 text-[#e31fc1]" : "text-gray-400"
+          }`}
+        >
+          +
+        </span>
+      </button>
+
+      {open && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
+          <p className="px-4 pb-4 md:px-6 md:pb-6 text-sm md:text-base text-gray-400">
+            {answer}
+          </p>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -31,12 +67,15 @@ export default function Home() {
 
   // ⭐ AFFICHE ENFIN LES CRÉATRICES
   const [creators, setCreators] = useState<any[]>([]);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
 
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/creators");
       const data = await res.json();
       setCreators(data || []);
+      // Petit délai pour laisser les images priority se charger
+      setTimeout(() => setImagesLoaded(true), 800);
     }
     load();
   }, []);
@@ -98,12 +137,8 @@ export default function Home() {
           <div className="hidden md:block">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {creators.map((creator, index) => (
-                <motion.div
+                <div
                   key={creator.id || index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.08 }}
-                  viewport={{ once: true }}
                 >
                   <Link href={`/creator/${creator.slug}`}>
                     <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer">
@@ -114,8 +149,9 @@ export default function Home() {
                           src={creator.coverImage || "/default-cover.jpg"}
                           alt={creator.name}
                           fill
+                          priority
                           className="object-cover"
-                          style={{ objectPosition: `center ${creator.imageY || "50%"}` }}
+                          style={{ objectPosition: `center ${creator.imageY || "30%"}` }}
                         />
                         <div className="absolute -bottom-10 left-6">
                           <div className="relative w-20 h-20 rounded-full border-4 border-white overflow-hidden">
@@ -123,6 +159,7 @@ export default function Home() {
                               src={creator.avatar || creator.avatar_url || "/default-avatar.png"}
                               alt={creator.name}
                               fill
+                              priority
                               className="object-cover"
                             />
                           </div>
@@ -134,7 +171,7 @@ export default function Home() {
                         <h3 className="text-xl font-bold mb-1">{creator.name}</h3>
                         <p className="text-sm text-gray-600 mb-3">@{creator.slug}</p>
                         <p className="text-gray-700 text-sm mb-4 line-clamp-2">
-  {creator.bio || creator.bio_local || ""}
+  {creator.bio || ""}
 </p>
 
 
@@ -164,7 +201,7 @@ export default function Home() {
                         <div className="flex items-center justify-between">
                           <div>
                             <span className="text-2xl font-bold text-gray-900">
-                              {creator.price || 4.97}€
+                              {creator.price || 6.97}€
                             </span>
                             <span className="text-gray-600 text-sm">/mois</span>
                           </div>
@@ -177,7 +214,7 @@ export default function Home() {
 
                     </div>
                   </Link>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -197,11 +234,7 @@ export default function Home() {
               {duplicatedCreators.map((creator, index) => (
                 <div key={`${creator.id}-${index}`} className="w-full flex-shrink-0 px-4">
 
-                  <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    viewport={{ once: true }}
+                  <div
                     className="bg-white rounded-2xl shadow-md overflow-hidden max-w-sm mx-auto"
                   >
                     {/* IMAGE */}
@@ -210,8 +243,9 @@ export default function Home() {
                         src={creator.coverImage || "/default-cover.jpg"}
                         alt={creator.name}
                         fill
+                        priority
                         className="object-cover"
-                        style={{ objectPosition: `center ${creator.imageY || "50%"}` }}
+                        style={{ objectPosition: `center ${creator.imageY || "26%"}` }}
                       />
                       <div className="absolute -bottom-8 left-4">
                         <div className="relative w-16 h-16 rounded-full border-4 border-white overflow-hidden">
@@ -219,6 +253,7 @@ export default function Home() {
                             src={creator.avatar || creator.avatar_url || "/default-avatar.png"}
                             alt={creator.name}
                             fill
+                            priority
                             className="object-cover"
                           />
                         </div>
@@ -231,8 +266,8 @@ export default function Home() {
                       <p className="text-xs text-gray-600 mb-2">@{creator.slug}</p>
 
                       <p className="text-gray-700 text-xs mb-3 line-clamp-2">
-                        {creator.bio || creator.bio_local || ""}
-                          </p>
+                        {creator.bio || ""}
+                      </p>
 
                       <div className="flex flex-wrap gap-2 mb-3">
                         {(creator.tags || []).map((tag: string) => (
@@ -259,7 +294,7 @@ export default function Home() {
                       <div className="flex items-center justify-between">
                         <div>
                           <span className="text-xl font-bold text-gray-900">
-                            {creator.price || 4.97}€
+                            {creator.price || 6.97}€
                           </span>
                           <span className="text-gray-600 text-xs">/mois</span>
                         </div>
@@ -272,7 +307,7 @@ export default function Home() {
                         </Link>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
 
                 </div>
               ))}
@@ -296,6 +331,7 @@ export default function Home() {
       </section>
 
       {/* ================= AUTRES SECTIONS ================= */}
+      {imagesLoaded && (
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -307,6 +343,84 @@ export default function Home() {
         <CreatorsSection />
         <PrivateContentSection />
       </motion.div>
+      )}
+
+      {/* ================= FAQ SECTION ================= */}
+      {imagesLoaded && (
+      <motion.section
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        viewport={{ once: true }}
+        className="w-full py-16 md:py-24 px-4 bg-black text-white"
+      >
+        <div className="max-w-4xl mx-auto">
+          {/* TITRE */}
+          <motion.h2
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            viewport={{ once: true }}
+            className="text-3xl md:text-5xl font-bold text-center"
+          >
+            Questions{" "}
+            <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
+              fréquentes
+            </span>
+          </motion.h2>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            viewport={{ once: true }}
+            className="mt-3 md:mt-4 text-gray-400 text-center text-sm md:text-base max-w-2xl mx-auto"
+          >
+            Tout ce que vous voulez savoir sur MyDouble.
+          </motion.p>
+
+          {/* FAQ ITEMS */}
+          <div className="mt-10 md:mt-16 space-y-3 md:space-y-4">
+            {[
+              {
+                q: "Comment ça marche ?",
+                a: "MyDouble utilise l'IA pour créer un double virtuel de ta créatrice préférée. Tu peux discuter avec elle 24/7."
+              },
+              {
+                q: "Est-ce vraiment la créatrice qui répond ?",
+                a: "Non, c'est une IA entraînée sur sa personnalité. C'est clairement indiqué et transparent."
+              },
+              {
+                q: "Combien ça coûte ?",
+                a: "L'abonnement mensuel démarre à 6.97€/mois pour un accès illimité aux discussions."
+              },
+              {
+                q: "Puis-je annuler à tout moment ?",
+                a: "Oui, tu peux annuler ton abonnement quand tu veux, sans engagement."
+              },
+              {
+                q: "Mes données sont-elles sécurisées ?",
+                a: "Absolument. Toutes les conversations sont chiffrées et nous ne partageons jamais tes données."
+              },
+              {
+                q: "Comment puis-je devenir créatrice sur MyDouble ?",
+                a: "Contacte-nous via la page 'Pourquoi nous rejoindre' et nous t'expliquerons tout le processus."
+              },
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1, ease: "easeOut" }}
+                viewport={{ once: true }}
+              >
+                <FAQItem question={item.q} answer={item.a} />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+      )}
     </main>
   );
 }

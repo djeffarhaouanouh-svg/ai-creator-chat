@@ -5,15 +5,16 @@ import { getCreatorBySlug } from "@/data/creators-merged";
 import { MessageCircle, Users, Star } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import PaypalButton from "@/components/PaypalButton";
+import { storage } from "@/lib/storage";
 
 export default function TootatisPage() {
   const router = useRouter();
- const [creator, setCreator] = useState<any>(null);
+  const [creator, setCreator] = useState<any>(null);
 
 useEffect(() => {
   async function load() {
-    const data = await getCreatorBySlug("tootatis");
-     console.log(data);
+    const res = await fetch("/api/creators/tootatis");
+const data = await res.json();
     setCreator(data);
   }
   load();
@@ -28,15 +29,14 @@ useEffect(() => {
     },
     {
       question: "Est-ce que Tootatis est réelle ?",
-      answer:
-        "Tootatis est une intelligence artificielle basée sur la personnalité de la créatrice.",
+      answer: "Tootatis est une intelligence artificielle basée sur la personnalité de la créatrice.",
     },
     {
-      question: "Comment se passe l’annulation ?",
+      question: "Comment se passe l'annulation ?",
       answer: "Tu peux annuler ton abonnement à tout moment en un clic.",
     },
     {
-      question: "Que débloque l’abonnement ?",
+      question: "Que débloque l'abonnement ?",
       answer:
         "Messages illimités, vocaux personnalisés, mémoire et contenu exclusif.",
     },
@@ -52,19 +52,25 @@ useEffect(() => {
   // 🔥 DONNÉES UNIQUES POUR TOOTATIS
   const price = 4.97;
   const audio = "/audio/tootatis.mp3";
-  const photos = ["/tootatis-1.jpg", "/tootatis-2.jpg", "/tootatis-3.jpg"];
-  const subscribers = 3800;
-  const messagesCount = 22000;
+  const photos = [
+    "/tootatis-1.jpg",
+    "/tootatis-2.jpg",
+    "/tootatis-3.jpg",
+  ];
   const rating = 4.9;
 
-  // Vérifie abonnement dans le localStorage (comme Lucile)
+  // Vérifie abonnement dans le localStorage
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      if (localStorage.getItem("subscribed") === "yes") {
-        setIsSubscribed(true);
-      }
+    if (creator && typeof window !== "undefined") {
+      // Vérifier si l'utilisateur est la créatrice elle-même
+      const creatorSlug = localStorage.getItem('creatorSlug');
+      const isOwnProfile = creatorSlug === (creator.slug || creator.id);
+
+      // Accorder l'accès si c'est la créatrice ou si l'utilisateur est abonné
+      const hasAccess = isOwnProfile || storage.isSubscribed(creator.slug || creator.id);
+      setIsSubscribed(hasAccess);
     }
-  }, []);
+  }, [creator]);
 
   // Préparer l'audio
   useEffect(() => {
@@ -103,12 +109,12 @@ useEffect(() => {
   }
 
   const handleChat = () => {
-    router.push(`/chat/${creator.id}`);
+    router.push(`/chat/${creator.slug || creator.id}`);
   };
 
   return (
     <main className="bg-white min-h-screen pb-1">
-      {/* HERO IMAGE */}
+      {/* HERO IMAGE (même structure que Lucile) */}
       <div className="w-full h-[28rem] md:h-[52rem] relative">
         <div className="absolute inset-0 flex z-0 items-center">
           <img
@@ -136,7 +142,7 @@ useEffect(() => {
             <div className="flex items-center gap-2 justify-center mb-1">
               <Users size={20} className="text-gray-400" />
               <span className="text-xl md:text-2xl font-bold text-gray-900">
-                {subscribers.toLocaleString()}
+                {creator.totalSubscribers?.toLocaleString() || 0}
               </span>
             </div>
             <span className="text-gray-500 text-sm">abonnés</span>
@@ -146,7 +152,7 @@ useEffect(() => {
             <div className="flex items-center gap-2 justify-center mb-1">
               <MessageCircle size={20} className="text-gray-400" />
               <span className="text-xl md:text-2xl font-bold text-gray-900">
-                {messagesCount.toLocaleString()}
+                {creator.totalMessages?.toLocaleString() || 0}
               </span>
             </div>
             <span className="text-gray-500 text-sm">messages</span>
@@ -163,54 +169,43 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* GALERIE EN HAUT (comme Lucile) */}
+        {/* GALERIE EN HAUT (position comme Lucile) */}
         <div className="px-4 md:px-8 pb-16 mt-10">
           <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">
             Contenu exclusif
           </h2>
 
           <div className="grid grid-cols-3 gap-2 max-w-3xl mx-auto">
-            {photos.map((photo, i) => (
-              <div
-                key={i}
-                className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-square"
-              >
-                <img
-                  src={photo}
-                  alt={`Photo ${i + 1}`}
-                  className="w-full h-full object-cover blur-lg scale-110"
-                />
+            {photos.map((photo, i) => {
+              const isUnlocked = isSubscribed || i === 0;
 
-                <div className="absolute inset-0 bg-black/40"></div>
+              return (
+                <div
+                  key={i}
+                  className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-square"
+                >
+                  <img
+                    src={photo}
+                    alt={`Photo ${i + 1}`}
+                    className={`w-full h-full object-cover ${isUnlocked ? '' : 'blur-lg scale-110'}`}
+                  />
 
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
-                    <svg
-                      width="28"
-                      height="28"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="black"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <rect x="3" y="11" width="18" height="11" rx="2" />
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
-                  </div>
+                  {!isUnlocked && (
+                    <>
+                      {/* overlay foncé */}
+                      <div className="absolute inset-0 bg-black/40"></div>
+
+                      {/* cadenas */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
+                          🔒
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
-
-                {/* bouton Débloquer sur la 2e photo */}
-                {i === 1 && (
-                  <div className="absolute inset-0 flex items-end justify-center pb-4">
-                    <button className="bg-white/90 text-black px-3 py-1 rounded-full text-xs font-medium shadow-md transition backdrop-blur-sm">
-                      Débloquer
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -287,7 +282,8 @@ useEffect(() => {
     </p>
   </div>
 </div>
-        {/* CTA PAYPAL / CHAT — identique à Lucile */}
+
+        {/* CTA PAYPAL / CHAT */}
         <div className="max-w-md mx-auto w-full mt-6">
           {isSubscribed ? (
             <button
@@ -298,8 +294,14 @@ useEffect(() => {
               Discutez gratuitement
             </button>
           ) : (
-            <div className="w-full">
-              <PaypalButton />
+            <div className="text-center">
+              <p className="text-gray-600 mb-3">
+                Abonnez-vous pour accéder au chat et aux photos exclusives
+              </p>
+              <PaypalButton
+                creatorId={creator.slug || creator.id}
+                price={price}
+              />
             </div>
           )}
         </div>

@@ -105,20 +105,38 @@ const ContenusPersonnalises = () => {
 
           {/* Content - Right Side */}
           <div className="space-y-10">
-            <h2 className="text-4xl md:text-5xl font-bold leading-tight">
+            <motion.h2
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 2, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="text-4xl md:text-5xl font-bold leading-tight"
+            >
               Demande des contenus
               <br />
               <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
                 exclusifs
               </span>{" "}
               👀
-            </h2>
+            </motion.h2>
 
-            <p className="text-xl text-gray-300 leading-relaxed">
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 2, delay: 0.4 }}
+              viewport={{ once: true }}
+              className="text-xl text-gray-300 leading-relaxed"
+            >
               Via le Chat, tu peux échanger directement avec le Créateur, lui demander des contenus personnalisés à tes envies et recevoir ses nouveaux médias exclusifs.
-            </p>
+            </motion.p>
 
-            <div className="flex flex-wrap gap-5 pt-6">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 2, delay: 0.6 }}
+              viewport={{ once: true }}
+              className="flex flex-wrap gap-5 pt-6"
+            >
               <button className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-8 py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all duration-300 hover:scale-105">
                 Découvrir →
               </button>
@@ -126,7 +144,7 @@ const ContenusPersonnalises = () => {
               <button className="border-2 border-white hover:bg-white hover:text-black text-white font-semibold px-8 py-4 rounded-full transition-all duration-300">
                 Connecte-toi
               </button>
-            </div>
+            </motion.div>
           </div>
 
         </div>

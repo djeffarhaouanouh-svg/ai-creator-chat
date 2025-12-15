@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { getCreatorById } from '@/data/creators';
+import { localCreators } from '@/data/creators';
 import { useState, useEffect, useRef } from 'react';
 import { Send, ArrowLeft, MoreVertical, Volume2, VolumeX } from 'lucide-react';
 import { storage } from '@/lib/storage';
@@ -15,6 +15,8 @@ import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 /*   + afficher un texte court : "Accéder à mon espace officiel 🔥"           */
 /* -------------------------------------------------------------------------- */
 function linkifyMYMOF(text: string) {
+  if (!text) return '';
+
   const regex = /(https?:\/\/[^\s]+)/g;
 
   return text.split(regex).map((part, i) => {
@@ -41,10 +43,18 @@ function linkifyMYMOF(text: string) {
 
 async function saveMessageToDB(
   message: Message,
-  creatorId: string,
-  userId: string = 'demo'
+  creatorSlug: string
 ) {
   try {
+    // Récupérer l'userId depuis localStorage
+    const userId = localStorage.getItem('userId');
+
+    // Si pas d'userId, on ne sauvegarde pas (utilisateur non connecté)
+    if (!userId) {
+      console.log('User not logged in, skipping DB save');
+      return;
+    }
+
     await fetch('/api/messages/add', {
       method: 'POST',
       headers: {
@@ -52,7 +62,7 @@ async function saveMessageToDB(
       },
       body: JSON.stringify({
         userId,
-        creatorId,
+        creatorSlug, // On envoie le slug, l'API fera la conversion
         role: message.role,
         content: message.content,
       }),
@@ -66,7 +76,7 @@ export default function ChatPage() {
   const params = useParams();
   const router = useRouter();
   const creatorId = params.id as string;
-  const creator = getCreatorById(creatorId);
+  const creator = localCreators.find(c => c.slug === creatorId);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -92,15 +102,22 @@ export default function ChatPage() {
 
   /* ---------------------------- Chargement session --------------------------- */
   useEffect(() => {
-    const subscribed = storage.isSubscribed(creator.id);
-    setIsSubscribed(subscribed);
+    // Vérifier si l'utilisateur est la créatrice elle-même
+    const creatorSlug = localStorage.getItem('creatorSlug');
+    const isOwnProfile = creatorSlug === (creator.slug || creator.id);
 
-    if (!subscribed) {
-      router.push(`/creator/${creator.username}`);
+    // Vérifier l'abonnement dans le localStorage
+    const subscribed = storage.isSubscribed(creator.slug || creator.id);
+    const hasAccess = isOwnProfile || subscribed;
+    setIsSubscribed(hasAccess);
+
+    // Bloquer l'accès au chat si non abonné ET pas la créatrice
+    if (!hasAccess) {
+      router.push(`/creator/${creator.slug || creator.username}`);
       return;
     }
 
-    const session = storage.getChatSession(creator.id);
+    const session = storage.getChatSession(creator.slug || creator.id);
 
     if (session && session.messages?.length > 0) {
       setMessages(session.messages);
@@ -112,7 +129,7 @@ export default function ChatPage() {
         timestamp: new Date(),
       };
       setMessages([welcomeMessage]);
-      storage.addMessage(creator.id, welcomeMessage);
+      storage.addMessage(creator.slug || creator.id, welcomeMessage);
     }
   }, [creator, router]);
 
@@ -143,23 +160,32 @@ export default function ChatPage() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    storage.addMessage(creator.id, userMessage);
-    saveMessageToDB(userMessage, creator.id);
+    storage.addMessage(creator.slug || creator.id, userMessage);
+    saveMessageToDB(userMessage, creator.slug || creator.id);
 
     setInput('');
     setIsLoading(true);
+
+    console.log('🔍 Creator info:', {
+      slug: creator.slug,
+      id: creator.id,
+      name: creator.name,
+      sending: creator.slug || creator.id
+    });
 
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          creatorId: creator.id,
+          creatorId: creator.slug || creator.id,
           mode: mode,
-          messages: [...messages, userMessage].map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
+          messages: [...messages, userMessage]
+            .filter((m) => m.content) // Filtrer les messages sans content
+            .map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
         }),
       });
 
@@ -173,8 +199,8 @@ export default function ChatPage() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-      storage.addMessage(creator.id, assistantMessage);
-      saveMessageToDB(assistantMessage, creator.id);
+      storage.addMessage(creator.slug || creator.id, assistantMessage);
+      saveMessageToDB(assistantMessage, creator.slug || creator.id);
     } catch {
       const errMsg: Message = {
         id: (Date.now() + 1).toString(),
@@ -198,10 +224,10 @@ export default function ChatPage() {
 
     if (link) {
       replyText = `
-Je peux pas encore envoyer du contenu privé directement ici 😔  
-Mais tu peux l’obtenir sur mon espace officiel 🔥  
+Je peux pas encore envoyer du contenu privé directement ici 😔
+Mais tu peux l'obtenir sur mon espace officiel 🔥
 
-👉 ${link}
+👉 [ICI mon MYM](${link})
       `;
     } else {
       replyText = `
@@ -218,7 +244,7 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
     };
 
     setMessages((prev) => [...prev, assistantMessage]);
-    storage.addMessage(creator.id, assistantMessage);
+    storage.addMessage(creator.slug || creator.id, assistantMessage);
 
     setRequestInput('');
     setIsRequestOpen(false);
@@ -421,7 +447,7 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
 
       {/* INPUT */}
       <div className="bg-white border-t px-4 py-4">
-        <div className="max-w-3xl mx-auto flex flex.col gap-3">
+        <div className="max-w-3xl mx-auto flex flex-col gap-3 items-center">
           {/* Demande contenu privé */}
           {isRequestOpen && (
             <div className="flex gap-2">
@@ -430,7 +456,7 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
                 value={requestInput}
                 onChange={(e) => setRequestInput(e.target.value)}
                 placeholder="Ici, demande du contenu personnalisé..."
-                className="flex-1 rounded-2xl border px-4 py-3"
+                className="flex-1 rounded-2xl border px-4 py-3 text-gray-900"
               />
               <Button onClick={sendRequest} disabled={!requestInput.trim()}>
                 <Send size={20} />
@@ -438,10 +464,10 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
             </div>
           )}
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center w-full max-w-2xl justify-center">
             <button
               onClick={() => setIsRequestOpen((prev) => !prev)}
-              className="w-11 h-11 rounded-full bg-gray-200 flex justify-center items-center text-2xl"
+              className="w-11 h-11 rounded-full bg-gray-200 flex justify-center items-center text-2xl shrink-0"
             >
               +
             </button>
@@ -456,7 +482,7 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
                 }
               }}
               placeholder={`Message à ${creator.name}...`}
-              className="flex-1 resize-none rounded-2xl border px-4 py-3"
+              className="resize-none rounded-2xl border px-4 py-3 text-gray-900 flex-1"
               rows={1}
               disabled={isLoading}
             />
@@ -464,7 +490,7 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
             <Button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
-              className="px-6"
+              className="px-6 shrink-0"
             >
               <Send size={20} />
             </Button>

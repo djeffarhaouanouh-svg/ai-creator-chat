@@ -6,11 +6,11 @@ interface Message {
   content: string
   role: 'user' | 'assistant'
   timestamp: string
-  users: {
+  users?: {
     email: string
     name?: string
   }
-  creators: {
+  creators?: {
     name: string
   }
 }
@@ -70,7 +70,7 @@ export default function RecentMessages({ messages, limit = 10 }: RecentMessagesP
                 <div className="flex-shrink-0">
                   {message.role === 'user' ? (
                     <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-sm">
-                      {message.users.name?.[0]?.toUpperCase() || message.users.email[0].toUpperCase()}
+                      {message.users?.name?.[0]?.toUpperCase() || message.users?.email?.[0]?.toUpperCase() || 'U'}
                     </div>
                   ) : (
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-lg">
@@ -84,12 +84,12 @@ export default function RecentMessages({ messages, limit = 10 }: RecentMessagesP
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-sm font-semibold text-gray-900">
                       {message.role === 'user'
-                        ? message.users.name || message.users.email
-                        : message.creators.name}
+                        ? message.users?.name || message.users?.email || 'Utilisateur'
+                        : message.creators?.name || 'Créatrice'}
                     </span>
                     <span className="text-xs text-gray-400">→</span>
                     <span className="text-xs text-gray-500">
-                      {message.role === 'user' ? message.creators.name : 'Utilisateur'}
+                      {message.role === 'user' ? message.creators?.name || 'Créatrice' : 'Utilisateur'}
                     </span>
                     <span className="text-xs text-gray-400 ml-auto">
                       {formatTime(message.timestamp)}
