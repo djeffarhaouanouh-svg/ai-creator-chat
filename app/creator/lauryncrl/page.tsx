@@ -48,6 +48,7 @@ const data = await res.json();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   // 🔥 DONNÉES UNIQUES POUR LAURYN
   const price = 6.97;
@@ -196,7 +197,10 @@ const data = await res.json();
               return (
                 <div
                   key={i}
-                  className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-square"
+                  className={`relative rounded-2xl overflow-hidden bg-gray-200 aspect-square ${
+                    isUnlocked ? 'cursor-pointer hover:opacity-90 transition' : ''
+                  }`}
+                  onClick={() => isUnlocked && setSelectedPhoto(photo)}
                 >
                   <img
                     src={photo}
@@ -353,6 +357,29 @@ const data = await res.json();
           ))}
         </div>
       </div>
+
+      {/* LIGHTBOX MODALE POUR AGRANDIR LES PHOTOS */}
+      {selectedPhoto && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg">
+            <button
+              onClick={() => setSelectedPhoto(null)}
+              className="absolute -top-10 right-0 text-white text-3xl font-bold hover:text-gray-300 transition"
+            >
+              ✕
+            </button>
+            <img
+              src={selectedPhoto}
+              alt="Photo agrandie"
+              className="w-full h-auto rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </main>
   );
 }
