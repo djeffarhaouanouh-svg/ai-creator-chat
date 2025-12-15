@@ -65,14 +65,14 @@ const PrivateContentSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 2, delay: 0.6 }}
               viewport={{ once: true }}
-              className="flex flex-wrap gap-5 pt-6"
+              className="flex flex-row gap-3 md:gap-5 pt-6"
             >
-              <button className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-8 py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all duration-300 hover:scale-105">
+              <button className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-4 md:px-8 py-3 md:py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all duration-300 hover:scale-105 text-sm md:text-base">
                 Découvrir →
               </button>
               <button
                 onClick={() => (window.location.href = "/login")}
-                className="border border-white hover:bg-white hover:text-black text-white font-semibold px-8 py-4 rounded-full transition-all duration-300"
+                className="border border-white hover:bg-white hover:text-black text-white font-semibold px-4 md:px-8 py-3 md:py-4 rounded-full transition-all duration-300 text-sm md:text-base"
               >
                 Connecte-toi
               </button>

@@ -842,7 +842,11 @@ export default function Home() {
       viewport={{ once: true }}
       className="text-3xl md:text-5xl font-bold text-center"
     >
-      Questions fréquentes 🤔
+      Questions{" "}
+      <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
+        fréquentes
+      </span>{" "}
+      🤔
     </motion.h2>
 
     <motion.p

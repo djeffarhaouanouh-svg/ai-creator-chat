@@ -245,7 +245,7 @@ export default function Home() {
                         fill
                         priority
                         className="object-cover"
-                        style={{ objectPosition: `center ${creator.imageY || "26%"}` }}
+                        style={{ objectPosition: `center ${creator.imageY || "20%"}` }}
                       />
                       <div className="absolute -bottom-8 left-4">
                         <div className="relative w-16 h-16 rounded-full border-4 border-white overflow-hidden">
@@ -366,7 +366,8 @@ export default function Home() {
             Questions{" "}
             <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
               fréquentes
-            </span>
+            </span>{" "}
+            🤔
           </motion.h2>
 
           <motion.p

@@ -10,7 +10,8 @@ export const localCreators = [
     coverImage: "/lau.png",
     bio: "Créatrice de contenu…",
     mymLink: "https://mym.fans/Lauwyn?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAQ0xDSwOmoTVleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA8xMjQwMjQ1NzQyODc0MTQAAaeuFZ5U6-NuaAP7UBrHFEUzC3HG2-vE1_ki3rmyKfRxzkMxhf59_Ah5XNAuXQ_aem_9gSnJ17LaEjmqW1nTmyNKg",
-    onlyfansLink: null
+    onlyfansLink: null,
+    imageY: "15%"
   },
   {
     id: "toomuclucile",
@@ -23,7 +24,8 @@ export const localCreators = [
     coverImage: "/mon-chat.jpg",
     bio: "Fitness & lifestyle…",
     mymLink: null,
-    onlyfansLink: null
+    onlyfansLink: null,
+    imageY: "20%"
   },
   {
     id: "tootatis",
@@ -36,6 +38,7 @@ export const localCreators = [
     coverImage: "/toota_2.jpg",
     bio: "Influenceuse…",
     mymLink: null,
-    onlyfansLink: null
+    onlyfansLink: null,
+    imageY: "15%"
   }
 ];
