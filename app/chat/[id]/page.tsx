@@ -356,7 +356,7 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
             <ArrowLeft size={20} />
           </Button>
 
-          <div className="relative w-10 h-10 rounded-full overflow-hidden">
+          <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
             <Image
               src={creator.avatar}
               alt={creator.name}
@@ -431,9 +431,9 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
                 message.role === 'user' ? 'justify-end' : 'justify-start'
               }`}
             >
-              <div className="flex gap-2 max-w-[70%]">
+              <div className="flex gap-3 max-w-[70%]">
                 {message.role === 'assistant' && (
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                  <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                     <Image
                       src={creator.avatar}
                       alt={creator.name}
@@ -508,8 +508,8 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
 
           {isLoading && (
             <div className="flex justify-start">
-              <div className="flex gap-2 max-w-[70%]">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden">
+              <div className="flex gap-3 max-w-[70%]">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                   <Image
                     src={creator.avatar}
                     alt={creator.name}
