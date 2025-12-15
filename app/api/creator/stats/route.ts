@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
     `
     const activeConversations = Number(activeConversationsResult.rows[0]?.total) || 0
 
-    // 9. Liste des abonnés avec leurs informations
+    // 9. Liste des abonnés avec leurs informations (requête simplifiée)
     const subscribersListResult = await sql`
       SELECT
         s.id as subscription_id,
@@ -111,15 +111,41 @@ export async function GET(request: NextRequest) {
         s.started_at,
         s.expires_at,
         u.name as user_name,
-        u.email as user_email,
-        (SELECT COUNT(*) FROM messages m WHERE m.user_id = s.user_id AND m.creator_id = ${creatorId}) as total_messages,
-        (SELECT COUNT(*) FROM messages m WHERE m.user_id = s.user_id AND m.creator_id = ${creatorId} AND m.created_at >= NOW() - INTERVAL '7 days') as recent_messages
+        u.email as user_email
       FROM subscriptions s
-      JOIN users u ON s.user_id = u.id
+      LEFT JOIN users u ON s.user_id = u.id
       WHERE s.creator_id = ${creatorId}
       AND s.status = 'active'
       ORDER BY s.started_at DESC
     `
+
+    // Ajouter les compteurs de messages pour chaque abonné
+    const subscribersWithMessages = await Promise.all(
+      subscribersListResult.rows.map(async (sub: any) => {
+        try {
+          const msgCount = await sql`
+            SELECT
+              COUNT(*) as total,
+              COUNT(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as recent
+            FROM messages
+            WHERE user_id = ${sub.user_id}
+            AND creator_id = ${creatorId}
+          `
+          return {
+            ...sub,
+            total_messages: Number(msgCount.rows[0]?.total) || 0,
+            recent_messages: Number(msgCount.rows[0]?.recent) || 0
+          }
+        } catch (err) {
+          console.error('Erreur comptage messages pour abonné:', err)
+          return {
+            ...sub,
+            total_messages: 0,
+            recent_messages: 0
+          }
+        }
+      })
+    )
 
     // Retourner toutes les statistiques
     return NextResponse.json({
@@ -137,13 +163,25 @@ export async function GET(request: NextRequest) {
         newSubscribers,
         activeConversations
       },
-      subscribers: subscribersListResult.rows
+      subscribers: subscribersWithMessages
     })
 
-  } catch (error) {
-    console.error('Erreur lors de la récupération des stats créatrice:', error)
+  } catch (error: any) {
+    console.error('❌ ERREUR STATS CRÉATRICE:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      stack: error.stack,
+      slug: request.nextUrl.searchParams.get('slug')
+    })
     return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
+      {
+        error: 'Erreur interne du serveur',
+        debug: process.env.NODE_ENV === 'development' ? {
+          message: error.message,
+          code: error.code
+        } : undefined
+      },
       { status: 500 }
     )
   }
