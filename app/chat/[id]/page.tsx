@@ -55,14 +55,14 @@ async function saveMessageToDB(
       return;
     }
 
-    await fetch('/api/messages/add', {
+    await fetch('/api/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         userId,
-        creatorSlug, // On envoie le slug, l'API fera la conversion
+        creatorId: creatorSlug,
         role: message.role,
         content: message.content,
       }),
@@ -117,11 +117,60 @@ export default function ChatPage() {
       return;
     }
 
-    const session = storage.getChatSession(creator.slug || creator.id);
+    // Charger les messages depuis la base de données
+    async function loadMessages() {
+      try {
+        const userId = localStorage.getItem('userId');
 
-    if (session && session.messages?.length > 0) {
-      setMessages(session.messages);
-    } else {
+        if (!userId) {
+          // Pas connecté, fallback sur localStorage
+          const session = storage.getChatSession(creator.slug || creator.id);
+          if (session && session.messages?.length > 0) {
+            setMessages(session.messages);
+          } else {
+            showWelcomeMessage();
+          }
+          return;
+        }
+
+        // Récupérer les messages depuis la DB
+        const response = await fetch(`/api/messages?userId=${userId}&creatorId=${creator.slug || creator.id}`);
+
+        if (response.ok) {
+          const data = await response.json();
+
+          if (data.messages && data.messages.length > 0) {
+            // Convertir les timestamps en Date objects
+            const dbMessages = data.messages.map((msg: any) => ({
+              ...msg,
+              timestamp: new Date(msg.timestamp)
+            }));
+            setMessages(dbMessages);
+          } else {
+            showWelcomeMessage();
+          }
+        } else {
+          // Erreur API, fallback sur localStorage
+          const session = storage.getChatSession(creator.slug || creator.id);
+          if (session && session.messages?.length > 0) {
+            setMessages(session.messages);
+          } else {
+            showWelcomeMessage();
+          }
+        }
+      } catch (error) {
+        console.error('Error loading messages:', error);
+        // Fallback sur localStorage en cas d'erreur
+        const session = storage.getChatSession(creator.slug || creator.id);
+        if (session && session.messages?.length > 0) {
+          setMessages(session.messages);
+        } else {
+          showWelcomeMessage();
+        }
+      }
+    }
+
+    function showWelcomeMessage() {
       const welcomeMessage: Message = {
         id: Date.now().toString(),
         role: 'assistant',
@@ -130,7 +179,12 @@ export default function ChatPage() {
       };
       setMessages([welcomeMessage]);
       storage.addMessage(creator.slug || creator.id, welcomeMessage);
+
+      // Sauvegarder aussi en DB
+      saveMessageToDB(welcomeMessage, creator.slug || creator.id);
     }
+
+    loadMessages();
   }, [creator, router]);
 
   useEffect(() => {
@@ -245,6 +299,7 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
 
     setMessages((prev) => [...prev, assistantMessage]);
     storage.addMessage(creator.slug || creator.id, assistantMessage);
+    saveMessageToDB(assistantMessage, creator.slug || creator.id);
 
     setRequestInput('');
     setIsRequestOpen(false);
