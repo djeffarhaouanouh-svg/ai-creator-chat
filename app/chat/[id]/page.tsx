@@ -49,26 +49,53 @@ async function saveMessageToDB(
     // Récupérer l'userId depuis localStorage
     const userId = localStorage.getItem('userId');
 
+    console.log('🔍 saveMessageToDB called:', {
+      userId: userId ? '✓ exists' : '✗ missing',
+      creatorSlug,
+      role: message.role,
+      contentLength: message.content.length
+    });
+
     // Si pas d'userId, on ne sauvegarde pas (utilisateur non connecté)
     if (!userId) {
-      console.log('User not logged in, skipping DB save');
+      console.warn('⚠️ User not logged in, skipping DB save');
       return;
     }
 
-    await fetch('/api/messages', {
+    const payload = {
+      userId,
+      creatorId: creatorSlug,
+      role: message.role,
+      content: message.content,
+    };
+
+    console.log('💾 Sending to API /api/messages:', {
+      ...payload,
+      content: payload.content.substring(0, 50) + '...'
+    });
+
+    const response = await fetch('/api/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        userId,
-        creatorId: creatorSlug,
-        role: message.role,
-        content: message.content,
-      }),
+      body: JSON.stringify(payload),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ API Error Response:', {
+        status: response.status,
+        error: errorData
+      });
+      return;
+    }
+
+    const result = await response.json();
+    console.log('✅ Message saved successfully:', result.message?.id);
+
   } catch (err) {
-    console.error('DB Save Error:', err);
+    console.error('❌ Exception in saveMessageToDB:', err);
   }
 }
 

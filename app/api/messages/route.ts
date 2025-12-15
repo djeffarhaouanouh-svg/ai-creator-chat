@@ -39,9 +39,14 @@ export async function POST(request: Request) {
   try {
     const { userId, creatorId, role, content } = await request.json();
 
+    console.log('📥 POST /api/messages received:', { userId, creatorId, role, contentLength: content?.length });
+
     if (!userId || !creatorId || !role || !content) {
+      console.error('❌ Missing parameters:', { userId: !!userId, creatorId: !!creatorId, role: !!role, content: !!content });
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
     }
+
+    console.log('💾 Attempting to insert into database...');
 
     // Insérer le message dans la base de données
     const result = await sql`
@@ -50,9 +55,15 @@ export async function POST(request: Request) {
       RETURNING id, role, content, created_at as timestamp
     `;
 
+    console.log('✅ Message inserted successfully:', result.rows[0].id);
+
     return NextResponse.json({ message: result.rows[0] });
   } catch (error) {
-    console.error('Error saving message:', error);
-    return NextResponse.json({ error: 'Failed to save message' }, { status: 500 });
+    console.error('❌ Error saving message:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    return NextResponse.json({
+      error: 'Failed to save message',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
