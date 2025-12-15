@@ -102,6 +102,8 @@ export default function ChatPage() {
 
   /* ---------------------------- Chargement session --------------------------- */
   useEffect(() => {
+    if (!creator) return;
+
     // Vérifier si l'utilisateur est la créatrice elle-même
     const creatorSlug = localStorage.getItem('creatorSlug');
     const isOwnProfile = creatorSlug === (creator.slug || creator.id);
