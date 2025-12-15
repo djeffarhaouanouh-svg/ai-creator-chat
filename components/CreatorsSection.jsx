@@ -81,7 +81,7 @@ const CreatorsSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 2, delay: 0.2 }}
               viewport={{ once: true }}
-              className="text-4xl md:text-4,9xl font-bold leading-tight"
+              className="text-3xl md:text-4,9xl font-bold leading-tight"
             >
               Ton expérience devient
               <br />
@@ -109,12 +109,12 @@ const CreatorsSection = () => {
               viewport={{ once: true }}
               className="flex flex-wrap justify-center gap-5 pt-6"
             >
-              <button className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-8 py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all duration-300 hover:scale-105">
+              <button className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all duration-300 hover:scale-105">
                 Découvrir →
               </button>
               <button
                 onClick={() => (window.location.href = "/login")}
-                className="border-2 border-white hover:bg-white hover:text-black text-white font-semibold px-8 py-4 rounded-full transition-all duration-300"
+                className="border-2 border-white hover:bg-white hover:text-black text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full transition-all duration-300"
               >
                 Connecte-toi
               </button>

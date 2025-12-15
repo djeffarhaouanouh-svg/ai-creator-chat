@@ -18,18 +18,21 @@ const TypingText = ({
   const [displayed, setDisplayed] = useState("");
 
   useEffect(() => {
+    setDisplayed("");
     let i = 0;
+
     const interval = setInterval(() => {
-      setDisplayed((prev) => prev + text[i]);
       i++;
-      if (i >= text.length) {
+      if (i <= text.length) {
+        setDisplayed(text.substring(0, i));
+      } else {
         clearInterval(interval);
         onComplete();
       }
     }, speed);
 
     return () => clearInterval(interval);
-  }, [text]);
+  }, [text, speed, onComplete]);
 
   return <span>{displayed}</span>;
 };
@@ -100,13 +103,13 @@ export default function PrivateContentSection() {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
       viewport={{ once: true }}
-      className="pt-12 pb-16 px-4 md:pt-20 md:pb-10 md:px-6 bg-black"
+      className="pt-12 pb-16 px-4 md:pt-20 md:pb-32 md:px-6 bg-black"
     >
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-14 items-center">
 
         {/* 📱 CHAT */}
         <div className="flex justify-center">
-          <div className="relative w-[300px] h-[520px] md:w-[340px] md:h-[600px] rounded-[32px] overflow-hidden bg-gradient-to-b from-[#0b1020] to-black shadow-2xl">
+          <div className="relative w-[300px] h-[520px] md:w-[340px] md:h-[600px] rounded-[32px] overflow-hidden bg-gradient-to-b from-[#030508] to-black shadow-2xl">
 
             <div
               ref={chatRef}
@@ -137,7 +140,7 @@ export default function PrivateContentSection() {
                     <div
                       className={`max-w-[80%] rounded-2xl px-3 py-2 md:px-4 md:py-3 text-sm leading-relaxed ${
                         msg.from === "ai"
-                          ? "bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white"
+                          ? "bg-[#e235c2] text-white"
                           : "bg-white/10 text-white"
                       }`}
                     >
@@ -182,7 +185,7 @@ export default function PrivateContentSection() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 2, delay: 0.2 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-4,9xl font-bold leading-tight"
+            className="text-3xl md:text-4,9xl font-bold leading-tight"
           >
             Toujours disponible pour discuter{" "}
             <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
@@ -211,14 +214,14 @@ export default function PrivateContentSection() {
             className="flex flex-wrap justify-center gap-5 pt-6"
           >
             <button
-              className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-8 py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 hover:scale-105 transition-all duration-300"
+              className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 hover:scale-105 transition-all duration-300"
             >
               Découvrir →
             </button>
 
             <button
               onClick={() => (window.location.href = "/login")}
-              className="border-2 border-white hover:bg-white hover:text-black text-white font-semibold px-8 py-4 rounded-full transition-all duration-300"
+              className="border-2 border-white hover:bg-white hover:text-black text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full transition-all duration-300"
             >
               Connecte-toi
             </button>
