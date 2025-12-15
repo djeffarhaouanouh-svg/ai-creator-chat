@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 ------------------------------*/
 const TypingText = ({
   text,
-  speed = 30,
+  speed = 55,
   onComplete,
 }: {
   text: string;

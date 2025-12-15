@@ -50,7 +50,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 ------------------------------*/
 const TypingText = ({
   text,
-  speed = 30,
+  speed = 55,
   onComplete,
 }: {
   text: string;
@@ -884,7 +884,7 @@ export default function Home() {
     </div>
 
     {/* VISUEL — CHAT TÉLÉPHONE */}
-    <div className="flex justify-center">
+    <div className="flex justify-center mt-20">
       <div className="relative w-[300px] h-[520px] md:w-[340px] md:h-[600px] rounded-[32px] overflow-hidden bg-gradient-to-b from-[#1a2332] via-[#0f1419] to-black shadow-2xl">
         <div
           ref={chatRef}
