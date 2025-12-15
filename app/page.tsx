@@ -128,7 +128,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent"
+            className="text-4xl md:text-5xl font-bold mb-8 text-center bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent"
           >
             Créatrices disponibles
           </motion.h2>
@@ -352,7 +352,7 @@ export default function Home() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         viewport={{ once: true }}
-        className="w-full py-16 md:py-24 px-4 bg-black text-white"
+        className="w-full mt-32 md:mt-0 py-16 md:py-24 px-4 bg-black text-white"
       >
         <div className="max-w-4xl mx-auto">
           {/* TITRE */}
@@ -361,7 +361,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
             viewport={{ once: true }}
-            className="text-3xl md:text-5xl font-bold text-center"
+            className="text-4xl md:text-5xl font-bold text-center"
           >
             Questions{" "}
             <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">

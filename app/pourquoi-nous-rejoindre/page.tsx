@@ -447,7 +447,7 @@ export default function Home() {
   whileInView={{ opacity: 1, y: 0 }}
   transition={{ duration: 0.8, ease: "easeOut" }}
   viewport={{ once: true }}
-  className="text-4xl md:text-6xl font-bold leading-tight text-center"
+  className="text-4xl md:text-5xl font-bold leading-tight text-center"
 >
   Ton double IA<br />
   <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
@@ -712,7 +712,7 @@ export default function Home() {
   whileInView={{ opacity: 1, y: 0 }}
   transition={{ duration: 0.8, ease: "easeOut" }}
   viewport={{ once: true }}
-  className="text-3xl md:text-4xl font-bold leading-tight"
+  className="text-4xl md:text-5xl font-bold leading-tight"
 >
   Une meilleure expérience<br />
   <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
@@ -758,7 +758,7 @@ export default function Home() {
       </div>
 
       {/* BOUTONS */}
-      <div className="mt-12 flex flex-wrap justify-center md:justify-start gap-5">
+      <div className="mt-12 flex flex-wrap justify-center gap-5">
          {/* CTA PRINCIPAL */}
 <motion.button
   initial={{ opacity: 0, y: 30 }}

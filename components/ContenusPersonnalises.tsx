@@ -110,7 +110,7 @@ const ContenusPersonnalises = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 2, delay: 0.2 }}
               viewport={{ once: true }}
-              className="text-4xl md:text-5xl font-bold leading-tight"
+              className="text-4xl md:text-4,9xl font-bold leading-tight"
             >
               Demande des contenus
               <br />
@@ -135,13 +135,13 @@ const ContenusPersonnalises = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 2, delay: 0.6 }}
               viewport={{ once: true }}
-              className="flex flex-row gap-3 md:gap-5 pt-6"
+              className="flex flex-wrap justify-center gap-5 pt-6"
             >
-              <button className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-4 md:px-8 py-3 md:py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all duration-300 hover:scale-105 text-sm md:text-base">
+              <button className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-8 py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all duration-300 hover:scale-105">
                 Découvrir →
               </button>
 
-              <button className="border-2 border-white hover:bg-white hover:text-black text-white font-semibold px-4 md:px-8 py-3 md:py-4 rounded-full transition-all duration-300 text-sm md:text-base">
+              <button className="border-2 border-white hover:bg-white hover:text-black text-white font-semibold px-8 py-4 rounded-full transition-all duration-300">
                 Connecte-toi
               </button>
             </motion.div>
