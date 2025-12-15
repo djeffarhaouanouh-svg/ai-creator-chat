@@ -390,7 +390,7 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
               </p>
 
               <button
-                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
                 onClick={() => {
                   setMode('girlfriend');
                   setIsModeOpen(false);
@@ -399,7 +399,7 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
                 💕 Petite copine
               </button>
               <button
-                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
                 onClick={() => {
                   setMode('friend');
                   setIsModeOpen(false);
@@ -408,7 +408,7 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
                 💛 Amie
               </button>
               <button
-                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
                 onClick={() => {
                   setMode('seductive');
                   setIsModeOpen(false);
