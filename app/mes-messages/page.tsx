@@ -159,8 +159,8 @@ export default function MesMessagesPage() {
                   {lastMessage ? (
                     <div className="bg-gray-800 rounded-lg p-3">
                       <p className="text-sm text-gray-300 line-clamp-2">
-                        {lastMessage.isUser ? "Toi: " : `${creator.name}: `}
-                        {lastMessage.text}
+                        {lastMessage.role === 'user' ? "Toi: " : `${creator.name}: `}
+                        {lastMessage.content}
                       </p>
                       <p className="text-xs text-gray-500 mt-2">
                         {new Date(lastMessage.timestamp).toLocaleDateString("fr-FR", {
