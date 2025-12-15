@@ -121,6 +121,8 @@ export default function ChatPage() {
 
     // Charger les messages depuis la base de données
     async function loadMessages() {
+      if (!creator) return;
+
       try {
         const userId = localStorage.getItem('userId');
 
@@ -173,6 +175,8 @@ export default function ChatPage() {
     }
 
     function showWelcomeMessage() {
+      if (!creator) return;
+
       const welcomeMessage: Message = {
         id: Date.now().toString(),
         role: 'assistant',
