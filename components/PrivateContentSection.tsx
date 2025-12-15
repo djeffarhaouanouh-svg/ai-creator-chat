@@ -76,7 +76,7 @@ export default function PrivateContentSection() {
   useEffect(() => {
     const start = setTimeout(() => {
       setVisibleIndex(0);
-    }, 700);
+    }, 1500);
 
     return () => clearTimeout(start);
   }, []);
@@ -109,7 +109,7 @@ export default function PrivateContentSection() {
 
         {/* 📱 CHAT */}
         <div className="flex justify-center">
-          <div className="relative w-[300px] h-[520px] md:w-[340px] md:h-[600px] rounded-[32px] overflow-hidden bg-gradient-to-b from-[#030508] to-black shadow-2xl">
+          <div className="relative w-[300px] h-[520px] md:w-[340px] md:h-[600px] rounded-[32px] overflow-hidden bg-gradient-to-b from-[#1a2332] via-[#0f1419] to-black shadow-2xl">
 
             <div
               ref={chatRef}
@@ -185,11 +185,11 @@ export default function PrivateContentSection() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 2, delay: 0.2 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-4,9xl font-bold leading-tight"
+            className="text-4xl md:text-5xl font-bold leading-tight"
           >
-            Toujours disponible pour discuter{" "}
+            Toujours disponible{" "}
             <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-              avec toi
+              pour toi
             </span>{" "}
             💬
           </motion.h2>

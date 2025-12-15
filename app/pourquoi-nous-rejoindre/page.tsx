@@ -7,9 +7,9 @@ import ContenusPersonnalises from "@/components/ContenusPersonnalises";
 import PrivateContentSection from "@/components/PrivateContentSection";
 import CreatorsSection from "@/components/CreatorsSection";
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
- function FAQItem({ question, answer }: { question: string; answer: string }) {
+function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -45,6 +45,70 @@ import { motion } from "framer-motion";
   );
 }
 
+/* -----------------------------
+ Typing effect BLOQUANT
+------------------------------*/
+const TypingText = ({
+  text,
+  speed = 30,
+  onComplete,
+}: {
+  text: string;
+  speed?: number;
+  onComplete: () => void;
+}) => {
+  const [displayed, setDisplayed] = useState("");
+
+  useEffect(() => {
+    setDisplayed("");
+    let i = 0;
+
+    const interval = setInterval(() => {
+      i++;
+      if (i <= text.length) {
+        setDisplayed(text.substring(0, i));
+      } else {
+        clearInterval(interval);
+        onComplete();
+      }
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [text, speed, onComplete]);
+
+  return <span>{displayed}</span>;
+};
+
+/* -----------------------------
+ Messages du chat
+------------------------------*/
+const chatMessages = [
+  {
+    from: "ai",
+    author: "Emma",
+    avatar: "/V.jpg",
+    text: "Il est tard… J'aime bien ces moments-là, quand tout est plus calme.",
+  },
+  {
+    from: "user",
+    author: "FAN",
+    avatar: "/K.png",
+    text: "Ouais… On se dit des choses qu'on dirait pas en plein milieu de la journée",
+  },
+  {
+    from: "ai",
+    author: "Emma",
+    avatar: "/V.jpg",
+    text: "Exactement. Ici, on peut prendre le temps… sans pression.",
+  },
+  {
+    from: "user",
+    author: "FAN",
+    avatar: "/K.png",
+    text: "C'est cool, en vrai",
+  },
+];
+
 
 export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
@@ -53,6 +117,11 @@ export default function Home() {
   const [imagesLoaded, setImagesLoaded] = useState(false);
 
   const carouselRef = useRef<HTMLDivElement>(null);
+
+  // Chat animation state
+  const [visibleIndex, setVisibleIndex] = useState(-1);
+  const [typingDone, setTypingDone] = useState(false);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -119,6 +188,31 @@ export default function Home() {
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, currentIndex]);
+
+  // Chat animation effects
+  useEffect(() => {
+    const start = setTimeout(() => {
+      setVisibleIndex(0);
+    }, 1500);
+
+    return () => clearTimeout(start);
+  }, []);
+
+  useEffect(() => {
+    if (typingDone) {
+      const timeout = setTimeout(() => {
+        setTypingDone(false);
+        setVisibleIndex((i) => i + 1);
+
+        chatRef.current?.scrollTo({
+          top: chatRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      }, 600);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [typingDone]);
 
   return (
      <main className="min-h-screen bg-black text-white flex flex-col">
@@ -789,20 +883,75 @@ export default function Home() {
 
     </div>
 
-    {/* VISUEL — MOCKUP TÉLÉPHONE */}
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-      viewport={{ once: true }}
-      className="flex justify-center"
-    >
-      <img
-        src="/mockup_telephone1.png"
-        alt="Mockup téléphone"
-        className="w-[350px] md:w-[400px] drop-shadow-2xl"
-      />
-    </motion.div>
+    {/* VISUEL — CHAT TÉLÉPHONE */}
+    <div className="flex justify-center">
+      <div className="relative w-[300px] h-[520px] md:w-[340px] md:h-[600px] rounded-[32px] overflow-hidden bg-gradient-to-b from-[#1a2332] via-[#0f1419] to-black shadow-2xl">
+        <div
+          ref={chatRef}
+          className="h-full overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4"
+        >
+          <AnimatePresence>
+            {chatMessages.slice(0, visibleIndex + 1).map((msg, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className={`flex gap-3 ${
+                  msg.from === "user"
+                    ? "justify-end"
+                    : "justify-start"
+                }`}
+              >
+                {/* Avatar gauche */}
+                {msg.from === "ai" && (
+                  <img
+                    src={msg.avatar}
+                    className="w-7 h-7 md:w-8 md:h-8 rounded-full"
+                  />
+                )}
+
+                {/* Bulle */}
+                <div
+                  className={`max-w-[80%] rounded-2xl px-3 py-2 md:px-4 md:py-3 text-sm leading-relaxed ${
+                    msg.from === "ai"
+                      ? "bg-[#e235c2] text-white"
+                      : "bg-white/10 text-white"
+                  }`}
+                >
+                  <p
+                    className={`text-xs text-white/60 mb-1 ${
+                      msg.from === "user" ? "text-right" : "text-left"
+                    }`}
+                  >
+                    {msg.author}
+                  </p>
+
+                  {index === visibleIndex ? (
+                    <TypingText
+                      text={msg.text}
+                      onComplete={() => setTypingDone(true)}
+                    />
+                  ) : (
+                    <span>{msg.text}</span>
+                  )}
+                </div>
+
+                {/* Avatar droite */}
+                {msg.from === "user" && (
+                  <img
+                    src={msg.avatar}
+                    className="w-7 h-7 md:w-8 md:h-8 rounded-full"
+                  />
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          <div className="h-12 md:h-20" />
+        </div>
+      </div>
+    </div>
 
   </div>
   <motion.div
