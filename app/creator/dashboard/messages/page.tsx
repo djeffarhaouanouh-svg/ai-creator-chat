@@ -56,28 +56,13 @@ export default function MessagesPage() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Format story Instagram 1080x1920
-    canvas.width = 1080
-    canvas.height = 1920
+    // Sticker horizontal type "carte" avec fond transparent
+    canvas.width = 1200
+    canvas.height = 320
 
-    // Fond dégradé MyDouble
-    const bgGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
-    bgGradient.addColorStop(0, '#4c1d95') // violet
-    bgGradient.addColorStop(0.5, '#a855f7') // violet clair
-    bgGradient.addColorStop(1, '#ec4899') // rose
-    ctx.fillStyle = bgGradient
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    // Pas de fond plein : par défaut le canvas est transparent.
 
-    // Carte blanche centrale
-    const cardMarginH = 80
-    const cardMarginTop = 260
-    const cardMarginBottom = 260
-    const cardW = canvas.width - cardMarginH * 2
-    const cardH = canvas.height - cardMarginTop - cardMarginBottom
-    const cardX = cardMarginH
-    const cardY = cardMarginTop
-    const cardRadius = 48
-
+    // Utilitaire pour dessiner un rectangle arrondi
     const drawRoundedRect = (
       x: number,
       y: number,
@@ -100,42 +85,80 @@ export default function MessagesPage() {
       ctx.fill()
     }
 
+    // Carte blanche
+    const cardX = 40
+    const cardY = 30
+    const cardW = canvas.width - cardX * 2
+    const cardH = canvas.height - cardY * 2
+    const cardRadius = 36
+
     ctx.fillStyle = '#ffffff'
     drawRoundedRect(cardX, cardY, cardW, cardH, cardRadius)
 
-    // Bandeau MyDouble en haut de la carte
-    const headerHeight = 96
+    // Onglet MyDouble en haut à gauche
+    const headerHeight = 72
     ctx.save()
     ctx.beginPath()
-    ctx.moveTo(cardX, cardY)
-    ctx.lineTo(cardX + cardW, cardY)
-    ctx.lineTo(cardX + cardW, cardY + headerHeight)
-    ctx.lineTo(cardX, cardY + headerHeight)
+    ctx.moveTo(cardX + 24, cardY)
+    ctx.lineTo(cardX + 260, cardY)
+    ctx.quadraticCurveTo(cardX + 280, cardY, cardX + 280, cardY + 20)
+    ctx.lineTo(cardX + 280, cardY + headerHeight)
+    ctx.lineTo(cardX + 24, cardY + headerHeight)
+    ctx.quadraticCurveTo(cardX, cardY + headerHeight, cardX, cardY + headerHeight - 20)
+    ctx.lineTo(cardX, cardY + 20)
+    ctx.quadraticCurveTo(cardX, cardY, cardX + 24, cardY)
     ctx.closePath()
-    const headerGradient = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY)
-    headerGradient.addColorStop(0, '#ec4899')
-    headerGradient.addColorStop(1, '#a855f7')
+    const headerGradient = ctx.createLinearGradient(cardX, cardY, cardX + 280, cardY)
+    headerGradient.addColorStop(0, '#f4399c')
+    headerGradient.addColorStop(1, '#ff7ac4')
     ctx.fillStyle = headerGradient
     ctx.fill()
 
     ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 46px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+    ctx.font = 'bold 34px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
     ctx.textAlign = 'left'
-    ctx.fillText('MyDouble', cardX + 48, cardY + 62)
+    ctx.fillText('MyDouble', cardX + 40, cardY + 46)
     ctx.restore()
 
-    // Message du fan
-    const textPaddingX = 64
-    const textStartX = cardX + textPaddingX
-    let textY = cardY + headerHeight + 80
+    // Avatar rond avec initiale
+    const avatarX = cardX + 80
+    const avatarY = cardY + headerHeight + 70
+    const avatarRadius = 38
 
-    ctx.fillStyle = '#111827'
-    ctx.font = '32px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+    const nicknameInitial = (message.fan_nickname || '?').charAt(0).toUpperCase()
+
+    const avatarGradient = ctx.createLinearGradient(
+      avatarX - avatarRadius,
+      avatarY - avatarRadius,
+      avatarX + avatarRadius,
+      avatarY + avatarRadius
+    )
+    avatarGradient.addColorStop(0, '#ff9a9e')
+    avatarGradient.addColorStop(1, '#fad0c4')
+
+    ctx.beginPath()
+    ctx.arc(avatarX, avatarY, avatarRadius, 0, Math.PI * 2)
+    ctx.closePath()
+    ctx.fillStyle = avatarGradient
+    ctx.fill()
+
+    ctx.fillStyle = '#ffffff'
+    ctx.font = 'bold 32px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText(nicknameInitial, avatarX, avatarY + 10)
+
+    // Prénom / pseudo du fan
     ctx.textAlign = 'left'
+    ctx.fillStyle = '#111827'
+    ctx.font = '600 30px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+    const nameX = avatarX + avatarRadius + 28
+    const nameY = cardY + headerHeight + 40
+    ctx.fillText(message.fan_nickname || 'Fan', nameX, nameY)
 
-    const maxTextWidth = cardX + cardW - textStartX - textPaddingX
-    const maxLines = 6
-    const lineHeight = 44
+    // Message (une à deux lignes)
+    const maxTextWidth = cardX + cardW - nameX - 160
+    ctx.fillStyle = '#111827'
+    ctx.font = '24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
 
     const words = message.content.split(' ')
     const lines: string[] = []
@@ -153,30 +176,55 @@ export default function MessagesPage() {
     }
     if (currentLine) lines.push(currentLine)
 
+    const maxLines = 2
     const finalLines = lines.slice(0, maxLines)
+    const textStartY = nameY + 40
+    const lineHeight = 34
+
     finalLines.forEach((line, index) => {
-      ctx.fillText(line, textStartX, textY + index * lineHeight)
+      ctx.fillText(line, nameX, textStartY + index * lineHeight)
     })
 
     if (lines.length > maxLines) {
       const lastLine = finalLines[finalLines.length - 1]
       const withDots = lastLine.replace(/.{0,3}$/, '...')
-      ctx.fillText(withDots, textStartX, textY + (finalLines.length - 1) * lineHeight)
+      ctx.fillText(withDots, nameX, textStartY + (finalLines.length - 1) * lineHeight)
     }
 
-    // Pseudo du fan (optionnel)
-    if (message.fan_nickname) {
-      const pseudoY = cardY + cardH - 120
-      ctx.font = '28px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
-      ctx.fillStyle = '#6b7280'
-      ctx.fillText(`— ${message.fan_nickname}`, textStartX, pseudoY)
-    }
+    // Badge "mydouble" à droite
+    const badgeW = 190
+    const badgeH = 52
+    const badgeX = cardX + cardW - badgeW - 32
+    const badgeY = cardY + cardH - badgeH - 28
 
-    // Signature "via MyDouble"
-    ctx.font = '24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
-    ctx.fillStyle = '#9ca3af'
-    ctx.textAlign = 'right'
-    ctx.fillText('via MyDouble', cardX + cardW - textPaddingX, cardY + cardH - 60)
+    const badgeRadius = 26
+    ctx.beginPath()
+    ctx.moveTo(badgeX + badgeRadius, badgeY)
+    ctx.lineTo(badgeX + badgeW - badgeRadius, badgeY)
+    ctx.quadraticCurveTo(badgeX + badgeW, badgeY, badgeX + badgeW, badgeY + badgeRadius)
+    ctx.lineTo(badgeX + badgeW, badgeY + badgeH - badgeRadius)
+    ctx.quadraticCurveTo(
+      badgeX + badgeW,
+      badgeY + badgeH,
+      badgeX + badgeW - badgeRadius,
+      badgeY + badgeH
+    )
+    ctx.lineTo(badgeX + badgeRadius, badgeY + badgeH)
+    ctx.quadraticCurveTo(badgeX, badgeY + badgeH, badgeX, badgeY + badgeH - badgeRadius)
+    ctx.lineTo(badgeX, badgeY + badgeRadius)
+    ctx.quadraticCurveTo(badgeX, badgeY, badgeX + badgeRadius, badgeY)
+    ctx.closePath()
+
+    const badgeGradient = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeW, badgeY)
+    badgeGradient.addColorStop(0, '#f4399c')
+    badgeGradient.addColorStop(1, '#ff7ac4')
+    ctx.fillStyle = badgeGradient
+    ctx.fill()
+
+    ctx.fillStyle = '#ffffff'
+    ctx.font = '600 22px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('mydouble', badgeX + badgeW / 2, badgeY + 34)
 
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 
@@ -184,7 +232,7 @@ export default function MessagesPage() {
     canvas.toBlob(async (blob) => {
       if (!blob) return
 
-      const fileName = `mydouble-story-${Date.now()}.png`
+      const fileName = `mydouble-sticker-${Date.now()}.png`
 
       if (
         isMobile &&
