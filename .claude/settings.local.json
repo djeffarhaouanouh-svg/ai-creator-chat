@@ -11,7 +11,10 @@
       "Bash(ping:*)",
       "Bash(dir:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(findstr:*)",
+      "Bash(git revert:*)"
     ]
   }
 }

@@ -12,33 +12,53 @@ export default function MesMessagesPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [creators, setCreators] = useState<any[]>([]);
   const [subscriptions, setSubscriptions] = useState<string[]>([]);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est connecté
+    // Si compte créatrice => rediriger vers le dashboard créatrice "Mes messages"
+    const accountType = localStorage.getItem("accountType");
+    if (accountType === "creator") {
+      router.replace("/creator/dashboard/messages");
+      return;
+    }
+
+    // Sinon : parcours abonné classique
     const userId = localStorage.getItem("userId");
     setIsLoggedIn(!!userId);
 
     if (userId) {
-      // Récupérer les abonnements
       const subs = storage.getSubscriptions();
       setSubscriptions(subs);
 
-      // Charger les créatrices
       async function loadCreators() {
         const res = await fetch("/api/creators");
         const data = await res.json();
         setCreators(data || []);
+        setInitialized(true);
       }
       loadCreators();
+    } else {
+      setInitialized(true);
     }
-  }, []);
+  }, [router]);
 
   // Filtrer les créatrices auxquelles l'utilisateur est abonné
   const subscribedCreators = creators.filter((creator) =>
     subscriptions.includes(creator.slug || creator.id)
   );
 
-  // Si pas connecté, afficher la page d'invitation
+  // État de chargement initial (évite les flashs)
+  if (!initialized) {
+    return (
+      <main className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#e31fc1] mx-auto"></div>
+        </div>
+      </main>
+    );
+  }
+
+  // Si pas connecté, afficher la page d'invitation (abonné)
   if (!isLoggedIn) {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center px-4">

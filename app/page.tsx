@@ -116,6 +116,7 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [isMobile, currentIndex]);
 
+
   return (
     <main className="pt-6 md:pt-16 bg-black min-h-screen">
 

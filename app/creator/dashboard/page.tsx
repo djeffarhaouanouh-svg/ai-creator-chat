@@ -100,11 +100,11 @@ export default function CreatorDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
-      <div className="max-w-4xl mx-auto p-8">
+      <div className="max-w-4xl mx-auto px-4 py-6 md:p-8">
 
         {/* En-tête */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-          <div className="flex items-center justify-between">
+        <div className="bg-white rounded-2xl shadow-xl p-5 md:p-8 mb-6 md:mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 Dashboard Créatrice
