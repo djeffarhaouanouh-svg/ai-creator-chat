@@ -22,7 +22,6 @@ export default function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [reactingTo, setReactingTo] = useState<string | null>(null)
-  const [shareSelectorFor, setShareSelectorFor] = useState<string | null>(null) // plus utilisé mais gardé si besoin d'évolution
 
   useEffect(() => {
     loadMessages()
@@ -71,22 +70,34 @@ export default function MessagesPage() {
     return false
   }
 
-  const shareToSnapchat = async (file: File): Promise<boolean> => {
-    if (typeof navigator === 'undefined') return false
+  const shareToSnapchat = (url: string) => {
+    try {
+      // 1. Télécharger l'image
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'mydouble-sticker.png'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
 
-    const anyNavigator = navigator as any
-    if (anyNavigator.share && anyNavigator.canShare && anyNavigator.canShare({ files: [file] })) {
-      try {
-        await anyNavigator.share({
-          files: [file],
-          title: 'Story MyDouble',
-        })
-        return true
-      } catch (error) {
-        console.error('Erreur partage Snapchat:', error)
-      }
+      // 2. Petit délai avant d'ouvrir Snapchat
+      setTimeout(() => {
+        try {
+          window.location.href = 'snapchat://'
+        } catch (error) {
+          console.error('Erreur ouverture Snapchat:', error)
+        }
+
+        // 3. Message UX pour guider l'utilisatrice
+        try {
+          alert('📸 Image téléchargée\n👉 Ajoute-la dans ta story Snapchat')
+        } catch {
+          // ignorer si alert bloqué
+        }
+      }, 800)
+    } catch (error) {
+      console.error('Erreur préparation partage Snapchat:', error)
     }
-    return false
   }
 
   const handleShare = async (message: Message, platform: 'instagram' | 'snapchat') => {
@@ -230,7 +241,7 @@ export default function MessagesPage() {
       ctx.fillText(withDots, nameX, textStartY + (finalLines.length - 1) * lineHeight)
     }
 
-    // Badge "mydouble" à droite
+    // Badge "mydouble" à droite (neutre, sans fond rose)
     const badgeW = 190
     const badgeH = 52
     const badgeX = cardX + cardW - badgeW - 32
@@ -253,14 +264,13 @@ export default function MessagesPage() {
     ctx.lineTo(badgeX, badgeY + badgeRadius)
     ctx.quadraticCurveTo(badgeX, badgeY, badgeX + badgeRadius, badgeY)
     ctx.closePath()
-
-    const badgeGradient = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeW, badgeY)
-    badgeGradient.addColorStop(0, '#f4399c')
-    badgeGradient.addColorStop(1, '#ff7ac4')
-    ctx.fillStyle = badgeGradient
+    ctx.fillStyle = '#f9fafb'
     ctx.fill()
+    ctx.lineWidth = 2
+    ctx.strokeStyle = '#e5e7eb'
+    ctx.stroke()
 
-    ctx.fillStyle = '#ffffff'
+    ctx.fillStyle = '#6b7280' // texte gris neutre
     ctx.font = '600 22px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
     ctx.textAlign = 'center'
     ctx.fillText('mydouble', badgeX + badgeW / 2, badgeY + 34)
@@ -270,23 +280,23 @@ export default function MessagesPage() {
       if (!blob) return
 
       const fileName = `mydouble-sticker-${Date.now()}.png`
-      const file = new File([blob], fileName, { type: 'image/png' })
+      const url = URL.createObjectURL(blob)
 
-      let shared = false
       if (platform === 'instagram') {
-        shared = await shareToInstagram(file)
-      } else {
-        shared = await shareToSnapchat(file)
-      }
-
-      if (!shared) {
-        // Fallback : téléchargement de l'image (desktop ou si Web Share indisponible)
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = fileName
-        a.click()
+        const file = new File([blob], fileName, { type: 'image/png' })
+        const shared = await shareToInstagram(file)
+        if (!shared) {
+          const a = document.createElement('a')
+          a.href = url
+          a.download = fileName
+          a.click()
+        }
         URL.revokeObjectURL(url)
+      } else {
+        // Snapchat : téléchargement + ouverture de l'app
+        shareToSnapchat(url)
+        // on libère l'URL un peu plus tard
+        setTimeout(() => URL.revokeObjectURL(url), 5000)
       }
     })
   }
