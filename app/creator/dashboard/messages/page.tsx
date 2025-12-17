@@ -22,6 +22,7 @@ export default function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [reactingTo, setReactingTo] = useState<string | null>(null)
+  const [shareSelectorFor, setShareSelectorFor] = useState<string | null>(null)
 
   useEffect(() => {
     loadMessages()
@@ -51,14 +52,52 @@ export default function MessagesPage() {
     setReactingTo(null)
   }
 
-  const handleShare = async (message: Message) => {
+  const shareToInstagram = async (file: File): Promise<boolean> => {
+    if (typeof navigator === 'undefined') return false
+
+    const anyNavigator = navigator as any
+    if (anyNavigator.share && anyNavigator.canShare && anyNavigator.canShare({ files: [file] })) {
+      try {
+        await anyNavigator.share({
+          files: [file],
+          title: 'Story MyDouble',
+          text: 'Story prête à être partagée ✨',
+        })
+        return true
+      } catch (error) {
+        console.error('Erreur partage Instagram:', error)
+      }
+    }
+    return false
+  }
+
+  const shareToSnapchat = async (file: File): Promise<boolean> => {
+    if (typeof navigator === 'undefined') return false
+
+    const anyNavigator = navigator as any
+    if (anyNavigator.share && anyNavigator.canShare && anyNavigator.canShare({ files: [file] })) {
+      try {
+        await anyNavigator.share({
+          files: [file],
+          title: 'Story MyDouble',
+        })
+        return true
+      } catch (error) {
+        console.error('Erreur partage Snapchat:', error)
+      }
+    }
+    return false
+  }
+
+  const handleShare = async (message: Message, platform: 'instagram' | 'snapchat') => {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
     // Sticker horizontal type "carte" avec fond transparent
-    canvas.width = 1200
-    canvas.height = 320
+    // Taille plus petite pour apparaître comme un vrai sticker dans la story
+    canvas.width = 900
+    canvas.height = 260
 
     // Pas de fond plein : par défaut le canvas est transparent.
 
@@ -226,44 +265,29 @@ export default function MessagesPage() {
     ctx.textAlign = 'center'
     ctx.fillText('mydouble', badgeX + badgeW / 2, badgeY + 34)
 
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-
     // Export de l'image puis partage ou téléchargement
     canvas.toBlob(async (blob) => {
       if (!blob) return
 
       const fileName = `mydouble-sticker-${Date.now()}.png`
+      const file = new File([blob], fileName, { type: 'image/png' })
 
-      if (
-        isMobile &&
-        typeof navigator !== 'undefined' &&
-        'canShare' in navigator &&
-        'share' in navigator
-      ) {
-        try {
-          const file = new File([blob], fileName, { type: 'image/png' })
-          // @ts-ignore - Web Share API avec fichiers
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            // @ts-ignore
-            await navigator.share({
-              files: [file],
-              title: 'Story MyDouble',
-              text: 'Story prête à être partagée ✨',
-            })
-            return
-          }
-        } catch (error) {
-          console.error('Erreur partage natif:', error)
-        }
+      let shared = false
+      if (platform === 'instagram') {
+        shared = await shareToInstagram(file)
+      } else {
+        shared = await shareToSnapchat(file)
       }
 
-      // Fallback : téléchargement de l'image (desktop ou si Web Share indisponible)
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = fileName
-      a.click()
-      URL.revokeObjectURL(url)
+      if (!shared) {
+        // Fallback : téléchargement de l'image (desktop ou si Web Share indisponible)
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = fileName
+        a.click()
+        URL.revokeObjectURL(url)
+      }
     })
   }
 
@@ -335,15 +359,41 @@ export default function MessagesPage() {
 
                   <div className="flex-1 flex flex-col">
                     <button
-                      onClick={() => handleShare(message)}
+                      onClick={() =>
+                        setShareSelectorFor((current) =>
+                          current === message.id ? null : message.id
+                        )
+                      }
                       className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm lg:text-base font-semibold hover:from-purple-700 hover:to-pink-700 transition-all"
                     >
                       <Share2 size={18} />
                       <span>Partager en story</span>
                     </button>
                     <p className="mt-1 text-[11px] text-gray-500 text-center">
-                      Ouvre Instagram avec la story prête à publier
+                      Ouvre Instagram ou Snapchat avec la story prête à publier
                     </p>
+                    {shareSelectorFor === message.id && (
+                      <div className="mt-2 flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => {
+                            handleShare(message, 'instagram')
+                            setShareSelectorFor(null)
+                          }}
+                          className="px-3 py-1 rounded-full text-xs font-semibold bg-white border border-purple-200 text-purple-700 shadow-sm hover:bg-purple-50 transition-colors"
+                        >
+                          📸 Instagram
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleShare(message, 'snapchat')
+                            setShareSelectorFor(null)
+                          }}
+                          className="px-3 py-1 rounded-full text-xs font-semibold bg-white border border-yellow-200 text-yellow-700 shadow-sm hover:bg-yellow-50 transition-colors"
+                        >
+                          👻 Snapchat
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
