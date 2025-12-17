@@ -22,6 +22,7 @@ export default function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [reactingTo, setReactingTo] = useState<string | null>(null)
+  const [shareSelectorFor, setShareSelectorFor] = useState<string | null>(null)
 
   useEffect(() => {
     loadMessages()
@@ -72,47 +73,68 @@ export default function MessagesPage() {
 
   const shareToSnapchat = (url: string) => {
     try {
-      // 1. Télécharger l'image
+      // Télécharger simplement l'image en PNG
       const link = document.createElement('a')
       link.href = url
       link.download = 'mydouble-sticker.png'
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-
-      // 2. Petit délai avant d'ouvrir Snapchat
-      setTimeout(() => {
-        try {
-          window.location.href = 'snapchat://'
-        } catch (error) {
-          console.error('Erreur ouverture Snapchat:', error)
-        }
-
-        // 3. Message UX pour guider l'utilisatrice
-        try {
-          alert('📸 Image téléchargée\n👉 Ajoute-la dans ta story Snapchat')
-        } catch {
-          // ignorer si alert bloqué
-        }
-      }, 800)
     } catch (error) {
-      console.error('Erreur préparation partage Snapchat:', error)
+      console.error('Erreur téléchargement Snapchat:', error)
     }
   }
 
   const handleShare = async (message: Message, platform: 'instagram' | 'snapchat') => {
+    // Dimensions de base du sticker
+    const width = 1200
+    const cardX = 40
+    const cardY = 30
+    const headerHeight = 72
+    const cardRadius = 36
+    const cardW = width - cardX * 2
+    const textPaddingX = 40
+    const nameX = cardX + 48
+    const nameY = cardY + headerHeight + 56
+    const textStartX = nameX
+    const lineHeight = 34
+
+    // 1) Mesure du texte sur un canvas temporaire
+    const measureCanvas = document.createElement('canvas')
+    const measureCtx = measureCanvas.getContext('2d')
+    if (!measureCtx) return
+    measureCtx.font = '24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+
+    const maxTextWidth = cardX + cardW - textStartX - textPaddingX
+    const words = message.content.split(' ')
+    const lines: string[] = []
+    let currentLine = ''
+
+    for (const word of words) {
+      const testLine = currentLine ? currentLine + ' ' + word : word
+      const metrics = measureCtx.measureText(testLine)
+      if (metrics.width > maxTextWidth && currentLine) {
+        lines.push(currentLine)
+        currentLine = word
+      } else {
+        currentLine = testLine
+      }
+    }
+    if (currentLine) lines.push(currentLine)
+
+    const textStartY = nameY + 40
+    const textHeight = lines.length * lineHeight
+    const cardH = (textStartY - cardY) + textHeight + 40 // marge bas
+    const height = cardH + cardY * 2
+
+    // 2) Canvas final avec bonne hauteur
     const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Sticker horizontal type "carte" avec fond transparent
-    // Taille plus petite pour apparaître comme un vrai sticker dans la story
-    canvas.width = 900
-    canvas.height = 260
-
-    // Pas de fond plein : par défaut le canvas est transparent.
-
-    // Utilitaire pour dessiner un rectangle arrondi
+    // Carte blanche
     const drawRoundedRect = (
       x: number,
       y: number,
@@ -135,18 +157,10 @@ export default function MessagesPage() {
       ctx.fill()
     }
 
-    // Carte blanche
-    const cardX = 40
-    const cardY = 30
-    const cardW = canvas.width - cardX * 2
-    const cardH = canvas.height - cardY * 2
-    const cardRadius = 36
-
     ctx.fillStyle = '#ffffff'
     drawRoundedRect(cardX, cardY, cardW, cardH, cardRadius)
 
-    // Onglet MyDouble en haut à gauche
-    const headerHeight = 72
+    // Onglet MyDouble
     ctx.save()
     ctx.beginPath()
     ctx.moveTo(cardX + 24, cardY)
@@ -170,110 +184,24 @@ export default function MessagesPage() {
     ctx.fillText('MyDouble', cardX + 40, cardY + 46)
     ctx.restore()
 
-    // Avatar rond avec initiale
-    const avatarX = cardX + 80
-    const avatarY = cardY + headerHeight + 70
-    const avatarRadius = 38
-
-    const nicknameInitial = (message.fan_nickname || '?').charAt(0).toUpperCase()
-
-    const avatarGradient = ctx.createLinearGradient(
-      avatarX - avatarRadius,
-      avatarY - avatarRadius,
-      avatarX + avatarRadius,
-      avatarY + avatarRadius
-    )
-    avatarGradient.addColorStop(0, '#ff9a9e')
-    avatarGradient.addColorStop(1, '#fad0c4')
-
-    ctx.beginPath()
-    ctx.arc(avatarX, avatarY, avatarRadius, 0, Math.PI * 2)
-    ctx.closePath()
-    ctx.fillStyle = avatarGradient
-    ctx.fill()
-
-    ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 32px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
-    ctx.textAlign = 'center'
-    ctx.fillText(nicknameInitial, avatarX, avatarY + 10)
-
-    // Prénom / pseudo du fan
+    // Nom du fan
     ctx.textAlign = 'left'
     ctx.fillStyle = '#111827'
     ctx.font = '600 30px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
-    const nameX = avatarX + avatarRadius + 28
-    const nameY = cardY + headerHeight + 40
     ctx.fillText(message.fan_nickname || 'Fan', nameX, nameY)
 
-    // Message (une à deux lignes)
-    const maxTextWidth = cardX + cardW - nameX - 160
-    ctx.fillStyle = '#111827'
+    // Message multi-lignes
     ctx.font = '24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
-
-    const words = message.content.split(' ')
-    const lines: string[] = []
-    let currentLine = ''
-
-    for (const word of words) {
-      const testLine = currentLine ? currentLine + ' ' + word : word
-      const metrics = ctx.measureText(testLine)
-      if (metrics.width > maxTextWidth && currentLine) {
-        lines.push(currentLine)
-        currentLine = word
-      } else {
-        currentLine = testLine
-      }
-    }
-    if (currentLine) lines.push(currentLine)
-
-    const maxLines = 2
-    const finalLines = lines.slice(0, maxLines)
-    const textStartY = nameY + 40
-    const lineHeight = 34
-
-    finalLines.forEach((line, index) => {
-      ctx.fillText(line, nameX, textStartY + index * lineHeight)
+    ctx.fillStyle = '#111827'
+    lines.forEach((line, index) => {
+      ctx.fillText(line, textStartX, textStartY + index * lineHeight)
     })
 
-    if (lines.length > maxLines) {
-      const lastLine = finalLines[finalLines.length - 1]
-      const withDots = lastLine.replace(/.{0,3}$/, '...')
-      ctx.fillText(withDots, nameX, textStartY + (finalLines.length - 1) * lineHeight)
-    }
-
-    // Badge "mydouble" à droite (neutre, sans fond rose)
-    const badgeW = 190
-    const badgeH = 52
-    const badgeX = cardX + cardW - badgeW - 32
-    const badgeY = cardY + cardH - badgeH - 28
-
-    const badgeRadius = 26
-    ctx.beginPath()
-    ctx.moveTo(badgeX + badgeRadius, badgeY)
-    ctx.lineTo(badgeX + badgeW - badgeRadius, badgeY)
-    ctx.quadraticCurveTo(badgeX + badgeW, badgeY, badgeX + badgeW, badgeY + badgeRadius)
-    ctx.lineTo(badgeX + badgeW, badgeY + badgeH - badgeRadius)
-    ctx.quadraticCurveTo(
-      badgeX + badgeW,
-      badgeY + badgeH,
-      badgeX + badgeW - badgeRadius,
-      badgeY + badgeH
-    )
-    ctx.lineTo(badgeX + badgeRadius, badgeY + badgeH)
-    ctx.quadraticCurveTo(badgeX, badgeY + badgeH, badgeX, badgeY + badgeH - badgeRadius)
-    ctx.lineTo(badgeX, badgeY + badgeRadius)
-    ctx.quadraticCurveTo(badgeX, badgeY, badgeX + badgeRadius, badgeY)
-    ctx.closePath()
-    ctx.fillStyle = '#f9fafb'
-    ctx.fill()
-    ctx.lineWidth = 2
-    ctx.strokeStyle = '#e5e7eb'
-    ctx.stroke()
-
-    ctx.fillStyle = '#6b7280' // texte gris neutre
+    // Signature "mydouble"
     ctx.font = '600 22px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
-    ctx.textAlign = 'center'
-    ctx.fillText('mydouble', badgeX + badgeW / 2, badgeY + 34)
+    ctx.fillStyle = '#9ca3af'
+    ctx.textAlign = 'right'
+    ctx.fillText('mydouble', cardX + cardW - textPaddingX, cardY + cardH - 24)
 
     // Export de l'image puis partage ou téléchargement
     canvas.toBlob(async (blob) => {
@@ -367,14 +295,39 @@ export default function MessagesPage() {
                     <span>{reactingTo === message.id ? 'Réaction envoyée!' : 'Réagir'}</span>
                   </button>
 
-                  <div className="flex-1">
+                  <div className="flex-1 flex flex-col">
                     <button
-                      onClick={() => handleShare(message, 'instagram')}
+                      onClick={() =>
+                        setShareSelectorFor((current) =>
+                          current === message.id ? null : message.id
+                        )
+                      }
                       className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm lg:text-base font-semibold hover:from-purple-700 hover:to-pink-700 transition-all"
                     >
                       <Share2 size={18} />
                       <span>Partager en story</span>
                     </button>
+                    {shareSelectorFor === message.id && (
+                      <>
+                        <p className="mt-1 text-[11px] text-gray-500 text-center">
+                          Ouvre Instagram ou Snapchat avec la story prête à publier
+                        </p>
+                        <div className="mt-2 flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleShare(message, 'instagram')}
+                            className="px-3 py-1 rounded-full text-xs font-semibold bg-white border border-purple-200 text-purple-700 shadow-sm hover:bg-purple-50 transition-colors"
+                          >
+                            📸 Instagram
+                          </button>
+                          <button
+                            onClick={() => handleShare(message, 'snapchat')}
+                            className="px-3 py-1 rounded-full text-xs font-semibold bg-white border border-yellow-200 text-yellow-700 shadow-sm hover:bg-yellow-50 transition-colors"
+                          >
+                            👻 Snapchat
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
