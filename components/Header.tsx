@@ -87,6 +87,13 @@ export default function Header() {
           >
             Pourquoi nous rejoindre ?
           </Link>
+          <Link
+            href="/agency"
+            className="block text-white px-4 py-2 hover:bg-gray-900 transition-colors"
+            onClick={() => setIsMenuOpen(false)}
+          >
+           Agency
+          </Link>
         </div>
       )}
     </nav>

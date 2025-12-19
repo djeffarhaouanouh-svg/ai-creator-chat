@@ -289,13 +289,13 @@ export default function MessagesPage() {
                   <button
                     onClick={() => handleReact(message.id)}
                     disabled={reactingTo === message.id}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 text-sm lg:text-base font-semibold hover:from-purple-200 hover:to-pink-200 transition-all disabled:opacity-50"
+                    className="sm:w-1/2 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 text-sm lg:text-base font-semibold hover:from-purple-200 hover:to-pink-200 transition-all disabled:opacity-50"
                   >
                     <Heart size={18} className={reactingTo === message.id ? 'fill-current animate-pulse' : ''} />
                     <span>{reactingTo === message.id ? 'Réaction envoyée!' : 'Réagir'}</span>
                   </button>
 
-                  <div className="flex-1 flex flex-col">
+                  <div className="sm:w-1/2 flex flex-col">
                     <button
                       onClick={() =>
                         setShareSelectorFor((current) =>
@@ -307,29 +307,30 @@ export default function MessagesPage() {
                       <Share2 size={18} />
                       <span>Partager en story</span>
                     </button>
-                    {shareSelectorFor === message.id && (
-                      <>
-                        <p className="mt-1 text-[11px] text-gray-500 text-center">
-                          Ouvre Instagram ou Snapchat avec la story prête à publier
-                        </p>
-                        <div className="mt-2 flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleShare(message, 'instagram')}
-                            className="px-3 py-1 rounded-full text-xs font-semibold bg-white border border-purple-200 text-purple-700 shadow-sm hover:bg-purple-50 transition-colors"
-                          >
-                            📸 Instagram
-                          </button>
-                          <button
-                            onClick={() => handleShare(message, 'snapchat')}
-                            className="px-3 py-1 rounded-full text-xs font-semibold bg-white border border-yellow-200 text-yellow-700 shadow-sm hover:bg-yellow-50 transition-colors"
-                          >
-                            👻 Snapchat
-                          </button>
-                        </div>
-                      </>
-                    )}
                   </div>
                 </div>
+
+                {shareSelectorFor === message.id && (
+                  <div className="mt-2">
+                    <p className="text-[11px] text-gray-500 text-center">
+                      Ouvre Instagram ou Snapchat avec la story prête à publier
+                    </p>
+                    <div className="mt-2 flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleShare(message, 'instagram')}
+                        className="px-3 py-1 rounded-full text-xs font-semibold bg-white border border-purple-200 text-purple-700 shadow-sm hover:bg-purple-50 transition-colors"
+                      >
+                        📸 Instagram
+                      </button>
+                      <button
+                        onClick={() => handleShare(message, 'snapchat')}
+                        className="px-3 py-1 rounded-full text-xs font-semibold bg-white border border-yellow-200 text-yellow-700 shadow-sm hover:bg-yellow-50 transition-colors"
+                      >
+                        👻 Snapchat
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}

@@ -6,6 +6,7 @@ import { Users, MessageCircle } from "lucide-react";
 import ContenusPersonnalises from "@/components/ContenusPersonnalises";
 import PrivateContentSection from "@/components/PrivateContentSection";
 import CreatorsSection from "@/components/CreatorsSection";
+import ComparisonSection from "@/components/ComparisonSection";
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 
@@ -172,11 +173,9 @@ export default function Home() {
                         <h3 className="text-xl font-bold mb-1">{creator.name}</h3>
                         <p className="text-sm text-gray-600 mb-3">@{creator.slug}</p>
                         <p className="text-gray-700 text-sm mb-4 line-clamp-2">
-  {creator.bio || ""}
-</p>
-
-
-
+                          {creator.bio || ""}
+                            </p>
+                            
                         <div className="flex flex-wrap gap-2 mb-4">
                           {(creator.tags || []).map((tag: string) => (
                             <span
@@ -343,6 +342,7 @@ export default function Home() {
         <ContenusPersonnalises />
         <CreatorsSection />
         <PrivateContentSection />
+        <ComparisonSection />
       </motion.div>
       )}
 

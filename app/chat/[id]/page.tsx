@@ -118,6 +118,13 @@ export default function ChatPage() {
 
   const [isRequestOpen, setIsRequestOpen] = useState(false);
   const [requestInput, setRequestInput] = useState('');
+  const [contentRequest, setContentRequest] = useState<{
+    id: string;
+    status: 'pending' | 'priced' | 'authorized' | 'delivered';
+    price?: number | null;
+    paypal_authorization_id?: string | null;
+  } | null>(null);
+  const [isAuthorizing, setIsAuthorizing] = useState(false);
 
   if (!creator) {
     return (
@@ -220,6 +227,37 @@ export default function ChatPage() {
     loadMessages();
   }, [creator, router]);
 
+  // Charger la dernière demande de contenu (si elle existe déjà)
+  useEffect(() => {
+    async function loadContentRequest() {
+      if (!creator) return;
+
+      const userId = localStorage.getItem('userId');
+      if (!userId) return;
+
+      try {
+        const res = await fetch(
+          `/api/content-request/current?userId=${userId}&creatorSlug=${creator.slug || creator.id}`
+        );
+        if (!res.ok) return;
+
+        const data = await res.json();
+        if (data?.success && data.request) {
+          setContentRequest({
+            id: data.request.id,
+            status: data.request.status,
+            price: data.request.price,
+            paypal_authorization_id: data.request.paypal_authorization_id,
+          });
+        }
+      } catch (error) {
+        console.error('Error loading content request:', error);
+      }
+    }
+
+    loadContentRequest();
+  }, [creator]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -301,41 +339,121 @@ export default function ChatPage() {
     setIsLoading(false);
   };
 
-  /* ------------ Envoi FAKE pour demande de contenu personnalisé ------------- */
-  const sendRequest = () => {
-    if (!requestInput.trim()) return;
+  /* ------------ Envoi demande de contenu personnalisé (réelle) ------------- */
+  const sendRequest = async () => {
+    if (!requestInput.trim() || !creator) return;
 
-    const link = creator.mymLink || creator.onlyfansLink || null;
-
-    let replyText = '';
-
-    if (link) {
-      replyText = `
-Je peux pas encore envoyer du contenu privé directement ici 😔
-Mais tu peux l'obtenir sur mon espace officiel 🔥
-
-👉 [ICI mon MYM](${link})
-      `;
-    } else {
-      replyText = `
-Impossible d'envoyer du contenu ici 😔  
-La créatrice doit ajouter son lien MYM / OF dans l'administration.
-      `;
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      alert("Tu dois être connecté pour envoyer une demande personnalisée.");
+      return;
     }
 
-    const assistantMessage: Message = {
-      id: Date.now().toString(),
-      role: 'assistant',
-      content: replyText,
-      timestamp: new Date(),
-    };
+    try {
+      const res = await fetch('/api/content-request/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          creatorSlug: creator.slug || creator.id,
+          message: requestInput.trim(),
+        }),
+      });
 
-    setMessages((prev) => [...prev, assistantMessage]);
-    storage.addMessage(creator.slug || creator.id, assistantMessage);
-    saveMessageToDB(assistantMessage, creator.slug || creator.id);
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data?.error || 'Erreur lors de la demande');
+      }
 
-    setRequestInput('');
-    setIsRequestOpen(false);
+      setContentRequest({
+        id: data.request.id,
+        status: 'pending',
+        price: data.request.price,
+        paypal_authorization_id: data.request.paypal_authorization_id,
+      });
+
+      const systemMessage: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content:
+          "💬 Demande envoyée à la créatrice. Elle te proposera un prix si elle accepte.",
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, systemMessage]);
+      storage.addMessage(creator.slug || creator.id, systemMessage);
+      saveMessageToDB(systemMessage, creator.slug || creator.id);
+
+      setRequestInput('');
+      setIsRequestOpen(false);
+    } catch (error) {
+      console.error('Error sending content request:', error);
+      const errMsg: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content:
+          "Oups, impossible d'envoyer la demande pour le moment. Réessaie dans un instant 😅",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errMsg]);
+      storage.addMessage(creator.slug || creator.id, errMsg);
+      saveMessageToDB(errMsg, creator.slug || creator.id);
+    }
+  };
+
+  /* ------------------ Autorisation PayPal (Débloquer contenu) ---------------- */
+  const handleUnlockContent = async () => {
+    if (!contentRequest) return;
+
+    try {
+      setIsAuthorizing(true);
+      const res = await fetch('/api/paypal/authorize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId: contentRequest.id }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data?.error || 'Erreur lors de la sécurisation du paiement');
+      }
+
+      setContentRequest((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: 'authorized',
+              paypal_authorization_id: data.authorizationId,
+            }
+          : prev
+      );
+
+      const systemMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content:
+          '💳 Paiement sécurisé – le montant sera validé après l’envoi du contenu.',
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, systemMessage]);
+      storage.addMessage(creator.slug || creator.id, systemMessage);
+      saveMessageToDB(systemMessage, creator.slug || creator.id);
+    } catch (error) {
+      console.error('Error authorizing PayPal payment:', error);
+      const errMsg: Message = {
+        id: (Date.now() + 2).toString(),
+        role: 'assistant',
+        content:
+          "Oups, impossible de sécuriser le paiement pour le moment. Réessaie dans un instant 😅",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errMsg]);
+      storage.addMessage(creator.slug || creator.id, errMsg);
+      saveMessageToDB(errMsg, creator.slug || creator.id);
+    } finally {
+      setIsAuthorizing(false);
+    }
   };
 
   /* -------------------------------------------------------------------------- */
@@ -536,6 +654,34 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
       {/* INPUT */}
       <div className="bg-white border-t px-4 py-4">
         <div className="max-w-3xl mx-auto flex flex-col gap-3 items-center">
+          {/* Infos sur la demande de contenu personnalisée */}
+          {contentRequest && (
+            <div className="w-full max-w-2xl text-xs text-gray-600 bg-gray-100 border border-gray-200 rounded-xl px-3 py-2">
+              {contentRequest.status === 'pending' && (
+                <p>
+                  Ta demande personnalisée est <span className="font-semibold">en attente</span> de validation
+                  par la créatrice.
+                </p>
+              )}
+              {contentRequest.status === 'priced' && (
+                <p>
+                  La créatrice a accepté ta demande –{" "}
+                  <span className="font-semibold">
+                    Prix : {contentRequest.price?.toFixed(2)} €
+                  </span>
+                </p>
+              )}
+              {contentRequest.status === 'authorized' && (
+                <p>
+                  💳 Paiement sécurisé. Le montant sera validé après l’envoi du contenu par la créatrice.
+                </p>
+              )}
+              {contentRequest.status === 'delivered' && (
+                <p>🎁 Contenu personnalisé reçu.</p>
+              )}
+            </div>
+          )}
+
           {/* Demande contenu privé */}
           {isRequestOpen && (
             <div className="flex gap-2">
@@ -559,6 +705,17 @@ La créatrice doit ajouter son lien MYM / OF dans l'administration.
             >
               +
             </button>
+
+            {/* Bouton Débloquer le contenu quand un prix est défini */}
+            {contentRequest?.status === 'priced' && (
+              <button
+                onClick={handleUnlockContent}
+                disabled={isAuthorizing}
+                className="ml-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] disabled:opacity-60"
+              >
+                {isAuthorizing ? 'Patiente...' : 'Débloquer le contenu'}
+              </button>
+            )}
 
             <textarea
               value={input}

@@ -28,7 +28,8 @@
     #111111,
   );
 
-  overscroll-behavior: none;
+  overscroll-behavior: auto;
+
 }
 
 /* Tailwind helper */
@@ -324,3 +325,11 @@ html,
 body {
   background-color: #000;
 }
+
+/* 🔒 BLOQUE LES GESTES DE ZOOM SUR SPLINE */
+.spline-lock,
+.spline-lock * {
+  touch-action: pan-y !important;
+  overscroll-behavior: contain;
+}
+
