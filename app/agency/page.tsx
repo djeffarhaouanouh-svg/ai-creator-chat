@@ -78,7 +78,7 @@ export default function Page() {
             }}
           >
             <iframe
-              src="https://my.spline.design/tel-vqqdfLxshMoI1350uh94e4aM/"
+              src="https://my.spline.design/tel2-X7wB0o0DgnnSejMjVHYzoSOD/"
               className="w-full h-full pointer-events-none"
               frameBorder="0"
               allow="autoplay; fullscreen"
@@ -91,7 +91,7 @@ export default function Page() {
 
         {/* CONTENU (par-dessus, à gauche) */}
         <div className="relative max-w-none px-8 md:px-20">
-          <div className="max-w-2xl mt-40 md:mt-16 text-center md:text-left">
+          <div className="max-w-2xl mt-48 md:mt-16 text-center md:text-left">
             <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
               MyDouble pour les{" "}
               <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
