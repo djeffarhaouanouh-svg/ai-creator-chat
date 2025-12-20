@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, MessageCircle, LogOut, Menu, X } from 'lucide-react'
+import { Home, MessageCircle, LogOut, Menu, X, Package } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 export default function DashboardLayout({
@@ -39,6 +39,7 @@ export default function DashboardLayout({
   const menuItems = [
     { icon: Home, label: 'Mon compte', path: '/creator/dashboard' },
     { icon: MessageCircle, label: 'Mes messages', path: '/creator/dashboard/messages' },
+    { icon: Package, label: 'Mes demandes personnalisées', path: '/creator/dashboard/requests' },
   ]
 
   if (!slug) {
