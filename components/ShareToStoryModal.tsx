@@ -224,7 +224,7 @@ export default function ShareToStoryModal({
                 style={{ 
                   width: '200px',
                   height: '355px',
-                  imageRendering: 'high-quality'
+                  imageRendering: 'auto' as const
                 }}
               />
             </div>
