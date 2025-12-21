@@ -46,6 +46,59 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
     }
 
+    // ⛔ BLOQUER la sauvegarde de messages assistant si l'IA est désactivée
+    if (role === 'assistant') {
+      // Récupérer le creator UUID depuis le slug
+      let creatorResult;
+      try {
+        creatorResult = await sql`
+          SELECT id FROM creators WHERE slug = ${creatorId} LIMIT 1
+        `
+      } catch (error: any) {
+        console.error('❌ Erreur récupération créatrice:', error.message);
+        creatorResult = { rows: [] };
+      }
+      
+      if (creatorResult.rows.length > 0) {
+        const creatorUuid = creatorResult.rows[0].id
+        
+        // Vérifier si l'IA est désactivée
+        let settingsResult;
+        try {
+          settingsResult = await sql`
+            SELECT ai_enabled
+            FROM conversation_settings
+            WHERE user_id = ${userId}::uuid
+              AND creator_id = ${creatorUuid}::uuid
+            LIMIT 1
+          `
+        } catch (error: any) {
+          console.log('⚠️ Erreur lors de la vérification IA:', error.message);
+          settingsResult = { rows: [] };
+        }
+        
+        // Log pour débogage
+        console.log('🔍 Vérification IA dans /api/messages:', {
+          userId: userId ? `${userId.substring(0, 8)}...` : 'MANQUANT',
+          creatorId,
+          creatorUuid: creatorUuid ? `${creatorUuid.substring(0, 8)}...` : 'MANQUANT',
+          settingsFound: settingsResult.rows.length > 0,
+          aiEnabled: settingsResult.rows.length > 0 ? settingsResult.rows[0].ai_enabled : 'N/A (par défaut activé)'
+        });
+        
+        // Si le setting existe et est false → BLOQUER la sauvegarde
+        if (settingsResult.rows.length > 0 && settingsResult.rows[0].ai_enabled === false) {
+          console.log('🚫 BLOQUAGE sauvegarde message assistant - IA désactivée')
+          return NextResponse.json(
+            { error: 'L\'IA est désactivée pour cette conversation.' },
+            { status: 403 }
+          )
+        }
+      } else {
+        console.warn('⚠️ Créatrice introuvable pour le slug:', creatorId);
+      }
+    }
+
     console.log('💾 Attempting to insert into database...');
 
     // Insérer le message dans la base de données

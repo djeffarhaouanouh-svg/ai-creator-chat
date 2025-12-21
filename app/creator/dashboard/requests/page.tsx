@@ -9,7 +9,7 @@ interface ContentRequest {
   creator_id: string
   user_id: string
   message: string
-  status: 'pending' | 'priced' | 'authorized' | 'delivered'
+  status: 'pending' | 'price_proposed' | 'paid' | 'delivered' | 'cancelled'
   price: number | null
   paypal_authorization_id: string | null
   created_at: string
@@ -22,7 +22,7 @@ export default function CreatorRequestsPage() {
   const [slug, setSlug] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [requests, setRequests] = useState<ContentRequest[]>([])
-  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'priced' | 'authorized' | 'delivered'>('all')
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'price_proposed' | 'paid' | 'delivered' | 'cancelled'>('all')
   const [loadingRequests, setLoadingRequests] = useState(false)
   const [pricingRequest, setPricingRequest] = useState<string | null>(null)
   const [priceInput, setPriceInput] = useState('')
@@ -169,12 +169,14 @@ export default function CreatorRequestsPage() {
     switch (status) {
       case 'pending':
         return <Clock className="w-5 h-5 text-yellow-600" />
-      case 'priced':
+      case 'price_proposed':
         return <Euro className="w-5 h-5 text-blue-600" />
-      case 'authorized':
+      case 'paid':
         return <Lock className="w-5 h-5 text-purple-600" />
       case 'delivered':
         return <Gift className="w-5 h-5 text-green-600" />
+      case 'cancelled':
+        return <X className="w-5 h-5 text-red-600" />
       default:
         return <Package className="w-5 h-5 text-gray-600" />
     }
@@ -184,12 +186,14 @@ export default function CreatorRequestsPage() {
     switch (status) {
       case 'pending':
         return 'En attente'
-      case 'priced':
+      case 'price_proposed':
         return 'Prix proposé'
-      case 'authorized':
+      case 'paid':
         return 'Paiement sécurisé'
       case 'delivered':
         return 'Livré'
+      case 'cancelled':
+        return 'Annulé'
       default:
         return status
     }
@@ -199,12 +203,14 @@ export default function CreatorRequestsPage() {
     switch (status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-700 border-yellow-200'
-      case 'priced':
+      case 'price_proposed':
         return 'bg-blue-100 text-blue-700 border-blue-200'
-      case 'authorized':
+      case 'paid':
         return 'bg-purple-100 text-purple-700 border-purple-200'
       case 'delivered':
         return 'bg-green-100 text-green-700 border-green-200'
+      case 'cancelled':
+        return 'bg-red-100 text-red-700 border-red-200'
       default:
         return 'bg-gray-100 text-gray-700 border-gray-200'
     }
@@ -262,25 +268,25 @@ export default function CreatorRequestsPage() {
               En attente ({requests.filter(r => r.status === 'pending').length})
             </button>
             <button
-              onClick={() => setFilterStatus('priced')}
+              onClick={() => setFilterStatus('price_proposed')}
               className={`px-3 py-2 rounded-lg font-medium transition-all text-sm whitespace-nowrap ${
-                filterStatus === 'priced'
+                filterStatus === 'price_proposed'
                   ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              Prix proposé ({requests.filter(r => r.status === 'priced').length})
+              Prix proposé ({requests.filter(r => r.status === 'price_proposed').length})
             </button>
             <button
-              onClick={() => setFilterStatus('authorized')}
+              onClick={() => setFilterStatus('paid')}
               className={`px-3 py-2 rounded-lg font-medium transition-all text-sm whitespace-nowrap ${
-                filterStatus === 'authorized'
+                filterStatus === 'paid'
                   ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
               <span className="hidden sm:inline">Paiement sécurisé</span>
-              <span className="sm:hidden">Sécurisé</span> ({requests.filter(r => r.status === 'authorized').length})
+              <span className="sm:hidden">Sécurisé</span> ({requests.filter(r => r.status === 'paid').length})
             </button>
             <button
               onClick={() => setFilterStatus('delivered')}
@@ -412,18 +418,45 @@ export default function CreatorRequestsPage() {
                             </div>
                           </div>
                         ) : (
-                          <button
-                            onClick={() => setPricingRequest(request.id)}
-                            className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2"
-                          >
-                            <Euro className="w-4 h-4" />
-                            Proposer un prix
-                          </button>
+                          <>
+                            <button
+                              onClick={() => setPricingRequest(request.id)}
+                              className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2"
+                            >
+                              <Euro className="w-4 h-4" />
+                              Proposer un prix
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!confirm('Es-tu sûr de vouloir refuser cette demande ?')) return;
+                                try {
+                                  const res = await fetch('/api/content-request/cancel', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ requestId: request.id }),
+                                  });
+                                  const data = await res.json();
+                                  if (res.ok && data.success) {
+                                    if (slug) loadRequests(slug);
+                                  } else {
+                                    alert(data?.error || 'Erreur lors du refus');
+                                  }
+                                } catch (error) {
+                                  console.error('Error rejecting request:', error);
+                                  alert('Erreur lors du refus de la demande');
+                                }
+                              }}
+                              className="w-full px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all flex items-center justify-center gap-2"
+                            >
+                              <X className="w-4 h-4" />
+                              Refuser
+                            </button>
+                          </>
                         )}
                       </div>
                     )}
 
-                    {request.status === 'authorized' && (
+                    {request.status === 'paid' && (
                       <div className="space-y-2">
                         {deliveringRequest === request.id ? (
                           <div className="space-y-2 p-3 bg-green-50 rounded-lg border border-green-200">
@@ -441,24 +474,42 @@ export default function CreatorRequestsPage() {
                             {/* Upload de fichier */}
                             <div className="space-y-2">
                               <label className="block text-sm font-medium text-gray-700">
-                                Ou sélectionner un fichier depuis la galerie :
+                                📸 Sélectionner une photo depuis la galerie :
                               </label>
                               <input
                                 type="file"
-                                accept="image/*,video/*,audio/*"
+                                accept="image/*"
                                 onChange={(e) => {
                                   const file = e.target.files?.[0]
                                   if (file) {
+                                    // Vérifier que c'est bien une image
+                                    if (!file.type.startsWith('image/')) {
+                                      alert('Veuillez sélectionner une image (JPG, PNG, etc.)')
+                                      e.target.value = ''
+                                      return
+                                    }
                                     setSelectedFile(file)
+                                    setContentType('image')
                                     setContentUrl('') // Réinitialiser l'URL si on sélectionne un fichier
                                   }
                                 }}
                                 className="w-full px-3 py-2 rounded-lg border border-gray-300 text-black text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                               />
                               {selectedFile && (
-                                <p className="text-sm text-gray-600">
-                                  Fichier sélectionné : {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                                </p>
+                                <div className="space-y-2">
+                                  <p className="text-sm text-gray-600">
+                                    Fichier sélectionné : {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                                  </p>
+                                  {/* Aperçu de l'image */}
+                                  <div className="mt-2">
+                                    <img
+                                      src={URL.createObjectURL(selectedFile)}
+                                      alt="Aperçu"
+                                      className="max-w-full rounded-lg border border-gray-200"
+                                      style={{ maxHeight: '200px' }}
+                                    />
+                                  </div>
+                                </div>
                               )}
                             </div>
 

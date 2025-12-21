@@ -33,15 +33,9 @@ export default function CreatorChatPage() {
       loadCreatorInfo()
       
       // Charger le setting IA d'abord
-      const iaEnabled = await loadAISetting()
+      await loadAISetting()
       
-      // Si l'IA est activée, rediriger immédiatement
-      if (iaEnabled) {
-        router.push('/creator/dashboard/messages')
-        return
-      }
-      
-      // Sinon charger la conversation
+      // Toujours charger la conversation (même si IA activée, on peut voir les messages)
       await loadConversation()
     }
     
@@ -192,9 +186,13 @@ export default function CreatorChatPage() {
           <p className="text-xs text-gray-500">{userInfo?.email}</p>
         </div>
 
-        {!aiEnabled && (
+        {aiEnabled ? (
+          <div className="px-3 py-1 bg-purple-100 border border-purple-200 rounded-lg">
+            <p className="text-xs text-purple-700 font-medium">🟣 IA activée</p>
+          </div>
+        ) : (
           <div className="px-3 py-1 bg-orange-100 border border-orange-200 rounded-lg">
-            <p className="text-xs text-orange-700 font-medium">Mode manuel</p>
+            <p className="text-xs text-orange-700 font-medium">⚪ Mode manuel</p>
           </div>
         )}
       </div>
@@ -271,12 +269,12 @@ export default function CreatorChatPage() {
       {/* Input */}
       <div className="bg-white border-t border-gray-200 px-4 py-4">
         {aiEnabled ? (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-            <p className="text-sm text-blue-700">
-              💬 L'IA est activée pour cette conversation. Les réponses sont automatiques.
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
+            <p className="text-sm text-purple-700 font-medium">
+              Désactive l'IA pour écrire
             </p>
-            <p className="text-xs text-blue-600 mt-1">
-              Désactive l'IA depuis la liste des conversations pour répondre manuellement.
+            <p className="text-xs text-purple-600 mt-1">
+              L'IA gère cette conversation. Désactive l'IA depuis la liste des conversations pour répondre manuellement.
             </p>
           </div>
         ) : (

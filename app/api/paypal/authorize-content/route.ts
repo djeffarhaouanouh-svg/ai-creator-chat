@@ -40,8 +40,8 @@ export async function POST(req: Request) {
 
     const request = requestResult.rows[0];
 
-    // Vérifier que le statut est 'priced'
-    if (request.status !== "priced") {
+    // Vérifier que le statut est 'price_proposed'
+    if (request.status !== "price_proposed") {
       return NextResponse.json(
         {
           success: false,
@@ -64,12 +64,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // Mettre à jour le statut à 'authorized' avec l'ID PayPal
+    // Mettre à jour le statut à 'paid' avec l'ID PayPal
     const authorizationId = `AUTH_${paypalOrderId}`;
     const result = await sql`
       UPDATE content_requests
       SET paypal_authorization_id = ${authorizationId},
-          status = 'authorized'
+          status = 'paid'
       WHERE id = ${requestId}::uuid
       RETURNING id, status, price, paypal_authorization_id
     `;
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
     }
 
     // Envoyer un message système dans le chat
-    const systemMessage = `💳 Paiement sécurisé ! La créatrice va maintenant t'envoyer le contenu personnalisé.`;
+    const systemMessage = `💳 Paiement sécurisé effectué`;
     const creatorSlug = request.creator_slug;
     if (creatorSlug) {
       try {
@@ -114,6 +114,9 @@ export async function POST(req: Request) {
     );
   }
 }
+
+
+
 
 
 

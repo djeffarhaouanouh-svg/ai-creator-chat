@@ -107,12 +107,21 @@ export async function POST(request: NextRequest) {
       `
 
       // Insérer ou mettre à jour le setting
-      await sql`
+      const result = await sql`
         INSERT INTO conversation_settings (user_id, creator_id, ai_enabled, updated_at)
         VALUES (${userId}::uuid, ${creatorId}::uuid, ${aiEnabled}, NOW())
         ON CONFLICT (user_id, creator_id)
         DO UPDATE SET ai_enabled = ${aiEnabled}, updated_at = NOW()
+        RETURNING id, user_id, creator_id, ai_enabled
       `
+
+      console.log('✅ Setting IA mis à jour:', {
+        userId,
+        creatorId: creatorId,
+        creatorSlug,
+        aiEnabled,
+        result: result.rows[0]
+      })
 
       return NextResponse.json({
         success: true,
@@ -134,6 +143,8 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+
 
 
 

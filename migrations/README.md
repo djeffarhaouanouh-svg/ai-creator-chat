@@ -1,5 +1,27 @@
 # Migrations Base de Données
 
+## ⚠️ MIGRATION URGENTE - Content Requests Status
+
+**Si vous avez l'erreur : `violates check constraint "content_requests_status_check"`**
+
+Exécutez IMMÉDIATEMENT le fichier : `migrations/FIX_content_requests_status.sql`
+
+### Comment exécuter :
+
+1. **Via Vercel Dashboard (Recommandé)** :
+   - Va sur [vercel.com](https://vercel.com) et ouvre ton projet
+   - Va dans l'onglet **Storage**
+   - Clique sur ta base de données Postgres
+   - Va dans l'onglet **Query**
+   - Copie-colle le contenu de `migrations/FIX_content_requests_status.sql`
+   - Clique sur **Execute**
+
+2. **Via un client SQL** (TablePlus, pgAdmin, DBeaver, etc.) :
+   - Connecte-toi à ta base de données
+   - Exécute le fichier `migrations/FIX_content_requests_status.sql`
+
+---
+
 ## Comment exécuter la migration pour créer la table `messages`
 
 ### Option 1: Via Vercel Dashboard (Recommandé)

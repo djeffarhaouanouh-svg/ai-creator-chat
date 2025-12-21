@@ -35,12 +35,14 @@ export async function GET(request: NextRequest) {
 
     const creator = creatorResult.rows[0]
     const creatorId = creator.id
+    const creatorSlugForMessages = creatorSlug // messages.creator_id est TEXT (slug)
 
     // 2. Compter le nombre total de messages
+    // NOTE: messages.creator_id est TEXT (slug), pas UUID
     const messagesResult = await sql`
       SELECT COUNT(*) as total
       FROM messages
-      WHERE creator_id = ${creatorId}
+      WHERE creator_id = ${creatorSlugForMessages}
     `
     const totalMessages = Number(messagesResult.rows[0]?.total) || 0
 
@@ -75,10 +77,11 @@ export async function GET(request: NextRequest) {
     const monthlyRevenue = Number(monthlyRevenueResult.rows[0]?.total) || 0
 
     // 6. Messages du mois en cours
+    // NOTE: messages.creator_id est TEXT (slug), pas UUID
     const monthlyMessagesResult = await sql`
       SELECT COUNT(*) as total
       FROM messages
-      WHERE creator_id = ${creatorId}
+      WHERE creator_id = ${creatorSlugForMessages}
       AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())
     `
     const monthlyMessages = Number(monthlyMessagesResult.rows[0]?.total) || 0
@@ -93,10 +96,11 @@ export async function GET(request: NextRequest) {
     const newSubscribers = Number(newSubscribersResult.rows[0]?.total) || 0
 
     // 8. Conversations actives (utilisateurs ayant envoyé un message dans les 7 derniers jours)
+    // NOTE: messages.creator_id est TEXT (slug), pas UUID
     const activeConversationsResult = await sql`
       SELECT COUNT(DISTINCT user_id) as total
       FROM messages
-      WHERE creator_id = ${creatorId}
+      WHERE creator_id = ${creatorSlugForMessages}
       AND created_at >= NOW() - INTERVAL '7 days'
     `
     const activeConversations = Number(activeConversationsResult.rows[0]?.total) || 0
@@ -123,13 +127,15 @@ export async function GET(request: NextRequest) {
     const subscribersWithMessages = await Promise.all(
       subscribersListResult.rows.map(async (sub: any) => {
         try {
+          // NOTE: messages.creator_id est TEXT (slug), pas UUID
+          // messages.user_id est TEXT (UUID stocké comme texte)
           const msgCount = await sql`
             SELECT
               COUNT(*) as total,
               COUNT(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as recent
             FROM messages
-            WHERE user_id = ${sub.user_id}
-            AND creator_id = ${creatorId}
+            WHERE user_id = ${sub.user_id}::text
+            AND creator_id = ${creatorSlugForMessages}
           `
           return {
             ...sub,
@@ -147,6 +153,44 @@ export async function GET(request: NextRequest) {
       })
     )
 
+    // 8. Statistiques des contenus personnalisés
+    // Contenus vendus (livrés)
+    const deliveredContentResult = await sql`
+      SELECT COUNT(*) as total
+      FROM content_requests
+      WHERE creator_id = ${creatorId}::uuid
+      AND status = 'delivered'
+    `
+    const deliveredContent = Number(deliveredContentResult.rows[0]?.total) || 0
+
+    // Revenus des contenus personnalisés (totaux)
+    const contentRevenueResult = await sql`
+      SELECT COALESCE(SUM(price), 0) as total
+      FROM content_requests
+      WHERE creator_id = ${creatorId}::uuid
+      AND status IN ('paid', 'delivered')
+    `
+    const contentRevenue = Number(contentRevenueResult.rows[0]?.total) || 0
+
+    // Revenus des contenus ce mois
+    const contentRevenueThisMonthResult = await sql`
+      SELECT COALESCE(SUM(price), 0) as total
+      FROM content_requests
+      WHERE creator_id = ${creatorId}::uuid
+      AND status IN ('paid', 'delivered')
+      AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())
+    `
+    const contentRevenueThisMonth = Number(contentRevenueThisMonthResult.rows[0]?.total) || 0
+
+    // Demandes en attente
+    const pendingRequestsResult = await sql`
+      SELECT COUNT(*) as total
+      FROM content_requests
+      WHERE creator_id = ${creatorId}::uuid
+      AND status = 'pending'
+    `
+    const pendingRequests = Number(pendingRequestsResult.rows[0]?.total) || 0
+
     // Retourner toutes les statistiques
     return NextResponse.json({
       creator: {
@@ -161,7 +205,12 @@ export async function GET(request: NextRequest) {
         monthlyRevenue,
         monthlyMessages,
         newSubscribers,
-        activeConversations
+        activeConversations,
+        // Stats contenus personnalisés
+        deliveredContent,
+        contentRevenue,
+        contentRevenueThisMonth,
+        pendingRequests
       },
       subscribers: subscribersWithMessages
     })

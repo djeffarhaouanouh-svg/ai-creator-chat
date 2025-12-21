@@ -7,6 +7,7 @@ import Image from "next/image";
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isCreator, setIsCreator] = useState(false);
 
   useEffect(() => {
     // Vérifier si l'utilisateur est connecté (créatrice ou utilisateur)
@@ -15,6 +16,7 @@ export default function Header() {
     const userId = localStorage.getItem('userId');
 
     setIsLoggedIn(!!(accountType && (creatorSlug || userId)));
+    setIsCreator(accountType === 'creator' && !!creatorSlug);
   }, []);
 
   return (
@@ -73,6 +75,15 @@ export default function Header() {
           >
             Mes messages
           </Link>
+          {isCreator && (
+            <Link
+              href="/creator/dashboard/requests"
+              className="block text-white px-4 py-2 hover:bg-gray-900 transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Mes demandes personnalisées
+            </Link>
+          )}
           <Link
             href="/"
             className="block text-white px-4 py-2 hover:bg-gray-900 transition-colors"

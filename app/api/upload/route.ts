@@ -46,12 +46,16 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
     await writeFile(filePath, buffer);
 
-    // Retourner l'URL publique du fichier
-    const fileUrl = `/uploads/${fileName}`;
+    // Retourner l'URL publique du fichier (absolue pour le chat)
+    // En production, utilisez votre domaine réel
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const fileUrl = `${baseUrl}/uploads/${fileName}`;
+    const relativeUrl = `/uploads/${fileName}`;
 
     return NextResponse.json({
       success: true,
-      url: fileUrl,
+      url: fileUrl, // URL absolue pour le chat
+      relativeUrl: relativeUrl, // URL relative pour référence
       fileName: fileName,
       size: file.size,
       type: file.type,
@@ -64,6 +68,9 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+
+
 
 
 

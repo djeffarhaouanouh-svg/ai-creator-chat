@@ -41,12 +41,12 @@ export async function POST(req: Request) {
 
     const request = requestResult.rows[0];
 
-    // Vérifier que le statut est 'authorized' (paiement sécurisé)
-    if (request.status !== "authorized") {
+    // Vérifier que le statut est 'paid' (paiement effectué)
+    if (request.status !== "paid") {
       return NextResponse.json(
         {
           success: false,
-          error: "Le paiement doit être autorisé avant de livrer le contenu",
+          error: "Le paiement doit être effectué avant de livrer le contenu",
         },
         { status: 400 }
       );
@@ -69,16 +69,35 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2. Créer le message système dans le chat pour le fan
-    const messageContent = `🎁 Contenu personnalisé reçu\n\n${
-      contentType === "image"
-        ? `![Contenu personnalisé](${contentUrl})`
-        : contentType === "video"
-        ? `📹 [Vidéo personnalisée](${contentUrl})`
-        : contentType === "audio"
-        ? `🎵 [Audio personnalisé](${contentUrl})`
-        : `[Contenu personnalisé](${contentUrl})`
-    }`;
+    // 2. Sauvegarder l'URL du média dans la demande
+    await sql`
+      UPDATE content_requests
+      SET media_url = ${contentUrl}
+      WHERE id = ${requestId}::uuid
+    `;
+
+    // 3. Créer le message avec le média dans le chat pour le fan
+    // Pour les images, on affiche directement l'image
+    // Pour les vidéos/audio, on affiche un lien cliquable
+    let messageContent = '';
+    
+    // Normaliser l'URL pour qu'elle soit absolue si elle commence par /uploads/
+    let normalizedUrl = contentUrl;
+    if (contentUrl.startsWith('/uploads/')) {
+      // Si c'est une URL relative, la rendre absolue
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      normalizedUrl = `${baseUrl}${contentUrl}`;
+    }
+    
+    if (contentType === "image") {
+      messageContent = `![Contenu personnalisé](${normalizedUrl})`;
+    } else if (contentType === "video") {
+      messageContent = `📹 [Vidéo personnalisée](${normalizedUrl})`;
+    } else if (contentType === "audio") {
+      messageContent = `🎵 [Audio personnalisé](${normalizedUrl})`;
+    } else {
+      messageContent = `[Contenu personnalisé](${normalizedUrl})`;
+    }
 
     // Insérer le message : la table messages utilise TEXT pour user_id et creator_id (slug)
     // et n'a pas de colonne timestamp, seulement created_at

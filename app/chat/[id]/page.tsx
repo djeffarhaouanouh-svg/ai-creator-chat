@@ -9,6 +9,7 @@ import { storage } from '@/lib/storage';
 import { Message } from '@/lib/types';
 import Button from '@/components/ui/Button';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import PaypalContentButton from '@/components/PaypalContentButton';
 
 /* -------------------------------------------------------------------------- */
 /*   🔗 Fonction : rendre cliquable UNIQUEMENT les liens MYM / ONLYFANS       */
@@ -62,6 +63,30 @@ async function saveMessageToDB(
       return;
     }
 
+    // ⛔ BLOQUER la sauvegarde de messages assistant si l'IA est désactivée
+    if (message.role === 'assistant') {
+      try {
+        const response = await fetch(`/api/creator/conversation-settings?slug=${creatorSlug}&userId=${userId}`);
+        if (response.ok) {
+          const data = await response.json();
+          const aiEnabled = data.ai_enabled !== false;
+          console.log('🔍 saveMessageToDB: Vérification IA pour message assistant', { 
+            ai_enabled: data.ai_enabled, 
+            aiEnabled,
+            willBlock: !aiEnabled 
+          });
+          
+          if (!aiEnabled) {
+            console.log('🚫 BLOQUAGE sauvegarde message assistant - IA désactivée (vérification côté client)');
+            return; // Ne pas sauvegarder le message assistant
+          }
+        }
+      } catch (error) {
+        console.error('❌ Erreur vérification IA dans saveMessageToDB:', error);
+        // En cas d'erreur, on laisse passer (le serveur bloquera si nécessaire)
+      }
+    }
+
     const payload = {
       userId,
       creatorId: creatorSlug,
@@ -83,11 +108,17 @@ async function saveMessageToDB(
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
       console.error('❌ API Error Response:', {
         status: response.status,
         error: errorData
       });
+      
+      // Si c'est un 403 (IA désactivée), c'est normal, on ne fait rien
+      if (response.status === 403) {
+        console.log('🚫 Sauvegarde bloquée par le serveur - IA désactivée');
+        return;
+      }
       return;
     }
 
@@ -109,6 +140,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(true); // Par défaut activé
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { playingMessageId, playAudio, stopAudio } = useTextToSpeech();
 
@@ -120,11 +152,10 @@ export default function ChatPage() {
   const [requestInput, setRequestInput] = useState('');
   const [contentRequest, setContentRequest] = useState<{
     id: string;
-    status: 'pending' | 'priced' | 'authorized' | 'delivered';
+    status: 'pending' | 'price_proposed' | 'paid' | 'delivered' | 'cancelled';
     price?: number | null;
     paypal_authorization_id?: string | null;
   } | null>(null);
-  const [isAuthorizing, setIsAuthorizing] = useState(false);
 
   if (!creator) {
     return (
@@ -133,6 +164,47 @@ export default function ChatPage() {
       </div>
     );
   }
+
+  // Fonction pour charger l'état de l'IA
+  const loadAISetting = async (): Promise<boolean> => {
+    if (!creator) {
+      console.log('⚠️ loadAISetting: creator manquant');
+      return true;
+    }
+
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        console.log('⚠️ loadAISetting: userId manquant, par défaut activé');
+        return true; // Par défaut activé si pas de userId
+      }
+
+      const creatorSlug = creator.slug || creator.id;
+      console.log('🔍 loadAISetting: Vérification état IA', { userId, creatorSlug });
+
+      const response = await fetch(`/api/creator/conversation-settings?slug=${creatorSlug}&userId=${userId}`, {
+        cache: 'no-store' // Force la requête à ne jamais utiliser le cache
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const enabled = data.ai_enabled !== false; // Par défaut true
+        console.log('✅ loadAISetting: État IA récupéré', {
+          ai_enabled: data.ai_enabled,
+          enabled,
+          userId,
+          creatorSlug
+        });
+        setAiEnabled(enabled);
+        return enabled;
+      }
+      console.warn('⚠️ loadAISetting: Réponse non OK', response.status);
+      return true; // Par défaut activé
+    } catch (error) {
+      console.error('❌ Erreur chargement setting IA:', error);
+      return true; // Par défaut activé
+    }
+  };
 
   /* ---------------------------- Chargement session --------------------------- */
   useEffect(() => {
@@ -160,13 +232,16 @@ export default function ChatPage() {
       try {
         const userId = localStorage.getItem('userId');
 
+        // Charger l'état de l'IA
+        const aiIsEnabled = await loadAISetting();
+
         if (!userId) {
           // Pas connecté, fallback sur localStorage
           const session = storage.getChatSession(creator.slug || creator.id);
           if (session && session.messages?.length > 0) {
             setMessages(session.messages);
-          } else {
-            showWelcomeMessage();
+          } else if (aiIsEnabled) {
+            showWelcomeMessage(aiIsEnabled);
           }
           return;
         }
@@ -184,16 +259,16 @@ export default function ChatPage() {
               timestamp: new Date(msg.timestamp)
             }));
             setMessages(dbMessages);
-          } else {
-            showWelcomeMessage();
+          } else if (aiIsEnabled) {
+            showWelcomeMessage(aiIsEnabled);
           }
         } else {
           // Erreur API, fallback sur localStorage
           const session = storage.getChatSession(creator.slug || creator.id);
           if (session && session.messages?.length > 0) {
             setMessages(session.messages);
-          } else {
-            showWelcomeMessage();
+          } else if (aiIsEnabled) {
+            showWelcomeMessage(aiIsEnabled);
           }
         }
       } catch (error) {
@@ -202,14 +277,17 @@ export default function ChatPage() {
         const session = storage.getChatSession(creator.slug || creator.id);
         if (session && session.messages?.length > 0) {
           setMessages(session.messages);
-        } else {
-          showWelcomeMessage();
+        } else if (aiEnabled) {
+          showWelcomeMessage(aiEnabled);
         }
       }
     }
 
-    function showWelcomeMessage() {
-      if (!creator) return;
+    function showWelcomeMessage(isEnabled: boolean) {
+      if (!creator || !isEnabled) {
+        console.log('🚫 Message de bienvenue bloqué - IA désactivée');
+        return;
+      }
 
       const welcomeMessage: Message = {
         id: Date.now().toString(),
@@ -220,7 +298,7 @@ export default function ChatPage() {
       setMessages([welcomeMessage]);
       storage.addMessage(creator.slug || creator.id, welcomeMessage);
 
-      // Sauvegarder aussi en DB
+      // Sauvegarder aussi en DB (la route API bloquera si l'IA est désactivée)
       saveMessageToDB(welcomeMessage, creator.slug || creator.id);
     }
 
@@ -243,10 +321,17 @@ export default function ChatPage() {
 
         const data = await res.json();
         if (data?.success && data.request) {
+          // Convertir le prix en nombre si c'est une chaîne ou Decimal
+          const price = data.request.price 
+            ? (typeof data.request.price === 'number' 
+                ? data.request.price 
+                : parseFloat(String(data.request.price)))
+            : null;
+          
           setContentRequest({
             id: data.request.id,
             status: data.request.status,
-            price: data.request.price,
+            price: price && !isNaN(price) ? price : null,
             paypal_authorization_id: data.request.paypal_authorization_id,
           });
         }
@@ -261,6 +346,18 @@ export default function ChatPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Recharger l'état de l'IA quand la fenêtre reprend le focus
+  useEffect(() => {
+    if (!creator) return;
+
+    const handleFocus = () => {
+      loadAISetting();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [creator]);
 
   const getModeLabel = () => {
     switch (mode) {
@@ -299,11 +396,39 @@ export default function ChatPage() {
     });
 
     try {
+      // Récupérer le userId pour vérifier si l'IA est activée
+      const userId = localStorage.getItem('userId')
+      
+      if (!userId) {
+        console.warn('⚠️ userId manquant dans localStorage')
+      }
+
+      // ⛔ Recharger l'état de l'IA AVANT chaque envoi pour être sûr
+      const currentAiEnabled = await loadAISetting();
+      console.log('🔍 État IA avant envoi:', { currentAiEnabled, aiEnabled });
+      
+      // ⛔ Vérifier si l'IA est activée AVANT d'envoyer la requête
+      if (!currentAiEnabled) {
+        console.log('🚫 IA désactivée - requête bloquée côté client', { currentAiEnabled, userId, creatorId: creator.slug || creator.id });
+        setIsLoading(false)
+        return // Pas de réponse automatique, on attend la réponse manuelle
+      }
+      
+      console.log('✅ IA activée, envoi de la requête autorisé');
+      
+      console.log('📤 Envoi requête chat:', { 
+        creatorId: creator.slug || creator.id, 
+        userId: userId ? 'présent' : 'manquant',
+        mode,
+        aiEnabled: currentAiEnabled 
+      })
+      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           creatorId: creator.slug || creator.id,
+          userId: userId,
           mode: mode,
           messages: [...messages, userMessage]
             .filter((m) => m.content) // Filtrer les messages sans content
@@ -314,7 +439,23 @@ export default function ChatPage() {
         }),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.log('❌ Réponse API non OK:', { status: response.status, errorData });
+        
+        // Si l'IA est désactivée, ne pas afficher de message - la créatrice répondra manuellement
+        if (response.status === 403) {
+          console.log('🚫 Réponse 403 - IA désactivée, blocage côté serveur');
+          setIsLoading(false)
+          return // Pas de réponse automatique, on attend la réponse manuelle
+        }
+        
+        // Autre erreur
+        throw new Error(errorData.error || 'Erreur lors de l\'envoi')
+      }
+
       const data = await response.json();
+      console.log('✅ Réponse API reçue:', { messageLength: data.message?.length });
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -326,7 +467,15 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, assistantMessage]);
       storage.addMessage(creator.slug || creator.id, assistantMessage);
       saveMessageToDB(assistantMessage, creator.slug || creator.id);
-    } catch {
+    } catch (error: any) {
+      // Ne pas créer de message d'erreur si l'IA est désactivée
+      // (le 403 est déjà géré plus haut)
+      if (error.message?.includes('403') || error.message?.includes('désactivée')) {
+        console.log('🚫 Message d\'erreur bloqué - IA désactivée');
+        return;
+      }
+      
+      // Seulement créer un message d'erreur pour les autres erreurs
       const errMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -365,27 +514,30 @@ export default function ChatPage() {
         throw new Error(data?.error || 'Erreur lors de la demande');
       }
 
+      // Convertir le prix en nombre
+      const price = data.request.price 
+        ? (typeof data.request.price === 'number' 
+            ? data.request.price 
+            : parseFloat(String(data.request.price)))
+        : null;
+
       setContentRequest({
         id: data.request.id,
         status: 'pending',
-        price: data.request.price,
+        price: price && !isNaN(price) ? price : null,
         paypal_authorization_id: data.request.paypal_authorization_id,
       });
 
-      const systemMessage: Message = {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content:
-          "💬 Demande envoyée à la créatrice. Elle te proposera un prix si elle accepte.",
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, systemMessage]);
-      storage.addMessage(creator.slug || creator.id, systemMessage);
-      saveMessageToDB(systemMessage, creator.slug || creator.id);
+      // La demande est déjà envoyée dans le chat via l'API
+      // Pas besoin de message système supplémentaire
 
       setRequestInput('');
       setIsRequestOpen(false);
+      
+      // Recharger les messages pour voir la demande
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error('Error sending content request:', error);
       const errMsg: Message = {
@@ -401,13 +553,61 @@ export default function ChatPage() {
     }
   };
 
-  /* ------------------ Autorisation PayPal (Débloquer contenu) ---------------- */
-  const handleUnlockContent = async () => {
+  /* ------------------ Gestion du paiement PayPal ---------------- */
+  const handlePaymentSuccess = async (orderId: string) => {
     if (!contentRequest) return;
+    
+    // Recharger la demande pour avoir le nouveau statut
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
 
     try {
-      setIsAuthorizing(true);
-      const res = await fetch('/api/paypal/authorize', {
+      const res = await fetch(
+        `/api/content-request/current?userId=${userId}&creatorSlug=${creator.slug || creator.id}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.success && data.request) {
+          // Convertir le prix en nombre
+          const price = data.request.price 
+            ? (typeof data.request.price === 'number' 
+                ? data.request.price 
+                : parseFloat(String(data.request.price)))
+            : null;
+          
+          setContentRequest({
+            id: data.request.id,
+            status: data.request.status,
+            price: price && !isNaN(price) ? price : null,
+            paypal_authorization_id: data.request.paypal_authorization_id,
+          });
+        }
+      }
+      
+      // Recharger les messages pour voir le message de paiement
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (error) {
+      console.error('Error reloading after payment:', error);
+    }
+  };
+
+  const handlePaymentError = (error: string) => {
+    console.error('Payment error:', error);
+    // Le message d'erreur sera géré par le composant PayPal
+  };
+
+  /* ------------------ Annulation de la demande ---------------- */
+  const handleCancelRequest = async () => {
+    if (!contentRequest) return;
+
+    if (!confirm('Es-tu sûr de vouloir annuler cette demande ?')) {
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/content-request/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requestId: contentRequest.id }),
@@ -415,44 +615,18 @@ export default function ChatPage() {
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data?.error || 'Erreur lors de la sécurisation du paiement');
+        throw new Error(data?.error || 'Erreur lors de l\'annulation');
       }
 
-      setContentRequest((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: 'authorized',
-              paypal_authorization_id: data.authorizationId,
-            }
-          : prev
-      );
-
-      const systemMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content:
-          '💳 Paiement sécurisé – le montant sera validé après l’envoi du contenu.',
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, systemMessage]);
-      storage.addMessage(creator.slug || creator.id, systemMessage);
-      saveMessageToDB(systemMessage, creator.slug || creator.id);
+      setContentRequest(null);
+      
+      // Recharger les messages pour voir le message d'annulation
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
-      console.error('Error authorizing PayPal payment:', error);
-      const errMsg: Message = {
-        id: (Date.now() + 2).toString(),
-        role: 'assistant',
-        content:
-          "Oups, impossible de sécuriser le paiement pour le moment. Réessaie dans un instant 😅",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errMsg]);
-      storage.addMessage(creator.slug || creator.id, errMsg);
-      saveMessageToDB(errMsg, creator.slug || creator.id);
-    } finally {
-      setIsAuthorizing(false);
+      console.error('Error cancelling request:', error);
+      alert('Erreur lors de l\'annulation de la demande');
     }
   };
 
@@ -569,10 +743,70 @@ export default function ChatPage() {
                         : 'bg-white text-gray-900 shadow-sm'
                     }`}
                   >
-                    {/* TEXTE AVEC LIEN MYM/OF UNIQUEMENT */}
-                    <p className="text-sm whitespace-pre-wrap break-words">
-                      {linkifyMYMOF(message.content)}
-                    </p>
+                    {/* TEXTE AVEC LIEN MYM/OF UNIQUEMENT + AFFICHAGE IMAGES */}
+                    <div className="text-sm whitespace-pre-wrap break-words">
+                      {(() => {
+                        const content = message.content;
+                        // Détecter les images markdown ![alt](url)
+                        const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+                        const parts = [];
+                        let lastIndex = 0;
+                        let match;
+                        
+                        while ((match = imageRegex.exec(content)) !== null) {
+                          // Ajouter le texte avant l'image
+                          if (match.index > lastIndex) {
+                            parts.push(
+                              <span key={`text-${lastIndex}`}>
+                                {linkifyMYMOF(content.substring(lastIndex, match.index))}
+                              </span>
+                            );
+                          }
+                          
+                          // Normaliser l'URL (relative ou absolue)
+                          let imageUrl = match[2];
+                          if (imageUrl.startsWith('/uploads/')) {
+                            // URL relative, la rendre absolue
+                            imageUrl = `${window.location.origin}${imageUrl}`;
+                          }
+                          
+                          // Ajouter l'image avec gestion d'erreur
+                          parts.push(
+                            <div key={`img-${match.index}`} className="my-2">
+                              <img
+                                src={imageUrl}
+                                alt={match[1] || 'Contenu personnalisé'}
+                                className="max-w-full rounded-lg shadow-md"
+                                style={{ maxHeight: '500px', maxWidth: '100%' }}
+                                onError={(e) => {
+                                  console.error('Erreur chargement image:', imageUrl);
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                                loading="lazy"
+                              />
+                            </div>
+                          );
+                          
+                          lastIndex = match.index + match[0].length;
+                        }
+                        
+                        // Ajouter le texte restant
+                        if (lastIndex < content.length) {
+                          parts.push(
+                            <span key={`text-${lastIndex}`}>
+                              {linkifyMYMOF(content.substring(lastIndex))}
+                            </span>
+                          );
+                        }
+                        
+                        // Si pas d'images, afficher normalement
+                        if (parts.length === 0) {
+                          return linkifyMYMOF(content);
+                        }
+                        
+                        return parts;
+                      })()}
+                    </div>
 
                     <p
                       className={`text-xs mt-1 ${
@@ -655,7 +889,7 @@ export default function ChatPage() {
       <div className="bg-white border-t px-4 py-4">
         <div className="max-w-3xl mx-auto flex flex-col gap-3 items-center">
           {/* Infos sur la demande de contenu personnalisée */}
-          {contentRequest && (
+          {contentRequest && contentRequest.status !== 'cancelled' && contentRequest.status !== 'delivered' && (
             <div className="w-full max-w-2xl text-xs text-gray-600 bg-gray-100 border border-gray-200 rounded-xl px-3 py-2">
               {contentRequest.status === 'pending' && (
                 <p>
@@ -663,83 +897,118 @@ export default function ChatPage() {
                   par la créatrice.
                 </p>
               )}
-              {contentRequest.status === 'priced' && (
-                <p>
-                  La créatrice a accepté ta demande –{" "}
-                  <span className="font-semibold">
-                    Prix : {contentRequest.price?.toFixed(2)} €
-                  </span>
-                </p>
+              {contentRequest.status === 'price_proposed' && (
+                <div className="flex items-center justify-between">
+                  <p>
+                    La créatrice a accepté ta demande –{" "}
+                    <span className="font-semibold">
+                      Prix : {(() => {
+                        const price = typeof contentRequest.price === 'number' 
+                          ? contentRequest.price 
+                          : parseFloat(String(contentRequest.price || '0'));
+                        return isNaN(price) ? '0.00' : price.toFixed(2);
+                      })()} €
+                    </span>
+                  </p>
+                  <button
+                    onClick={handleCancelRequest}
+                    className="ml-2 text-red-600 hover:text-red-700 text-xs underline"
+                  >
+                    Annuler
+                  </button>
+                </div>
               )}
-              {contentRequest.status === 'authorized' && (
+              {contentRequest.status === 'paid' && (
                 <p>
-                  💳 Paiement sécurisé. Le montant sera validé après l’envoi du contenu par la créatrice.
+                  💳 Paiement sécurisé effectué. La créatrice va t'envoyer le contenu.
                 </p>
-              )}
-              {contentRequest.status === 'delivered' && (
-                <p>🎁 Contenu personnalisé reçu.</p>
               )}
             </div>
           )}
 
-          {/* Demande contenu privé */}
+          {/* Bouton Demande un média privé - Au-dessus de la textarea */}
+          {!isRequestOpen && (!contentRequest || contentRequest.status === 'delivered' || contentRequest.status === 'cancelled') && (
+            <button
+              onClick={() => setIsRequestOpen(true)}
+              className="w-full max-w-2xl px-4 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] hover:from-[#d11fb1] hover:via-[#ff5b8d] hover:to-[#ffb0bb] transition-all flex items-center justify-center gap-2"
+            >
+              📸 Demande un média privé
+            </button>
+          )}
+
+          {/* Demande contenu privé - Textarea pour la demande */}
           {isRequestOpen && (
-            <div className="flex gap-2">
-              <input
-                type="text"
+            <div className="w-full max-w-2xl flex flex-col gap-2">
+              <textarea
                 value={requestInput}
                 onChange={(e) => setRequestInput(e.target.value)}
                 placeholder="Ici, demande du contenu personnalisé..."
-                className="flex-1 rounded-2xl border px-4 py-3 text-gray-900"
+                className="w-full rounded-2xl border px-4 py-3 text-gray-900 resize-none"
+                rows={2}
               />
-              <Button onClick={sendRequest} disabled={!requestInput.trim()}>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={sendRequest} 
+                  disabled={!requestInput.trim()}
+                  className="flex-1"
+                >
+                  Envoyer
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setIsRequestOpen(false);
+                    setRequestInput('');
+                  }}
+                  variant="ghost"
+                >
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Bouton PayPal quand un prix est proposé */}
+          {!isRequestOpen && contentRequest?.status === 'price_proposed' && contentRequest.price && (
+            <div className="w-full max-w-2xl">
+              <div className="mb-2 text-xs text-gray-500 text-center">
+                Cliquez sur le bouton PayPal ci-dessous pour payer
+              </div>
+              <PaypalContentButton
+                requestId={contentRequest.id}
+                price={typeof contentRequest.price === 'number' ? contentRequest.price : parseFloat(String(contentRequest.price))}
+                onPaymentSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+              />
+            </div>
+          )}
+
+          {/* Textarea principale pour les messages normaux */}
+          {!isRequestOpen && (
+            <div className="flex gap-2 items-center w-full max-w-2xl justify-center">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+                placeholder={`Message à ${creator.name}...`}
+                className="resize-none rounded-2xl border px-4 py-3 text-gray-900 flex-1"
+                rows={1}
+                disabled={isLoading}
+              />
+
+              <Button
+                onClick={sendMessage}
+                disabled={!input.trim() || isLoading}
+                className="px-6 shrink-0"
+              >
                 <Send size={20} />
               </Button>
             </div>
           )}
-
-          <div className="flex gap-2 items-center w-full max-w-2xl justify-center">
-            <button
-              onClick={() => setIsRequestOpen((prev) => !prev)}
-              className="w-11 h-11 rounded-full bg-gray-200 flex justify-center items-center text-2xl shrink-0"
-            >
-              +
-            </button>
-
-            {/* Bouton Débloquer le contenu quand un prix est défini */}
-            {contentRequest?.status === 'priced' && (
-              <button
-                onClick={handleUnlockContent}
-                disabled={isAuthorizing}
-                className="ml-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] disabled:opacity-60"
-              >
-                {isAuthorizing ? 'Patiente...' : 'Débloquer le contenu'}
-              </button>
-            )}
-
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  sendMessage();
-                }
-              }}
-              placeholder={`Message à ${creator.name}...`}
-              className="resize-none rounded-2xl border px-4 py-3 text-gray-900 flex-1"
-              rows={1}
-              disabled={isLoading}
-            />
-
-            <Button
-              onClick={sendMessage}
-              disabled={!input.trim() || isLoading}
-              className="px-6 shrink-0"
-            >
-              <Send size={20} />
-            </Button>
-          </div>
         </div>
       </div>
     </div>

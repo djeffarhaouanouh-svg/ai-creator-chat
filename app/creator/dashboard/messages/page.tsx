@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Heart, Laugh, Flame, MessageCircle, Share2, Sparkles } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Heart, Laugh, Flame, MessageCircle, Share2, Sparkles, Bot, ChevronRight, Send, ChevronUp } from 'lucide-react'
 
 interface Message {
   id: string
@@ -9,6 +10,17 @@ interface Message {
   content: string
   emotion_badge: 'touching' | 'funny' | 'bold' | 'interesting'
   created_at: string
+}
+
+interface Conversation {
+  user_id: string
+  user_name: string
+  user_email: string
+  last_message: string
+  last_message_role: 'user' | 'assistant'
+  last_message_at: string
+  total_messages: number
+  ai_enabled: boolean
 }
 
 const emotionConfig = {
@@ -19,14 +31,40 @@ const emotionConfig = {
 }
 
 export default function MessagesPage() {
+  const router = useRouter()
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [conversationsLoading, setConversationsLoading] = useState(true)
+  const [togglingConversation, setTogglingConversation] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [reactingTo, setReactingTo] = useState<string | null>(null)
   const [shareSelectorFor, setShareSelectorFor] = useState<string | null>(null)
+  const [expandedConversations, setExpandedConversations] = useState<Set<string>>(new Set())
+  const [conversationInputs, setConversationInputs] = useState<Record<string, string>>({})
+  const [sendingMessages, setSendingMessages] = useState<Set<string>>(new Set())
 
   useEffect(() => {
+    loadConversations()
     loadMessages()
   }, [])
+
+  const loadConversations = async () => {
+    setConversationsLoading(true)
+    try {
+      const creatorSlug = localStorage.getItem('creatorSlug')
+      if (!creatorSlug) return
+
+      const response = await fetch(`/api/creator/conversations?slug=${creatorSlug}`)
+      if (!response.ok) throw new Error('Erreur chargement conversations')
+
+      const data = await response.json()
+      setConversations(data.conversations || [])
+    } catch (error) {
+      console.error('Erreur chargement conversations:', error)
+    } finally {
+      setConversationsLoading(false)
+    }
+  }
 
   const loadMessages = async () => {
     setLoading(true)
@@ -43,6 +81,143 @@ export default function MessagesPage() {
       console.error('Erreur:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleToggleAI = async (conversation: Conversation, e: React.MouseEvent) => {
+    e.stopPropagation() // Empêcher la navigation au clic sur le toggle
+
+    setTogglingConversation(conversation.user_id)
+    const newAiEnabled = !conversation.ai_enabled
+
+    console.log('🔄 TOGGLE IA - Début:', {
+      user_id: conversation.user_id,
+      user_name: conversation.user_name,
+      currentAiEnabled: conversation.ai_enabled,
+      newAiEnabled: newAiEnabled
+    })
+
+    try {
+      const creatorSlug = localStorage.getItem('creatorSlug')
+      if (!creatorSlug) {
+        console.error('❌ creatorSlug manquant dans localStorage')
+        return
+      }
+
+      console.log('📤 Envoi requête toggle IA:', {
+        creatorSlug,
+        userId: conversation.user_id,
+        aiEnabled: newAiEnabled
+      })
+
+      const response = await fetch('/api/creator/conversation-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          creatorSlug,
+          userId: conversation.user_id,
+          aiEnabled: newAiEnabled
+        })
+      })
+
+      const responseData = await response.json()
+
+      console.log('📥 Réponse toggle IA:', {
+        status: response.status,
+        ok: response.ok,
+        data: responseData
+      })
+
+      if (!response.ok) {
+        console.error('❌ Erreur réponse toggle:', responseData)
+        throw new Error('Erreur mise à jour IA')
+      }
+
+      // Mettre à jour l'état local
+      setConversations(prev =>
+        prev.map(conv =>
+          conv.user_id === conversation.user_id
+            ? { ...conv, ai_enabled: newAiEnabled }
+            : conv
+        )
+      )
+
+      console.log('✅ Toggle IA terminé avec succès:', {
+        user_id: conversation.user_id,
+        new_ai_enabled: newAiEnabled
+      })
+    } catch (error) {
+      console.error('❌ Erreur toggle IA:', error)
+      alert('Erreur lors de la mise à jour de l\'IA')
+    } finally {
+      setTogglingConversation(null)
+    }
+  }
+
+  const handleConversationClick = (conversation: Conversation, e: React.MouseEvent<HTMLDivElement>) => {
+    // Si on clique sur le toggle, la flèche déroulante ou la textarea, ne pas naviguer
+    const target = e.target as HTMLElement
+    if (target.closest('button') || target.closest('textarea') || target.closest('.message-input-container') || target.closest('.expand-toggle')) {
+      return
+    }
+    
+    // Naviguer vers le chat complet
+    router.push(`/creator/dashboard/messages/${conversation.user_id}`)
+  }
+
+  const handleToggleExpand = (conversationId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setExpandedConversations(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(conversationId)) {
+        newSet.delete(conversationId)
+      } else {
+        newSet.add(conversationId)
+      }
+      return newSet
+    })
+  }
+
+  const handleSendMessage = async (conversation: Conversation) => {
+    const input = conversationInputs[conversation.user_id]?.trim()
+    if (!input || sendingMessages.has(conversation.user_id)) return
+
+    setSendingMessages(prev => new Set(prev).add(conversation.user_id))
+
+    try {
+      const creatorSlug = localStorage.getItem('creatorSlug')
+      if (!creatorSlug) return
+
+      const response = await fetch('/api/creator/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          creatorSlug,
+          userId: conversation.user_id,
+          content: input
+        })
+      })
+
+      if (!response.ok) throw new Error('Erreur envoi message')
+
+      // Vider l'input et recharger les conversations pour mettre à jour le dernier message
+      setConversationInputs(prev => {
+        const newInputs = { ...prev }
+        delete newInputs[conversation.user_id]
+        return newInputs
+      })
+      
+      // Recharger les conversations pour mettre à jour le dernier message
+      await loadConversations()
+    } catch (error) {
+      console.error('Erreur envoi message:', error)
+      alert('Erreur lors de l\'envoi du message')
+    } finally {
+      setSendingMessages(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(conversation.user_id)
+        return newSet
+      })
     }
   }
 
@@ -229,7 +404,41 @@ export default function MessagesPage() {
     })
   }
 
-  if (loading) {
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return ''
+    
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return ''
+      
+      const now = new Date()
+      const diffMs = now.getTime() - date.getTime()
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+      if (diffDays === 0) {
+        return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      } else if (diffDays === 1) {
+        return 'Hier'
+      } else if (diffDays < 7) {
+        return date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric' })
+      } else {
+        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+      }
+    } catch {
+      return ''
+    }
+  }
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  if (loading || conversationsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
@@ -238,11 +447,200 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-6 lg:mb-8">
-        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Mes messages</h1>
-        <p className="text-sm lg:text-base text-gray-600">Les meilleurs messages de ta communauté</p>
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Section Mes conversations */}
+      <div>
+        <div className="mb-6 lg:mb-8">
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Mes conversations</h1>
+          <p className="text-sm lg:text-base text-gray-600">Gère tes conversations et active ou désactive l'IA pour chacune</p>
+        </div>
+
+        {conversations.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-2xl shadow-lg">
+            <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 text-lg">Aucune conversation pour le moment</p>
+            <p className="text-gray-400 text-sm mt-2">Les conversations apparaîtront ici</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="divide-y divide-gray-100">
+              {conversations.map((conversation) => {
+                const isExpanded = expandedConversations.has(conversation.user_id)
+                const inputValue = conversationInputs[conversation.user_id] || ''
+                const isSending = sendingMessages.has(conversation.user_id)
+                
+                return (
+                  <div
+                    key={conversation.user_id}
+                    className="border-b border-gray-100 last:border-b-0"
+                  >
+                    <div
+                      onClick={(e) => handleConversationClick(conversation, e)}
+                      className="p-4 lg:p-6 hover:bg-gray-50 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-start gap-4">
+                        {/* Avatar */}
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                          {getInitials(conversation.user_name)}
+                        </div>
+
+                        {/* Contenu */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-4 mb-2">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-900 text-base lg:text-lg truncate">
+                                {conversation.user_name}
+                              </h3>
+                              <p className="text-xs text-gray-500 truncate">{conversation.user_email}</p>
+                            </div>
+
+                            {/* Badge et Toggle */}
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                  conversation.ai_enabled
+                                    ? 'bg-purple-100 text-purple-700'
+                                    : 'bg-gray-100 text-gray-700'
+                                }`}
+                              >
+                                {conversation.ai_enabled ? '🟣 IA activée' : '⚪ IA désactivée'}
+                              </span>
+
+                              {/* Toggle */}
+                              <button
+                                onClick={(e) => handleToggleAI(conversation, e)}
+                                disabled={togglingConversation === conversation.user_id}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
+                                  conversation.ai_enabled
+                                    ? 'bg-gradient-to-r from-purple-600 to-pink-600'
+                                    : 'bg-gray-200'
+                                } ${togglingConversation === conversation.user_id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              >
+                                <span
+                                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                    conversation.ai_enabled ? 'translate-x-6' : 'translate-x-1'
+                                  }`}
+                                />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Dernier message */}
+                          {conversation.last_message && (
+                            <div className="mt-2">
+                              <p className="text-sm text-gray-600 line-clamp-2 flex items-start gap-1">
+                                {conversation.last_message_role === 'assistant' && (
+                                  <Bot size={14} className="mt-0.5 flex-shrink-0 text-purple-600" />
+                                )}
+                                <span>{conversation.last_message}</span>
+                              </p>
+                              {(conversation.last_message_at || conversation.total_messages > 0) && (
+                                <div className="flex items-center gap-2 mt-2">
+                                  {conversation.last_message_at && (
+                                    <p className="text-xs text-gray-400">
+                                      {formatDate(conversation.last_message_at)}
+                                    </p>
+                                  )}
+                                  {conversation.total_messages > 0 && (
+                                    <span className="text-xs text-gray-400">
+                                      {conversation.last_message_at && '• '}
+                                      {conversation.total_messages} message{conversation.total_messages > 1 ? 's' : ''}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Flèche déroulante pour la textarea */}
+                          <div className="mt-3">
+                            <button
+                              onClick={(e) => handleToggleExpand(conversation.user_id, e)}
+                              className="expand-toggle flex items-center gap-1 text-purple-600 text-sm font-medium hover:text-purple-700 transition-colors"
+                            >
+                              {isExpanded ? (
+                                <>
+                                  <span>Réduire</span>
+                                  <ChevronUp size={16} />
+                                </>
+                              ) : (
+                                <>
+                                  <span>Répondre</span>
+                                  <ChevronRight size={16} />
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Zone de saisie (affichée si expandée) */}
+                    {isExpanded && (
+                      <div 
+                        className="px-4 lg:px-6 pb-4 lg:pb-6 message-input-container"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {conversation.ai_enabled ? (
+                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
+                            <p className="text-sm text-purple-700 font-medium">
+                              Désactive l'IA pour écrire
+                            </p>
+                            <p className="text-xs text-purple-600 mt-1">
+                              L'IA gère cette conversation. Désactive l'IA pour répondre manuellement.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <textarea
+                              value={inputValue}
+                              onChange={(e) => {
+                                setConversationInputs(prev => ({
+                                  ...prev,
+                                  [conversation.user_id]: e.target.value
+                                }))
+                              }}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                  e.preventDefault()
+                                  handleSendMessage(conversation)
+                                }
+                              }}
+                              placeholder="Tape ton message..."
+                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black placeholder-gray-400 bg-white resize-none text-sm"
+                              disabled={isSending}
+                              rows={1}
+                              style={{ minHeight: '40px', maxHeight: '80px' }}
+                            />
+                            <button
+                              onClick={() => handleSendMessage(conversation)}
+                              disabled={!inputValue.trim() || isSending}
+                              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                              {isSending ? (
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <Send size={18} />
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Section Mes messages */}
+      <div>
+        <div className="mb-6 lg:mb-8">
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Mes messages</h1>
+          <p className="text-sm lg:text-base text-gray-600">Les meilleurs messages de ta communauté</p>
+        </div>
 
       {messages.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl shadow-lg">
@@ -336,6 +734,7 @@ export default function MessagesPage() {
           })}
         </div>
       )}
+      </div>
     </div>
   )
 }

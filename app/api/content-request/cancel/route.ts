@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
     const request = requestResult.rows[0];
 
-    // Vérifier que la demande peut être annulée (pas déjà livrée)
+    // Vérifier que la demande peut être annulée (pas déjà livrée ou payée)
     if (request.status === 'delivered') {
       return NextResponse.json(
         { success: false, error: "Impossible d'annuler une demande déjà livrée" },
@@ -47,13 +47,21 @@ export async function POST(req: Request) {
       );
     }
 
-    // Supprimer la demande de la base de données
+    if (request.status === 'paid') {
+      return NextResponse.json(
+        { success: false, error: "Impossible d'annuler une demande déjà payée" },
+        { status: 400 }
+      );
+    }
+
+    // Mettre à jour le statut à 'cancelled'
     await sql`
-      DELETE FROM content_requests
+      UPDATE content_requests
+      SET status = 'cancelled'
       WHERE id = ${requestId}::uuid
     `;
 
-    // Ne pas envoyer de message - juste supprimer silencieusement la demande
+    // Pas de message dans le chat - annulation silencieuse
 
     return NextResponse.json({
       success: true,

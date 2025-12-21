@@ -37,6 +37,27 @@ export async function POST(req: Request) {
 
     const request = insertResult.rows[0];
 
+    // Récupérer le slug de la créatrice pour le message (on utilise déjà creatorSlug du paramètre)
+    // Pas besoin de le récupérer à nouveau, on l'a déjà en paramètre
+
+    // Envoyer la demande dans le chat comme message utilisateur
+    if (creatorSlug) {
+      try {
+        await sql`
+          INSERT INTO messages (user_id, creator_id, content, role, created_at)
+          VALUES (
+            ${userId}::text,
+            ${creatorSlug},
+            ${message},
+            'user',
+            NOW()
+          )
+        `;
+      } catch (msgError: any) {
+        console.error("❌ ERROR INSERTING REQUEST MESSAGE (non bloquant):", msgError);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       request,
