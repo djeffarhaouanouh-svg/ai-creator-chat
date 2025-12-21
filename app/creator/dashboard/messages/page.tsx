@@ -46,6 +46,16 @@ export default function MessagesPage() {
   useEffect(() => {
     loadConversations()
     loadMessages()
+    
+    // Vérifier si on doit scroller vers la section "meilleurs-messages"
+    if (window.location.hash === '#meilleurs-messages') {
+      setTimeout(() => {
+        const element = document.getElementById('meilleurs-messages')
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 500)
+    }
   }, [])
 
   const loadConversations = async () => {
@@ -636,7 +646,7 @@ export default function MessagesPage() {
       </div>
 
       {/* Section Mes messages */}
-      <div>
+      <div id="meilleurs-messages" className="scroll-mt-20">
         <div className="mb-6 lg:mb-8">
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Mes messages</h1>
           <p className="text-sm lg:text-base text-gray-600">Les meilleurs messages de ta communauté</p>

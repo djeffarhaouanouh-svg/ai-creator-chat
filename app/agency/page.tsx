@@ -46,7 +46,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 /* ================= PAGE ================= */
 
 export default function Page() {
-  // ✅ OPTION 2 : parallax mobile au scroll (subtil + safe)
+  // Parallax mobile au scroll (inchangé)
   useEffect(() => {
     const onScroll = () => {
       document.documentElement.style.setProperty("--scrollY", String(window.scrollY));
@@ -59,7 +59,7 @@ export default function Page() {
   return (
     <main className="bg-black min-h-screen text-white">
       {/* ================= HERO (TEXTE OVERLAY + VIDÉO À DROITE) ================= */}
-       <section className="relative w-full bg-black pt-32 pb-[55vh] md:pt-40 md:pb-56 overflow-hidden">
+      <section className="relative w-full bg-black pt-32 pb-[10vh] md:pt-40 md:pb-56 overflow-hidden">
         {/* VIDÉO / SPLINE À DROITE (BACKGROUND) */}
         <div className="absolute top-0 right-[-6%] h-full w-full md:w-[62%]">
           {/* Desktop : interactif */}
@@ -70,7 +70,7 @@ export default function Page() {
             allow="autoplay; fullscreen"
           />
 
-          {/* ================= MOBILE : PARALLAX (OPTION 2) ================= */}
+          {/* Mobile : parallax */}
           <div
             className="md:hidden absolute top-0 right-[-20%] w-[150%] h-[55vh] overflow-hidden will-change-transform"
             style={{
@@ -86,45 +86,138 @@ export default function Page() {
           </div>
 
           {/* Fade à gauche pour lisibilité du texte */}
-            <div className="absolute inset-0 pointer-events-none bg-black/20 md:bg-transparent"></div>
+          <div className="absolute inset-0 pointer-events-none bg-black/20 md:bg-transparent" />
         </div>
 
-        {/* CONTENU (par-dessus, à gauche) */}
+        {/* CONTENU (par-dessus, à gauche) — animations comme pourquoi-nous-rejoindre */}
         <div className="relative max-w-none px-8 md:px-20">
-          <div className="max-w-2xl mt-48 md:mt-16 text-center md:text-left">
-            <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
+          <div className="max-w-2xl mt-44 md:mt-16 text-center md:text-left">
+            <motion.h1
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="text-4xl md:text-6xl font-extrabold leading-tight"
+            >
               MyDouble pour les{" "}
               <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
                 agences
               </span>
-            </h1>
+            </motion.h1>
 
-            <p className="mt-6 text-white/70 text-lg md:text-xl">
+            <motion.p
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
+              className="mt-6 text-white/70 text-lg md:text-xl"
+            >
               Faux texte pour vérifier que le texte passe au-dessus de la vidéo,
               tout en restant aligné à gauche comme sur ta capture.
-            </p>
+            </motion.p>
 
-            <div className="mt-10 flex flex-col sm:flex-row gap-4">
-              <button className="btn-primary px-10 py-4 text-lg">Fake CTA</button>
-              <button className="btn-secondary px-10 py-4 text-lg">Fake bouton</button>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+              className="mt-10 flex flex-col sm:flex-row gap-4"
+            >
+              <button className="btn-secondary px-10 py-4 text-lg">Découvrir</button>
+            </motion.div>
           </div>
         </div>
       </section>
 
+      {/* ================= WHO WE ARE ================= */}
+      <section className="relative bg-black text-white py-20 md:py-32 px-6 md:px-16 overflow-hidden">
+        {/* Décorations roses */}
+        <span className="absolute top-10 left-10 text-[#ff6b9d] text-3xl md:text-4xl opacity-80 pointer-events-none">
+          ♥
+        </span>
+        <span className="absolute top-16 right-16 text-[#e31fc1] text-5xl md:text-6xl opacity-60 pointer-events-none">
+          ❝
+        </span>
+        <span className="absolute bottom-16 left-20 text-[#ff9acb] text-5xl md:text-6xl opacity-60 pointer-events-none">
+          ❞
+        </span>
+        <span className="absolute bottom-10 right-16 text-[#ff6b9d] text-3xl md:text-4xl opacity-80 pointer-events-none">
+          ♥
+        </span>
+
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.h2
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            viewport={{ once: true }}
+            className="text-4xl md:text-5xl font-bold mb-8"
+          >
+            Optimisation des coûts pour les agences OnlyFans
+          </motion.h2>
+
+          <motion.p
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
+            viewport={{ once: true }}
+            className="text-lg md:text-xl text-white/80 leading-relaxed mb-8"
+          >
+            Aujourd’hui, une grande partie du revenu généré par une créatrice est absorbée par les
+            frais de plateforme et les coûts opérationnels liés au chatting humain.
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+            viewport={{ once: true }}
+            className="text-lg md:text-xl text-white/80 leading-relaxed"
+          >
+            MyDouble permet aux agences de réduire significativement ces coûts en automatisant une
+            partie des conversations, tout en maintenant un haut niveau d’engagement et de cohérence.
+          </motion.p>
+        </div>
+      </section>
+
       {/* ================= AUTRES SECTIONS ================= */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-        className="space-y-16 md:space-y-32"
-      >
-        <ContenusPersonnalises />
-        <SplineMetricsSection />
+      <section className="space-y-16 md:space-y-32">
         <Statsection />
+        <SplineMetricsSection />
+
+        <div className="max-w-4xl mx-auto text-center px-6 md:px-0">
+          <motion.h2
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            viewport={{ once: true }}
+            className="text-4xl md:text-5xl font-bold mb-8"
+          >
+            comment ça fonctionne?
+          </motion.h2>
+
+          <motion.p
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
+            viewport={{ once: true }}
+            className="text-lg md:text-xl text-white/80 leading-relaxed mb-8"
+          >
+            Chaque créatrice est dupliquée individuellement à partir de données spécifiques : style
+            d’écriture, ton de voix, règles, historique et préférences.
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+            viewport={{ once: true }}
+            className="text-lg md:text-xl text-white/80 leading-relaxed"
+          >
+            Le double IA est ensuite capable de gérer des conversations continues, tout en respectant
+            strictement le cadre défini par l’agence et la créatrice.
+          </motion.p>
+        </div>
+
         <ComparisonSection />
-      </motion.div>
+      </section>
 
       {/* ================= TESTIMONIALS ================= */}
       <section className="bg-black text-white py-24 px-6 md:px-16">
@@ -132,7 +225,7 @@ export default function Page() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 text-center">
             <div className="flex flex-col items-center">
               <img
-                src="/mon-chat.jpg"
+                src="/lau.png"
                 alt="Jade"
                 className="w-52 h-52 rounded-full object-cover mb-8"
               />
@@ -145,7 +238,7 @@ export default function Page() {
 
             <div className="flex flex-col items-center">
               <img
-                src="/bella.jpg"
+                src="/lia.jpg"
                 alt="Bella"
                 className="w-52 h-52 rounded-full object-cover mb-8"
               />
@@ -171,7 +264,7 @@ export default function Page() {
           <motion.h2
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             viewport={{ once: true }}
             className="text-4xl md:text-5xl font-bold text-center"
           >
@@ -182,15 +275,50 @@ export default function Page() {
             🤔
           </motion.h2>
 
-          <p className="mt-4 text-gray-400 text-center max-w-2xl mx-auto">
+          <motion.p
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
+            viewport={{ once: true }}
+            className="mt-4 text-gray-400 text-center max-w-2xl mx-auto"
+          >
             Tout ce que vous voulez savoir sur MyDouble.
-          </p>
+          </motion.p>
 
           <div className="mt-10 space-y-4">
             {[
-              { q: "Comment ça marche ?", a: "MyDouble utilise l'IA pour créer un double virtuel." },
-              { q: "Est-ce vraiment la créatrice qui répond ?", a: "Non, c'est une IA entraînée." },
-              { q: "Puis-je annuler à tout moment ?", a: "Oui, sans engagement." },
+              {
+                q: "Est-ce que nous gardons le contrôle total sur nos créatrices ?",
+                a: "Oui. L’agence et la créatrice définissent les règles, les limites, le ton et les sujets autorisés. L’IA agit strictement dans ce cadre. Vous pouvez ajuster ou désactiver le clone à tout moment.",
+              },
+              {
+                q: "Est-ce que MyDouble remplace notre équipe de chatting ?",
+                a: "Non. MyDouble est une couche complémentaire. L’IA gère le volume et la continuité, tandis que vos équipes se concentrent sur les conversations à forte valeur et les demandes premium.",
+              },
+              {
+                q: "Combien de temps faut-il pour mettre en place un clone ?",
+                a: "La mise en place est rapide. Une fois les informations fournies, un clone peut être opérationnel en quelques heures. Aucun changement lourd dans votre organisation n’est nécessaire.",
+              },
+              {
+                q: "Est-ce compatible avec notre manière actuelle de travailler ?",
+                a: "Oui. MyDouble a été conçu pour s’intégrer aux process existants des agences. Vous conservez votre structure, vos équipes et votre stratégie.",
+              },
+              {
+                q: "Où se situent les économies réalisées ?",
+                a: "Les économies proviennent principalement de la réduction du volume de chatting manuel. L’IA absorbe une partie importante des conversations, ce qui permet de gérer plus de fans à coût maîtrisé.",
+              },
+              {
+                q: "Y a-t-il un engagement long terme ?",
+                a: "Non. Il n’y a pas d’engagement imposé. Le modèle est présenté lors d’un échange privé, et vous restez libre d’arrêter à tout moment.",
+              },
+              {
+                q: "Les fans savent-ils qu’ils parlent à une IA ?",
+                a: "La communication est définie avec l’agence et la créatrice. L’objectif est de maintenir une expérience cohérente, naturelle et respectueuse du cadre établi.",
+              },
+              {
+                q: "Quel est le modèle financier ?",
+                a: "Le modèle est conçu pour améliorer le revenu net par créatrice. Les conditions exactes sont expliquées lors d’un échange privé avec l’agence.",
+              },
             ].map((item, index) => (
               <FAQItem key={index} question={item.q} answer={item.a} />
             ))}

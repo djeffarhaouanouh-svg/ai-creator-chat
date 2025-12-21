@@ -9,7 +9,48 @@ export default function SplineMetricsSection() {
       <div className="max-w-6xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
 
-          {/* -------- GAUCHE : SPLINE -------- */}
+          {/* -------- TEXTE (GAUCHE SUR ORDI) -------- */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.15 }}
+            viewport={{ once: true }}
+            className="space-y-8 order-2 lg:order-1"
+          >
+            <h2 className="text-4xl md:text-5xl font-extrabold text-white leading-tight">
+              La duplication{" "}
+              <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
+                conversationnel
+              </span>{" "}
+            </h2>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 2, delay: 0.3 }}
+              viewport={{ once: true }}
+              className="text-xl text-gray-300 leading-relaxed space-y-6"
+            >
+              <p>
+                MyDouble repose sur une technologie développée en interne
+                permettant de reproduire le comportement conversationnel
+                d’une créatrice.
+              </p>
+
+              <p>
+                Le système analyse sa manière d’écrire, ses habitudes,
+                son ton de voix, ses réponses récurrentes et ses limites
+                afin de créer un double capable d’interagir de façon
+                cohérente et réaliste.
+              </p>
+            </motion.div>
+
+            <button className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-bold px-8 py-4 rounded-full hover:scale-105 transition">
+              Voir le dashboard →
+            </button>
+          </motion.div>
+
+          {/* -------- VIDÉO / SPLINE (DROITE SUR ORDI) -------- */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -23,6 +64,7 @@ export default function SplineMetricsSection() {
               overflow-hidden 
               border border-white/10 
               shadow-2xl
+              order-1 lg:order-2
             "
           >
             <iframe
@@ -35,35 +77,9 @@ export default function SplineMetricsSection() {
             />
           </motion.div>
 
-          {/* -------- DROITE : TEXTE -------- */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.15 }}
-            viewport={{ once: true }}
-            className="space-y-8"
-          >
-            <h2 className="text-4xl md:text-5xl font-extrabold text-white leading-tight">
-              Suis tes{" "}
-              <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-                performances
-              </span>{" "}
-              en temps réel
-            </h2>
-
-            <p className="text-xl text-gray-300 leading-relaxed">
-              Accède à un dashboard clair pour suivre les revenus générés,
-              l’engagement des fans et la croissance de ton double IA,
-              sans dépendre d’une agence.
-            </p>
-
-            <button className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-bold px-8 py-4 rounded-full hover:scale-105 transition">
-              Voir le dashboard →
-            </button>
-          </motion.div>
-
         </div>
       </div>
     </section>
   );
 }
+

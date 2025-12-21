@@ -342,7 +342,6 @@ export default function Home() {
         <ContenusPersonnalises />
         <CreatorsSection />
         <PrivateContentSection />
-        <ComparisonSection />
       </motion.div>
       )}
 

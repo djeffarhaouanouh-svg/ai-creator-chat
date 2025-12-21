@@ -52,11 +52,10 @@ export default function ComparisonSection() {
       <div className="max-w-6xl mx-auto px-6">
 
         <h2 className="text-center text-5xl font-extrabold text-white mb-16">
-          Ce qui{" "}
+          Ce qui change{" "}
           <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-            change
-          </span>{" "}
-          vraiment
+            vraiment
+          </span>
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">

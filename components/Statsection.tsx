@@ -10,7 +10,7 @@ const Statsection = () => {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
       viewport={{ once: true }}
-      className="bg-black text-white pt-8 pb-24 md:pt-24 md:pb-32 px-8 md:px-16"
+      className="bg-black text-white pt-8 pb-24 md:pt-20 md:pb-32 px-8 md:px-16"
     >
       <div className="max-w-6xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -37,25 +37,38 @@ const Statsection = () => {
               viewport={{ once: true }}
               className="text-4xl md:text-5xl font-bold leading-tight"
             >
-              Contenus
+              Les agences perdent
               <br />
               <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
-                exclusifs
+                de l'argent
               </span>{" "}
               👀
             </motion.h2>
 
-            <motion.p
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, delay: 0.4 }}
-              viewport={{ once: true }}
-              className="text-xl text-gray-300 leading-relaxed"
-            >
-              Via le Chat, tu peux échanger directement avec le Créateur,
-              lui demander des contenus personnalisés à tes envies et
-              recevoir ses nouveaux médias exclusifs.
-            </motion.p>
+             <motion.div
+  initial={{ opacity: 0, y: 30 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 2, delay: 0.4 }}
+  viewport={{ once: true }}
+  className="text-xl text-gray-300 leading-relaxed space-y-6"
+>
+  <p className="font-semibold">
+    1 000 000 € généré
+  </p>
+
+  <ul className="list-disc list-inside space-y-2">
+    <li>~20 % prélevés par la plateforme</li>
+    <li>~20 % absorbés par le chatting / l’opérationnel</li>
+  </ul>
+
+  <p>
+    👉 Une part importante du revenu disparaît avant même d’optimiser la performance.
+  </p>
+
+  <p>
+    MyDouble prend que 10% tout en automatisant le chatting.
+  </p>
+</motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 30 }}
