@@ -7,6 +7,121 @@ import Statsection from "@/components/Statsection";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
+/* ================= TESTIMONIALS SECTION ================= */
+
+function TestimonialsSection() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const testimonials = [
+    {
+      img: "/lau.png",
+      alt: "Jade",
+      text: "Fake testimonial : on valide juste le style et l'espacement. Après on mettra un vrai texte orienté bénéfices agence.",
+      name: "Jade",
+    },
+    {
+      img: "/Lia.jpg",
+      alt: "Bella",
+      text: "Fake testimonial : même objectif, on teste le rendu. Ensuite on remplace par du vrai copy MyDouble.",
+      name: "Bella",
+    },
+  ];
+
+  const swipeConfidenceThreshold = 10000;
+  const swipePower = (offset: number, velocity: number) => {
+    return Math.abs(offset) * velocity;
+  };
+
+  const paginate = (newDirection: number) => {
+    setCurrentIndex((prevIndex) => {
+      let nextIndex = prevIndex + newDirection;
+      if (nextIndex < 0) nextIndex = testimonials.length - 1;
+      if (nextIndex >= testimonials.length) nextIndex = 0;
+      return nextIndex;
+    });
+  };
+
+  return (
+    <section className="bg-black text-white py-24 px-6 md:px-16">
+      <div className="max-w-6xl mx-auto">
+        {/* Desktop: Grid */}
+        <div className="hidden md:grid grid-cols-2 gap-16 text-center">
+          {testimonials.map((testimonial, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: index * 0.15, ease: "easeOut" }}
+              viewport={{ once: true }}
+              className="flex flex-col items-center"
+            >
+              <img
+                src={testimonial.img}
+                alt={testimonial.alt}
+                className="w-52 h-52 rounded-full object-cover mb-8"
+              />
+              <p className="text-base md:text-lg leading-relaxed max-w-md">
+                "{testimonial.text}"
+              </p>
+              <span className="mt-6 text-sm text-gray-400">{testimonial.name}</span>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Mobile: Carousel */}
+        <div className="md:hidden relative overflow-hidden">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, x: 300 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -300 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={1}
+            onDragEnd={(e, { offset, velocity }) => {
+              const swipe = swipePower(offset.x, velocity.x);
+
+              if (swipe < -swipeConfidenceThreshold) {
+                paginate(1);
+              } else if (swipe > swipeConfidenceThreshold) {
+                paginate(-1);
+              }
+            }}
+            className="flex flex-col items-center text-center cursor-grab active:cursor-grabbing"
+          >
+            <img
+              src={testimonials[currentIndex].img}
+              alt={testimonials[currentIndex].alt}
+              className="w-52 h-52 rounded-full object-cover mb-8"
+            />
+            <p className="text-base leading-relaxed max-w-md px-4">
+              "{testimonials[currentIndex].text}"
+            </p>
+            <span className="mt-6 text-sm text-gray-400">{testimonials[currentIndex].name}</span>
+          </motion.div>
+
+          {/* Dots indicators */}
+          <div className="flex justify-center gap-2 mt-8">
+            {testimonials.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentIndex(index)}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  index === currentIndex
+                    ? "bg-[#e31fc1] w-8"
+                    : "bg-gray-600 hover:bg-gray-400"
+                }`}
+                aria-label={`Go to testimonial ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ================= FAQ ITEM ================= */
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
@@ -93,7 +208,7 @@ export default function Page() {
         <div className="relative max-w-none px-8 md:px-20">
           <div className="max-w-2xl mt-44 md:mt-16 text-center md:text-left">
             <motion.h1
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="text-4xl md:text-6xl font-extrabold leading-tight"
@@ -105,7 +220,7 @@ export default function Page() {
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
               className="mt-6 text-white/70 text-lg md:text-xl"
@@ -114,14 +229,17 @@ export default function Page() {
               tout en restant aligné à gauche comme sur ta capture.
             </motion.p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-              className="mt-10 flex flex-col sm:flex-row gap-4"
-            >
-              <button className="btn-secondary px-10 py-4 text-lg">Découvrir</button>
-            </motion.div>
+            <div className="mt-10 flex flex-col sm:flex-row gap-4">
+              <motion.button
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 2, delay: 0.3 }}
+                viewport={{ once: true }}
+                className="btn-secondary px-10 py-4 text-lg"
+              >
+                Découvrir
+              </motion.button>
+            </div>
           </div>
         </div>
       </section>
@@ -144,7 +262,7 @@ export default function Page() {
 
         <div className="max-w-4xl mx-auto text-center">
           <motion.h2
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
             viewport={{ once: true }}
@@ -154,37 +272,38 @@ export default function Page() {
           </motion.h2>
 
           <motion.p
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
             viewport={{ once: true }}
             className="text-lg md:text-xl text-white/80 leading-relaxed mb-8"
           >
-            Aujourd’hui, une grande partie du revenu généré par une créatrice est absorbée par les
+            Aujourd'hui, une grande partie du revenu généré par une créatrice est absorbée par les
             frais de plateforme et les coûts opérationnels liés au chatting humain.
           </motion.p>
 
           <motion.p
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
             viewport={{ once: true }}
             className="text-lg md:text-xl text-white/80 leading-relaxed"
           >
             MyDouble permet aux agences de réduire significativement ces coûts en automatisant une
-            partie des conversations, tout en maintenant un haut niveau d’engagement et de cohérence.
+            partie des conversations, tout en maintenant un haut niveau d'engagement et de cohérence.
           </motion.p>
         </div>
       </section>
 
       {/* ================= AUTRES SECTIONS ================= */}
       <section className="space-y-16 md:space-y-32">
-        <Statsection />
+         
         <SplineMetricsSection />
+        <Statsection />
 
         <div className="max-w-4xl mx-auto text-center px-6 md:px-0">
           <motion.h2
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
             viewport={{ once: true }}
@@ -194,25 +313,25 @@ export default function Page() {
           </motion.h2>
 
           <motion.p
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
             viewport={{ once: true }}
             className="text-lg md:text-xl text-white/80 leading-relaxed mb-8"
           >
             Chaque créatrice est dupliquée individuellement à partir de données spécifiques : style
-            d’écriture, ton de voix, règles, historique et préférences.
+            d'écriture, ton de voix, règles, historique et préférences.
           </motion.p>
 
           <motion.p
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
             viewport={{ once: true }}
             className="text-lg md:text-xl text-white/80 leading-relaxed"
           >
             Le double IA est ensuite capable de gérer des conversations continues, tout en respectant
-            strictement le cadre défini par l’agence et la créatrice.
+            strictement le cadre défini par l'agence et la créatrice.
           </motion.p>
         </div>
 
@@ -220,37 +339,7 @@ export default function Page() {
       </section>
 
       {/* ================= TESTIMONIALS ================= */}
-      <section className="bg-black text-white py-24 px-6 md:px-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 text-center">
-            <div className="flex flex-col items-center">
-              <img
-                src="/lau.png"
-                alt="Jade"
-                className="w-52 h-52 rounded-full object-cover mb-8"
-              />
-              <p className="text-base md:text-lg leading-relaxed max-w-md">
-                "Fake testimonial : on valide juste le style et l’espacement. Après on mettra un
-                vrai texte orienté bénéfices agence."
-              </p>
-              <span className="mt-6 text-sm text-gray-400">Jade</span>
-            </div>
-
-            <div className="flex flex-col items-center">
-              <img
-                src="/lia.jpg"
-                alt="Bella"
-                className="w-52 h-52 rounded-full object-cover mb-8"
-              />
-              <p className="text-base md:text-lg leading-relaxed max-w-md">
-                "Fake testimonial : même objectif, on teste le rendu. Ensuite on remplace par du
-                vrai copy MyDouble."
-              </p>
-              <span className="mt-6 text-sm text-gray-400">Bella</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <TestimonialsSection />
 
       {/* ================= FAQ ================= */}
       <motion.section
@@ -262,7 +351,7 @@ export default function Page() {
       >
         <div className="max-w-4xl mx-auto">
           <motion.h2
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
             viewport={{ once: true }}
@@ -276,7 +365,7 @@ export default function Page() {
           </motion.h2>
 
           <motion.p
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
             viewport={{ once: true }}
@@ -289,38 +378,46 @@ export default function Page() {
             {[
               {
                 q: "Est-ce que nous gardons le contrôle total sur nos créatrices ?",
-                a: "Oui. L’agence et la créatrice définissent les règles, les limites, le ton et les sujets autorisés. L’IA agit strictement dans ce cadre. Vous pouvez ajuster ou désactiver le clone à tout moment.",
+                a: "Oui. L'agence et la créatrice définissent les règles, les limites, le ton et les sujets autorisés. L'IA agit strictement dans ce cadre. Vous pouvez ajuster ou désactiver le clone à tout moment.",
               },
               {
                 q: "Est-ce que MyDouble remplace notre équipe de chatting ?",
-                a: "Non. MyDouble est une couche complémentaire. L’IA gère le volume et la continuité, tandis que vos équipes se concentrent sur les conversations à forte valeur et les demandes premium.",
+                a: "Non. MyDouble est une couche complémentaire. L'IA gère le volume et la continuité, tandis que vos équipes se concentrent sur les conversations à forte valeur et les demandes premium.",
               },
               {
                 q: "Combien de temps faut-il pour mettre en place un clone ?",
-                a: "La mise en place est rapide. Une fois les informations fournies, un clone peut être opérationnel en quelques heures. Aucun changement lourd dans votre organisation n’est nécessaire.",
+                a: "La mise en place est rapide. Une fois les informations fournies, un clone peut être opérationnel en quelques heures. Aucun changement lourd dans votre organisation n'est nécessaire.",
               },
               {
                 q: "Est-ce compatible avec notre manière actuelle de travailler ?",
-                a: "Oui. MyDouble a été conçu pour s’intégrer aux process existants des agences. Vous conservez votre structure, vos équipes et votre stratégie.",
+                a: "Oui. MyDouble a été conçu pour s'intégrer aux process existants des agences. Vous conservez votre structure, vos équipes et votre stratégie.",
               },
               {
                 q: "Où se situent les économies réalisées ?",
-                a: "Les économies proviennent principalement de la réduction du volume de chatting manuel. L’IA absorbe une partie importante des conversations, ce qui permet de gérer plus de fans à coût maîtrisé.",
+                a: "Les économies proviennent principalement de la réduction du volume de chatting manuel. L'IA absorbe une partie importante des conversations, ce qui permet de gérer plus de fans à coût maîtrisé.",
               },
               {
                 q: "Y a-t-il un engagement long terme ?",
-                a: "Non. Il n’y a pas d’engagement imposé. Le modèle est présenté lors d’un échange privé, et vous restez libre d’arrêter à tout moment.",
+                a: "Non. Il n'y a pas d'engagement imposé. Le modèle est présenté lors d'un échange privé, et vous restez libre d'arrêter à tout moment.",
               },
               {
-                q: "Les fans savent-ils qu’ils parlent à une IA ?",
-                a: "La communication est définie avec l’agence et la créatrice. L’objectif est de maintenir une expérience cohérente, naturelle et respectueuse du cadre établi.",
+                q: "Les fans savent-ils qu'ils parlent à une IA ?",
+                a: "La communication est définie avec l'agence et la créatrice. L'objectif est de maintenir une expérience cohérente, naturelle et respectueuse du cadre établi.",
               },
               {
                 q: "Quel est le modèle financier ?",
-                a: "Le modèle est conçu pour améliorer le revenu net par créatrice. Les conditions exactes sont expliquées lors d’un échange privé avec l’agence.",
+                a: "Le modèle est conçu pour améliorer le revenu net par créatrice. Les conditions exactes sont expliquées lors d'un échange privé avec l'agence.",
               },
             ].map((item, index) => (
-              <FAQItem key={index} question={item.q} answer={item.a} />
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: index * 0.1, ease: "easeOut" }}
+                viewport={{ once: true }}
+              >
+                <FAQItem question={item.q} answer={item.a} />
+              </motion.div>
             ))}
           </div>
         </div>

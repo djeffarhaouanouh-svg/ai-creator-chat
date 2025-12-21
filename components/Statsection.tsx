@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 const Statsection = () => {
   return (
     <motion.section
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
       viewport={{ once: true }}
@@ -16,7 +16,13 @@ const Statsection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
           {/* IMAGE METRICS - LEFT */}
-          <div className="relative flex justify-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            viewport={{ once: true }}
+            className="relative flex justify-center"
+          >
             <img
               src="/earning-metrics.png"
               alt="Earning metrics"
@@ -26,14 +32,14 @@ const Statsection = () => {
             {/* Glow */}
             <div className="absolute -top-6 -left-6 w-32 h-32 bg-pink-500/20 rounded-full blur-3xl"></div>
             <div className="absolute -bottom-6 -right-6 w-36 h-36 bg-purple-500/20 rounded-full blur-3xl"></div>
-          </div>
+          </motion.div>
 
           {/* CONTENT - RIGHT */}
           <div className="space-y-10">
             <motion.h2
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, delay: 0.2 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
               viewport={{ once: true }}
               className="text-4xl md:text-5xl font-bold leading-tight"
             >
@@ -48,7 +54,7 @@ const Statsection = () => {
              <motion.div
   initial={{ opacity: 0, y: 30 }}
   whileInView={{ opacity: 1, y: 0 }}
-  transition={{ duration: 2, delay: 0.4 }}
+  transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
   viewport={{ once: true }}
   className="text-xl text-gray-300 leading-relaxed space-y-6"
 >
@@ -58,11 +64,11 @@ const Statsection = () => {
 
   <ul className="list-disc list-inside space-y-2">
     <li>~20 % prélevés par la plateforme</li>
-    <li>~20 % absorbés par le chatting / l’opérationnel</li>
+    <li>~20 % absorbés par le chatting / l'opérationnel</li>
   </ul>
 
   <p>
-    👉 Une part importante du revenu disparaît avant même d’optimiser la performance.
+    👉 Une part importante du revenu disparaît avant même d'optimiser la performance.
   </p>
 
   <p>
@@ -70,21 +76,35 @@ const Statsection = () => {
   </p>
 </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, delay: 0.6 }}
-              viewport={{ once: true }}
-              className="flex flex-wrap justify-center gap-5 pt-6"
-            >
-              <button className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all duration-300 hover:scale-105">
+            <div className="flex flex-wrap justify-center gap-5 pt-6">
+              <motion.button
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 2, delay: 0.6, ease: "easeOut" }}
+                viewport={{ once: true }}
+                whileHover={{
+                  scale: 1.07,
+                  transition: { type: "spring", stiffness: 260, damping: 15 }
+                }}
+                whileTap={{
+                  scale: 0.95,
+                  transition: { type: "spring", stiffness: 300, damping: 20 }
+                }}
+                className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all duration-300"
+              >
                 Découvrir →
-              </button>
+              </motion.button>
 
-              <button className="border-2 border-white hover:bg-white hover:text-black text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full transition-all duration-300">
+              <motion.button
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 2, delay: 0.7 }}
+                viewport={{ once: true }}
+                className="border-2 border-white hover:bg-white hover:text-black text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full transition-all duration-300"
+              >
                 Connecte-toi
-              </button>
-            </motion.div>
+              </motion.button>
+            </div>
           </div>
 
         </div>

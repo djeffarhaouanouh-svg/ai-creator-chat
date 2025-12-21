@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { motion } from "framer-motion";
 
 type Row = {
   ok: boolean;
@@ -51,35 +52,41 @@ export default function ComparisonSection() {
     <section className="bg-black py-24">
       <div className="max-w-6xl mx-auto px-6">
 
-        <h2 className="text-center text-5xl font-extrabold text-white mb-16">
+        <motion.h2
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          viewport={{ once: true }}
+          className="text-center text-5xl font-extrabold text-white mb-16"
+        >
           Ce qui change{" "}
           <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
             vraiment
           </span>
-        </h2>
+        </motion.h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <CompareCard
             title="Avant"
             rows={[
-              { ok: false, text: "Agences traditionnelles" },
-              { ok: false, text: "Contrats verrouillés" },
-              { ok: false, text: "Frais cachés" },
-              { ok: false, text: "Aucune transparence" },
-              { ok: false, text: "Pas de données" },
-              { ok: false, text: "Créatrice dépendante" },
+              { ok: false, text: "Coûts humains élevés" },
+              { ok: false, text: "Dépendance totale au chatting manuel" },
+              { ok: false, text: "Scalabilité limitée par les équipes" },
+              { ok: false, text: "Marges qui se dégradent avec le volume" },
+              { ok: false, text: "Croissance linéaire, difficile à maintenir" },
+              { ok: false, text: "Peu de visibilité sur la performance réelle" },
             ]}
           />
 
           <CompareCard
             title="Avec MyDouble"
             rows={[
-              { ok: true, text: "Créatrice aux commandes" },
-              { ok: true, text: "Sans engagement" },
-              { ok: true, text: "Zéro frais de départ" },
-              { ok: true, text: "Accès total aux stats" },
-              { ok: true, text: "Revenus directs" },
-              { ok: true, text: "IA disponible 24/7" },
+              { ok: true, text: "Réduction des coûts opérationnels" },
+              { ok: true, text: "Couche IA qui absorbe le volume" },
+              { ok: true, text: "Scalabilité sans recruter" },
+              { ok: true, text: "Meilleur revenu net par créatrice" },
+              { ok: true, text: "Pilotage et données centralisées" },
+              { ok: true, text: "Croissance maîtrisée et durable" },
             ]}
           />
         </div>

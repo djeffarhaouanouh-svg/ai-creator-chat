@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 const ContenusPersonnalises = () => {
   return (
     <motion.section
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
       viewport={{ once: true }}
@@ -108,7 +108,7 @@ const ContenusPersonnalises = () => {
             <motion.h2
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, delay: 0.2 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
               viewport={{ once: true }}
               className="text-4xl md:text-5xl font-bold leading-tight"
             >
@@ -123,28 +123,42 @@ const ContenusPersonnalises = () => {
             <motion.p
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, delay: 0.4 }}
+              transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
               viewport={{ once: true }}
               className="text-xl text-gray-300 leading-relaxed"
             >
               Via le Chat, tu peux échanger directement avec le Créateur, lui demander des contenus personnalisés à tes envies et recevoir ses nouveaux médias exclusifs.
             </motion.p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, delay: 0.6 }}
-              viewport={{ once: true }}
-              className="flex flex-wrap justify-center gap-5 pt-6"
-            >
-              <button className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all duration-300 hover:scale-105">
+            <div className="flex flex-wrap justify-center gap-5 pt-6">
+              <motion.button
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 2, delay: 0.6, ease: "easeOut" }}
+                viewport={{ once: true }}
+                whileHover={{
+                  scale: 1.07,
+                  transition: { type: "spring", stiffness: 260, damping: 15 }
+                }}
+                whileTap={{
+                  scale: 0.95,
+                  transition: { type: "spring", stiffness: 300, damping: 20 }
+                }}
+                className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all duration-300"
+              >
                 Découvrir →
-              </button>
+              </motion.button>
 
-              <button className="border-2 border-white hover:bg-white hover:text-black text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full transition-all duration-300">
+              <motion.button
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 2, delay: 0.7 }}
+                viewport={{ once: true }}
+                className="border-2 border-white hover:bg-white hover:text-black text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full transition-all duration-300"
+              >
                 Connecte-toi
-              </button>
-            </motion.div>
+              </motion.button>
+            </div>
           </div>
 
         </div>
