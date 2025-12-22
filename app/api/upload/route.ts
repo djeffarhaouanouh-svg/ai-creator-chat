@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { put } from '@vercel/blob';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -28,34 +26,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Créer le dossier uploads s'il n'existe pas
-    const uploadsDir = join(process.cwd(), 'public', 'uploads');
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
-    }
-
     // Générer un nom de fichier unique
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
     const fileExtension = file.name.split('.').pop();
-    const fileName = `${timestamp}-${randomString}.${fileExtension}`;
-    const filePath = join(uploadsDir, fileName);
+    const fileName = `uploads/${timestamp}-${randomString}.${fileExtension}`;
 
-    // Convertir le fichier en buffer et l'écrire
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
+    // Upload vers Vercel Blob Storage
+    const blob = await put(fileName, file, {
+      access: 'public',
+      addRandomSuffix: false,
+    });
 
-    // Retourner l'URL publique du fichier (absolue pour le chat)
-    // En production, utilisez votre domaine réel
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const fileUrl = `${baseUrl}/uploads/${fileName}`;
-    const relativeUrl = `/uploads/${fileName}`;
+    console.log('✅ Fichier uploadé vers Blob:', blob.url);
 
     return NextResponse.json({
       success: true,
-      url: fileUrl, // URL absolue pour le chat
-      relativeUrl: relativeUrl, // URL relative pour référence
+      url: blob.url, // URL publique Vercel Blob
+      relativeUrl: blob.url, // Même URL (Blob est déjà absolu)
       fileName: fileName,
       size: file.size,
       type: file.type,

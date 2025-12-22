@@ -1,15 +1,14 @@
 /**
  * Utilitaire pour télécharger les images générées par DALL-E
- * et les sauvegarder localement dans public/uploads/
+ * et les sauvegarder dans Vercel Blob Storage
  */
 
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { put } from '@vercel/blob';
 
 /**
- * Télécharge une image depuis une URL et la sauvegarde localement
+ * Télécharge une image depuis une URL et la sauvegarde dans Vercel Blob
  * @param url URL de l'image (généralement depuis DALL-E)
- * @returns Chemin relatif de l'image sauvegardée (ex: /uploads/ai-123456-abc.png)
+ * @returns URL publique de l'image sur Vercel Blob
  */
 export async function downloadImage(url: string): Promise<string> {
   try {
@@ -20,19 +19,22 @@ export async function downloadImage(url: string): Promise<string> {
       throw new Error(`Failed to download image: ${response.statusText}`);
     }
 
-    const buffer = await response.arrayBuffer();
-
     // Générer un nom de fichier unique
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
-    const fileName = `ai-${timestamp}-${randomString}.png`;
+    const fileName = `uploads/ai-${timestamp}-${randomString}.png`;
 
-    // Sauvegarder dans public/uploads/
-    const filePath = join(process.cwd(), 'public', 'uploads', fileName);
-    await writeFile(filePath, Buffer.from(buffer));
+    // Upload vers Vercel Blob Storage
+    const blob = await put(fileName, response.body as ReadableStream, {
+      access: 'public',
+      addRandomSuffix: false,
+      contentType: 'image/png',
+    });
 
-    // Retourner le chemin relatif
-    return `/uploads/${fileName}`;
+    console.log('✅ Image DALL-E uploadée vers Blob:', blob.url);
+
+    // Retourner l'URL publique Vercel Blob
+    return blob.url;
   } catch (error) {
     console.error('Error downloading image:', error);
     throw error;
