@@ -3,6 +3,8 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  image_url?: string;
+  image_type?: 'user_upload' | 'ai_generated';
 }
 
 export interface ChatSession {

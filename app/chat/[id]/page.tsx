@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { localCreators } from '@/data/creators';
 import { useState, useEffect, useRef } from 'react';
-import { Send, ArrowLeft, MoreVertical, Volume2, VolumeX } from 'lucide-react';
+import { Send, ArrowLeft, MoreVertical, Volume2, VolumeX, ImageIcon } from 'lucide-react';
 import { storage } from '@/lib/storage';
 import { Message } from '@/lib/types';
 import Button from '@/components/ui/Button';
@@ -92,6 +92,8 @@ async function saveMessageToDB(
       creatorId: creatorSlug,
       role: message.role,
       content: message.content,
+      image_url: message.image_url,
+      image_type: message.image_type
     };
 
     console.log('💾 Sending to API /api/messages:', {
@@ -143,6 +145,11 @@ export default function ChatPage() {
   const [aiEnabled, setAiEnabled] = useState(true); // Par défaut activé
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { playingMessageId, playAudio, stopAudio } = useTextToSpeech();
+
+  // États pour l'upload d'images
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isModeOpen, setIsModeOpen] = useState(false);
   const [mode, setMode] =
@@ -372,14 +379,42 @@ export default function ChatPage() {
 
   /* ------------------------------- Envoi message ----------------------------- */
   const sendMessage = async () => {
-    if (!input.trim() || !creator || isLoading) return;
+    if ((!input.trim() && !selectedImage) || !creator || isLoading) return;
+
+    // Upload image si sélectionnée
+    let uploadedImageUrl: string | undefined = undefined;
+
+    if (selectedImage) {
+      const formData = new FormData();
+      formData.append('file', selectedImage);
+
+      try {
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (uploadResponse.ok) {
+          const uploadData = await uploadResponse.json();
+          uploadedImageUrl = uploadData.relativeUrl;
+        }
+      } catch (error) {
+        console.error('Upload failed:', error);
+      }
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input.trim(),
+      content: input.trim() || 'Regarde cette image',
       timestamp: new Date(),
+      image_url: uploadedImageUrl,
+      image_type: uploadedImageUrl ? 'user_upload' : undefined
     };
+
+    // Reset image state
+    setSelectedImage(null);
+    setPreviewUrl(null);
 
     setMessages((prev) => [...prev, userMessage]);
     storage.addMessage(creator.slug || creator.id, userMessage);
@@ -462,6 +497,8 @@ export default function ChatPage() {
         role: 'assistant',
         content: data.message,
         timestamp: new Date(),
+        image_url: data.imageUrl,
+        image_type: data.imageUrl ? 'ai_generated' : undefined
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -743,7 +780,26 @@ export default function ChatPage() {
                         : 'bg-white text-gray-900 shadow-sm'
                     }`}
                   >
-                    {/* TEXTE AVEC LIEN MYM/OF UNIQUEMENT + AFFICHAGE IMAGES */}
+                    {/* AFFICHAGE IMAGE SI PRÉSENTE */}
+                    {message.image_url && (
+                      <div className="mb-2">
+                        <img
+                          src={message.image_url.startsWith('http')
+                            ? message.image_url
+                            : `${window.location.origin}${message.image_url}`}
+                          alt={message.image_type === 'user_upload' ? 'Image envoyée' : 'Image générée'}
+                          className="max-w-full rounded-lg shadow-md"
+                          style={{ maxHeight: '400px', maxWidth: '100%' }}
+                          onError={(e) => {
+                            console.error('Erreur chargement image:', message.image_url);
+                            e.currentTarget.style.display = 'none';
+                          }}
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+
+                    {/* TEXTE AVEC LIEN MYM/OF UNIQUEMENT + AFFICHAGE IMAGES MARKDOWN */}
                     <div className="text-sm whitespace-pre-wrap break-words">
                       {(() => {
                         const content = message.content;
@@ -752,7 +808,7 @@ export default function ChatPage() {
                         const parts = [];
                         let lastIndex = 0;
                         let match;
-                        
+
                         while ((match = imageRegex.exec(content)) !== null) {
                           // Ajouter le texte avant l'image
                           if (match.index > lastIndex) {
@@ -762,14 +818,14 @@ export default function ChatPage() {
                               </span>
                             );
                           }
-                          
+
                           // Normaliser l'URL (relative ou absolue)
                           let imageUrl = match[2];
                           if (imageUrl.startsWith('/uploads/')) {
                             // URL relative, la rendre absolue
                             imageUrl = `${window.location.origin}${imageUrl}`;
                           }
-                          
+
                           // Ajouter l'image avec gestion d'erreur
                           parts.push(
                             <div key={`img-${match.index}`} className="my-2">
@@ -786,10 +842,10 @@ export default function ChatPage() {
                               />
                             </div>
                           );
-                          
+
                           lastIndex = match.index + match[0].length;
                         }
-                        
+
                         // Ajouter le texte restant
                         if (lastIndex < content.length) {
                           parts.push(
@@ -798,12 +854,12 @@ export default function ChatPage() {
                             </span>
                           );
                         }
-                        
+
                         // Si pas d'images, afficher normalement
                         if (parts.length === 0) {
                           return linkifyMYMOF(content);
                         }
-                        
+
                         return parts;
                       })()}
                     </div>
@@ -984,29 +1040,77 @@ export default function ChatPage() {
 
           {/* Textarea principale pour les messages normaux */}
           {!isRequestOpen && (
-            <div className="flex gap-2 items-center w-full max-w-2xl justify-center">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                  }
-                }}
-                placeholder={`Message à ${creator.name}...`}
-                className="resize-none rounded-2xl border px-4 py-3 text-gray-900 flex-1"
-                rows={1}
-                disabled={isLoading}
-              />
+            <div className="w-full max-w-2xl">
+              {/* Preview image si sélectionnée */}
+              {previewUrl && (
+                <div className="mb-3 relative inline-block">
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="w-24 h-24 object-cover rounded-lg border-2 border-[#E31FC1]"
+                  />
+                  <button
+                    onClick={() => {
+                      setSelectedImage(null);
+                      setPreviewUrl(null);
+                    }}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold hover:bg-red-600"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
 
-              <Button
-                onClick={sendMessage}
-                disabled={!input.trim() || isLoading}
-                className="px-6 shrink-0"
-              >
-                <Send size={20} />
-              </Button>
+              <div className="flex gap-2 items-center w-full justify-center">
+                {/* Input file caché */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setSelectedImage(file);
+                      setPreviewUrl(URL.createObjectURL(file));
+                    }
+                  }}
+                  className="hidden"
+                />
+
+                {/* Bouton upload image */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                  className="shrink-0"
+                >
+                  <ImageIcon size={20} />
+                </Button>
+
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                  placeholder={`Message à ${creator.name}...`}
+                  className="resize-none rounded-2xl border px-4 py-3 text-gray-900 flex-1"
+                  rows={1}
+                  disabled={isLoading}
+                />
+
+                <Button
+                  onClick={sendMessage}
+                  disabled={(!input.trim() && !selectedImage) || isLoading}
+                  className="px-6 shrink-0"
+                >
+                  <Send size={20} />
+                </Button>
+              </div>
             </div>
           )}
         </div>

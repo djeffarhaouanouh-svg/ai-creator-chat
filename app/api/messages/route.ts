@@ -20,6 +20,8 @@ export async function GET(request: Request) {
         id,
         role,
         content,
+        image_url,
+        image_type,
         created_at as timestamp
       FROM messages
       WHERE user_id = ${userId}
@@ -37,7 +39,7 @@ export async function GET(request: Request) {
 // POST - Sauvegarder un nouveau message
 export async function POST(request: Request) {
   try {
-    const { userId, creatorId, role, content } = await request.json();
+    const { userId, creatorId, role, content, image_url, image_type } = await request.json();
 
     console.log('📥 POST /api/messages received:', { userId, creatorId, role, contentLength: content?.length });
 
@@ -101,11 +103,13 @@ export async function POST(request: Request) {
 
     console.log('💾 Attempting to insert into database...');
 
+    // Compteur désactivé - génération illimitée d'images
+
     // Insérer le message dans la base de données
     const result = await sql`
-      INSERT INTO messages (user_id, creator_id, role, content, created_at)
-      VALUES (${userId}, ${creatorId}, ${role}, ${content}, NOW())
-      RETURNING id, role, content, created_at as timestamp
+      INSERT INTO messages (user_id, creator_id, role, content, image_url, image_type, created_at)
+      VALUES (${userId}, ${creatorId}, ${role}, ${content}, ${image_url || null}, ${image_type || null}, NOW())
+      RETURNING id, role, content, image_url, image_type, created_at as timestamp
     `;
 
     console.log('✅ Message inserted successfully:', result.rows[0].id);

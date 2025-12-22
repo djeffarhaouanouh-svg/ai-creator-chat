@@ -18,7 +18,8 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         onClick={() => setOpen(!open)}
         className="w-full flex justify-between items-center px-4 py-4 md:px-6 md:py-5 text-left"
       >
-        <span className="text-base md:text-lg font-semibold pr-4">
+        <span 
+        className="text-base md:text-lg font-semibold pr-4">
           {question}
         </span>
         <span

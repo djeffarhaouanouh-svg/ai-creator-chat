@@ -223,19 +223,16 @@ export default function Page() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
-              className="mt-6 text-white/70 text-lg md:text-xl"
-            >
-              Faux texte pour vérifier que le texte passe au-dessus de la vidéo,
-              tout en restant aligné à gauche comme sur ta capture.
+              className="mt-6 text-white/70 text-lg md:text-xl">
             </motion.p>
 
-            <div className="mt-10 flex flex-col sm:flex-row gap-4">
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center md:items-start">
               <motion.button
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 2, delay: 0.3 }}
                 viewport={{ once: true }}
-                className="btn-secondary px-10 py-4 text-lg"
+                className="btn-secondary px-10 py-4 text-lg w-auto"
               >
                 Découvrir
               </motion.button>
@@ -377,7 +374,7 @@ export default function Page() {
           <div className="mt-10 space-y-4">
             {[
               {
-                q: "Est-ce que nous gardons le contrôle total sur nos créatrices ?",
+                q: "Est-ce que vous gardons le contrôle total sur nos créatrices ?",
                 a: "Oui. L'agence et la créatrice définissent les règles, les limites, le ton et les sujets autorisés. L'IA agit strictement dans ce cadre. Vous pouvez ajuster ou désactiver le clone à tout moment.",
               },
               {

@@ -14,7 +14,10 @@
       "Bash(git push:*)",
       "Bash(git add:*)",
       "Bash(findstr:*)",
-      "Bash(git revert:*)"
+      "Bash(git revert:*)",
+      "Bash(ls:*)",
+      "Bash(npm install:*)",
+      "Bash(psql:*)"
     ]
   }
 }
