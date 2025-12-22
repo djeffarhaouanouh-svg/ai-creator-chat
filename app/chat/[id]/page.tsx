@@ -147,8 +147,9 @@ export default function ChatPage() {
   const { playingMessageId, playAudio, stopAudio } = useTextToSpeech();
 
   // États pour l'upload d'images
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isModeOpen, setIsModeOpen] = useState(false);
@@ -379,41 +380,19 @@ export default function ChatPage() {
 
   /* ------------------------------- Envoi message ----------------------------- */
   const sendMessage = async () => {
-    if ((!input.trim() && !selectedImage) || !creator || isLoading) return;
-
-    // Upload image si sélectionnée
-    let uploadedImageUrl: string | undefined = undefined;
-
-    if (selectedImage) {
-      const formData = new FormData();
-      formData.append('file', selectedImage);
-
-      try {
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        });
-
-        if (uploadResponse.ok) {
-          const uploadData = await uploadResponse.json();
-          uploadedImageUrl = uploadData.relativeUrl;
-        }
-      } catch (error) {
-        console.error('Upload failed:', error);
-      }
-    }
+    if ((!input.trim() && !uploadedImageUrl) || !creator || isLoading || isUploading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
       content: input.trim() || 'Regarde cette image',
       timestamp: new Date(),
-      image_url: uploadedImageUrl,
+      image_url: uploadedImageUrl || undefined,
       image_type: uploadedImageUrl ? 'user_upload' : undefined
     };
 
     // Reset image state
-    setSelectedImage(null);
+    setUploadedImageUrl(null);
     setPreviewUrl(null);
 
     setMessages((prev) => [...prev, userMessage]);
@@ -1048,14 +1027,20 @@ export default function ChatPage() {
                   <img
                     src={previewUrl}
                     alt="Preview"
-                    className="w-24 h-24 object-cover rounded-lg border-2 border-[#E31FC1]"
+                    className={`w-24 h-24 object-cover rounded-lg border-2 ${isUploading ? 'border-yellow-500 opacity-50' : 'border-[#E31FC1]'}`}
                   />
+                  {isUploading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg">
+                      <div className="text-white text-xs">Upload...</div>
+                    </div>
+                  )}
                   <button
                     onClick={() => {
-                      setSelectedImage(null);
+                      setUploadedImageUrl(null);
                       setPreviewUrl(null);
                     }}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold hover:bg-red-600"
+                    disabled={isUploading}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold hover:bg-red-600 disabled:opacity-50"
                   >
                     ×
                   </button>
@@ -1068,11 +1053,39 @@ export default function ChatPage() {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0];
-                    if (file) {
-                      setSelectedImage(file);
-                      setPreviewUrl(URL.createObjectURL(file));
+                    if (!file) return;
+
+                    // Afficher preview immédiatement
+                    setPreviewUrl(URL.createObjectURL(file));
+                    setIsUploading(true);
+
+                    // Upload automatique
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    try {
+                      const uploadResponse = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                      });
+
+                      if (uploadResponse.ok) {
+                        const uploadData = await uploadResponse.json();
+                        setUploadedImageUrl(uploadData.relativeUrl);
+                        console.log('✅ Image uploadée:', uploadData.relativeUrl);
+                      } else {
+                        console.error('❌ Upload échoué');
+                        setPreviewUrl(null); // Retirer preview si échec
+                      }
+                    } catch (error) {
+                      console.error('❌ Erreur upload:', error);
+                      setPreviewUrl(null);
+                    } finally {
+                      setIsUploading(false);
+                      // Reset input pour permettre re-sélection du même fichier
+                      e.target.value = '';
                     }
                   }}
                   className="hidden"
@@ -1083,7 +1096,7 @@ export default function ChatPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={isLoading}
+                  disabled={isLoading || isUploading}
                   className="shrink-0"
                 >
                   <ImageIcon size={20} />
@@ -1101,12 +1114,12 @@ export default function ChatPage() {
                   placeholder={`Message à ${creator.name}...`}
                   className="resize-none rounded-2xl border px-4 py-3 text-gray-900 flex-1"
                   rows={1}
-                  disabled={isLoading}
+                  disabled={isLoading || isUploading}
                 />
 
                 <Button
                   onClick={sendMessage}
-                  disabled={(!input.trim() && !selectedImage) || isLoading}
+                  disabled={(!input.trim() && !uploadedImageUrl) || isLoading || isUploading}
                   className="px-6 shrink-0"
                 >
                   <Send size={20} />
