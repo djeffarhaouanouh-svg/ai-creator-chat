@@ -88,11 +88,11 @@ export async function POST(request: NextRequest) {
       quality: 'standard' // Standard pour réduire les coûts (vs 'hd')
     });
 
-    const imageUrl = response.data[0].url;
-
-    if (!imageUrl) {
+    if (!response.data || response.data.length === 0 || !response.data[0].url) {
       throw new Error('DALL-E n\'a pas retourné d\'URL d\'image');
     }
+
+    const imageUrl = response.data[0].url;
 
     console.log('✅ Image générée par DALL-E');
 
