@@ -225,15 +225,28 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
       }
     }
 
+    // Filtrer les messages avec des URLs localhost invalides
+    const validMessages = messages.map((m: any) => {
+      if (m.image_url && !m.image_url.startsWith('http')) {
+        // URL relative invalide → retirer l'image
+        return { ...m, image_url: undefined };
+      }
+      if (m.image_url && m.image_url.includes('localhost')) {
+        // URL localhost → retirer l'image
+        return { ...m, image_url: undefined };
+      }
+      return m;
+    });
+
     // SYSTÈME DE MÉMOIRE INTELLIGENT : Résumé + Messages récents
     const RECENT_MESSAGES_LIMIT = 20; // Garder les 20 derniers messages complets
 
     let contextMessages: any[] = [];
 
-    if (messages.length > RECENT_MESSAGES_LIMIT) {
+    if (validMessages.length > RECENT_MESSAGES_LIMIT) {
       // Séparer vieux messages (à résumer) et récents (à garder complets)
-      const oldMessages = messages.slice(0, messages.length - RECENT_MESSAGES_LIMIT);
-      const recentMessages = messages.slice(-RECENT_MESSAGES_LIMIT);
+      const oldMessages = validMessages.slice(0, validMessages.length - RECENT_MESSAGES_LIMIT);
+      const recentMessages = validMessages.slice(-RECENT_MESSAGES_LIMIT);
 
       // Créer un résumé des vieux messages
       const summary = oldMessages.map((m: any, i: number) =>
@@ -279,7 +292,7 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
       console.log(`📨 Mémoire optimisée: ${oldMessages.length} messages résumés + ${recentMessages.length} récents`);
     } else {
       // Si moins de 20 messages, envoyer tout avec support multimodal
-      contextMessages = messages.map((m: any) => {
+      contextMessages = validMessages.map((m: any) => {
         if (m.image_url) {
           // Message avec image - Format multimodal GPT-4o
           const imageUrl = m.image_url.startsWith('http')
@@ -355,7 +368,7 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
 
     // Si pas d'image pré-générée, vérifier si GPT parle de quelque chose de visuel
     if (!finalImageUrl) {
-      const imageIntent = detectImageIntent(text, messages.slice(-5));
+      const imageIntent = detectImageIntent(text, validMessages.slice(-5));
 
       if (imageIntent.shouldGenerateImage && imageIntent.confidence > 0.7) {
         try {
