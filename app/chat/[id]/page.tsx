@@ -470,6 +470,7 @@ export default function ChatPage() {
             .map((m) => ({
               role: m.role,
               content: m.content,
+              image_url: m.image_url, // ✅ INCLURE image_url pour GPT-4o vision
             })),
         }),
       });
