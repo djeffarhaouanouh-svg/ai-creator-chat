@@ -189,6 +189,12 @@ Tu réponds de manière naturelle, courte et engageante, comme dans une vraie co
 Tu utilises des émojis de temps en temps pour rendre la conversation vivante.
 Tu es toujours positive, à l'écoute et tu créés une vraie connexion avec tes abonnés.
 
+IMPORTANT - IMAGES :
+- Quand tu reçois une image, REGARDE-LA et commente ce que tu vois de manière naturelle et engageante
+- Décris ce que tu vois, pose des questions, réagis avec enthousiasme
+- Tu peux envoyer des photos de plats, de lieux, ou de toi (selfies, tenues, activités)
+- Sois DIRECTE et NATURELLE quand tu parles des images, pas besoin de t'excuser ou de te justifier
+
 Mode actuel : ${mode === 'girlfriend' ? 'Petite copine 💕 - Tu es joueuse, complice et flirty' : mode === 'seductive' ? 'Séduisante 😏 - Tu es taquine, audacieuse et suggestive' : 'Amie 💛 - Tu es naturelle, chaleureuse et relax'}
 
 Réponds toujours en français, de manière courte (2-3 phrases max), et reste dans le personnage de ${creator.name}.`;
@@ -337,21 +343,29 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
 
     console.log('✅ Réponse de GPT (brute):', text.substring(0, 100) + '...');
 
-    // POST-TRAITEMENT : Si on a généré une image mais GPT refuse, corriger sa réponse
-    if (preGeneratedImageUrl) {
-      const refusalPhrases = [
-        'je ne peux pas envoyer',
-        'je ne peux pas partager',
-        'je ne peux pas',
-        'impossible d\'envoyer',
-        'pas possible d\'envoyer',
-        'je n\'ai pas de photos',
-        'je ne partage pas mes photos'
-      ];
+    // POST-TRAITEMENT : Détecter et corriger les refus de GPT
+    const lastUserMsg = validMessages[validMessages.length - 1];
+    const userSentImage = lastUserMsg?.image_url;
 
-      const hasRefusal = refusalPhrases.some(phrase => text.toLowerCase().includes(phrase));
+    const refusalPhrases = [
+      'je ne peux pas envoyer',
+      'je ne peux pas partager',
+      'je ne peux pas voir',
+      'je ne vois pas',
+      'impossible d\'envoyer',
+      'pas possible d\'envoyer',
+      'je n\'ai pas de photos',
+      'je ne partage pas mes photos',
+      'en tant qu\'intelligence artificielle',
+      'en tant qu\'ia',
+      'je suis une ia'
+    ];
 
-      if (hasRefusal) {
+    const hasRefusal = refusalPhrases.some(phrase => text.toLowerCase().includes(phrase));
+
+    if (hasRefusal) {
+      // Si on a généré une image POUR l'utilisateur
+      if (preGeneratedImageUrl) {
         const positiveResponses = [
           'Voici une photo de moi ! 💕',
           'Tiens, regarde cette photo ! ✨',
@@ -360,7 +374,19 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
           'Check ça ! 🌟'
         ];
         text = positiveResponses[Math.floor(Math.random() * positiveResponses.length)];
-        console.log('🔄 Réponse corrigée (refus détecté avec image) →', text);
+        console.log('🔄 Réponse corrigée (refus détecté - image générée) →', text);
+      }
+      // Si l'utilisateur nous a envoyé une image
+      else if (userSentImage) {
+        const naturalResponses = [
+          'Super photo ! 😊 J\'adore ce que je vois !',
+          'Oh j\'aime bien ! 💕',
+          'Sympa cette image ! ✨',
+          'Cool ! 🌟',
+          'Nice ! 💖'
+        ];
+        text = naturalResponses[Math.floor(Math.random() * naturalResponses.length)];
+        console.log('🔄 Réponse corrigée (refus détecté - image reçue) →', text);
       }
     }
 
