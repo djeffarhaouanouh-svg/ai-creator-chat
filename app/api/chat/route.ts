@@ -244,30 +244,33 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
       return m;
     });
 
-    // SYSTÈME DE MÉMOIRE INTELLIGENT : Résumé + Messages récents
+    // SYSTÈME DE MÉMOIRE INTELLIGENT : Résumé + Messages récents + IMAGES CONSERVÉES
     const RECENT_MESSAGES_LIMIT = 20; // Garder les 20 derniers messages complets
 
     let contextMessages: any[] = [];
 
     if (validMessages.length > RECENT_MESSAGES_LIMIT) {
-      // Séparer vieux messages (à résumer) et récents (à garder complets)
-      const oldMessages = validMessages.slice(0, validMessages.length - RECENT_MESSAGES_LIMIT);
+      // Séparer vieux messages et récents
+      const allOldMessages = validMessages.slice(0, validMessages.length - RECENT_MESSAGES_LIMIT);
       const recentMessages = validMessages.slice(-RECENT_MESSAGES_LIMIT);
 
-      // Créer un résumé des vieux messages
-      const summary = oldMessages.map((m: any, i: number) =>
+      // Parmi les vieux, séparer ceux avec images (à garder) et sans images (à résumer)
+      const oldMessagesWithImages = allOldMessages.filter((m: any) => m.image_url);
+      const oldMessagesToSummarize = allOldMessages.filter((m: any) => !m.image_url);
+
+      // Créer un résumé des vieux messages SANS images
+      const summary = oldMessagesToSummarize.map((m: any, i: number) =>
         `${i % 2 === 0 ? 'User' : creator.name}: ${m.content?.substring(0, 50)}...`
       ).join(' | ');
 
       const contextSummary = {
         role: 'system',
-        content: `📋 Résumé de la conversation précédente (${oldMessages.length} messages) :\n${summary}\n\n---\nConversation récente ci-dessous :`
+        content: `📋 Résumé de la conversation précédente (${oldMessagesToSummarize.length} messages) :\n${summary}\n\n---\nImages et conversation récente ci-dessous :`
       };
 
-      // Construire les messages récents complets avec support multimodal
-      const recentGptMessages = recentMessages.map((m: any) => {
+      // Fonction pour convertir un message en format GPT multimodal
+      const toGptMessage = (m: any) => {
         if (m.image_url) {
-          // Message avec image - Format multimodal GPT-4o
           const imageUrl = m.image_url.startsWith('http')
             ? m.image_url
             : `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}${m.image_url}`;
@@ -287,15 +290,18 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
           };
         }
 
-        // Message texte simple
         return {
           role: m.role,
           content: m.content
         };
-      });
+      };
 
-      contextMessages = [contextSummary, ...recentGptMessages];
-      console.log(`📨 Mémoire optimisée: ${oldMessages.length} messages résumés + ${recentMessages.length} récents`);
+      // Construire: vieilles images + messages récents (qui peuvent aussi contenir des images)
+      const oldImagesGpt = oldMessagesWithImages.map(toGptMessage);
+      const recentGptMessages = recentMessages.map(toGptMessage);
+
+      contextMessages = [contextSummary, ...oldImagesGpt, ...recentGptMessages];
+      console.log(`📨 Mémoire optimisée: ${oldMessagesToSummarize.length} résumés + ${oldMessagesWithImages.length} vieilles images + ${recentMessages.length} récents`);
     } else {
       // Si moins de 20 messages, envoyer tout avec support multimodal
       contextMessages = validMessages.map((m: any) => {
