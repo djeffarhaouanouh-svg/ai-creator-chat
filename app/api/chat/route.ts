@@ -285,9 +285,14 @@ export async function POST(request: NextRequest) {
       console.log('🚫 Envoi d\'image bloqué - le dernier message contenait déjà une image');
     }
 
-    const openai = new OpenAI({
+    // Instances pour DeepSeek et GPT-4o
+    const deepseek = new OpenAI({
       apiKey: process.env.DEEPSEEK_API_KEY,
       baseURL: 'https://api.deepseek.com'
+    });
+
+    const gpt = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
     });
 
     // Récupérer les plats disponibles pour que l'IA ne mente pas
@@ -313,7 +318,6 @@ Mode actuel : ${mode === 'girlfriend' ? 'Petite copine 💕 - Tu es joueuse, com
 
 Réponds toujours en français, de manière courte (2-3 phrases max), et reste dans le personnage de ${creator.name}.`;
 
-    console.log('🤖 Envoi à DeepSeek avec', messages.length, 'messages');
 
     // Filtrer les messages avec des URLs localhost invalides
     const validMessages = messages.map((m: any) => {
@@ -352,9 +356,18 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
         content: `📋 Résumé de la conversation précédente (${oldMessagesToSummarize.length} messages) :\n${summary}\n\n---\nImages et conversation récente ci-dessous :`
       };
 
-      // Fonction pour convertir un message - DeepSeek: IGNORER les images
+      // Fonction pour convertir un message - Format OpenAI pour GPT-4o Vision
       const toGptMessage = (m: any) => {
-        // DeepSeek n'accepte pas les images - toujours retourner texte simple
+        if (m.image_url) {
+          // Format OpenAI pour GPT-4o Vision
+          return {
+            role: m.role,
+            content: [
+              { type: 'text', text: m.content || 'Regarde cette image' },
+              { type: 'image_url', image_url: { url: m.image_url } }
+            ]
+          };
+        }
         return {
           role: m.role,
           content: m.content || 'Message'
@@ -368,9 +381,18 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
       contextMessages = [contextSummary, ...oldImagesGpt, ...recentGptMessages];
       console.log(`📨 Mémoire optimisée: ${oldMessagesToSummarize.length} résumés + ${oldMessagesWithImages.length} vieilles images + ${recentMessages.length} récents`);
     } else {
-      // Si moins de 20 messages, envoyer tout en texte simple (DeepSeek ne supporte PAS les images)
+      // Si moins de 20 messages, envoyer tout avec support des images (GPT-4o Vision)
       contextMessages = validMessages.map((m: any) => {
-        // DeepSeek n'accepte pas les images - toujours retourner texte simple
+        if (m.image_url) {
+          // Format OpenAI pour GPT-4o Vision
+          return {
+            role: m.role,
+            content: [
+              { type: 'text', text: m.content || 'Regarde cette image' },
+              { type: 'image_url', image_url: { url: m.image_url } }
+            ]
+          };
+        }
         return {
           role: m.role,
           content: m.content || 'Message'
@@ -426,8 +448,17 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
       console.log('🚫 Photo demandée mais bloquée (a déjà parlé de nourriture récemment)');
     }
 
-    const response = await openai.chat.completions.create({
-      model: 'deepseek-chat',
+    // Détecter s'il y a des images dans les messages
+    const hasImages = validMessages.some((m: any) => m.image_url);
+
+    console.log(`🤖 ${hasImages ? 'GPT-4o (images détectées)' : 'DeepSeek'} avec ${messages.length} messages`);
+
+    // Utiliser GPT-4o si images, sinon DeepSeek
+    const client = hasImages ? gpt : deepseek;
+    const model = hasImages ? 'gpt-4o' : 'deepseek-chat';
+
+    const response = await client.chat.completions.create({
+      model: model,
       max_tokens: 300,
       messages: [
         { role: 'system', content: systemPrompt },
@@ -438,7 +469,7 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
 
     let text = response.choices[0]?.message?.content || '';
 
-    console.log('✅ Réponse de DeepSeek (brute):', text.substring(0, 100) + '...');
+    console.log(`✅ Réponse de ${hasImages ? 'GPT-4o' : 'DeepSeek'} (brute):`, text.substring(0, 100) + '...');
 
     // POST-TRAITEMENT : Détecter et corriger les refus de GPT
     const lastUserMsg = validMessages[validMessages.length - 1];
