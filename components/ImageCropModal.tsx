@@ -2,7 +2,9 @@
 
 import { useState, useCallback } from 'react'
 import Cropper from 'react-easy-crop'
-import { Point, Area } from 'react-easy-crop/types'
+
+type Point = { x: number; y: number }
+type Area = { width: number; height: number; x: number; y: number }
 
 interface ImageCropModalProps {
   image: string
@@ -24,53 +26,11 @@ export default function ImageCropModal({
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
 
   const onCropComplete = useCallback(
-    (croppedArea: Area, croppedAreaPixels: Area) => {
+    (_croppedArea: Area, croppedAreaPixels: Area) => {
       setCroppedAreaPixels(croppedAreaPixels)
     },
     []
   )
-
-  const createCroppedImage = async () => {
-    if (!croppedAreaPixels) return
-
-    const canvas = document.createElement('canvas')
-    const image = new Image()
-    image.src = image
-
-    return new Promise<string>((resolve) => {
-      image.onload = () => {
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return
-
-        // Définir la taille du canvas
-        canvas.width = croppedAreaPixels.width
-        canvas.height = croppedAreaPixels.height
-
-        // Dessiner l'image recadrée
-        ctx.drawImage(
-          image,
-          croppedAreaPixels.x,
-          croppedAreaPixels.y,
-          croppedAreaPixels.width,
-          croppedAreaPixels.height,
-          0,
-          0,
-          croppedAreaPixels.width,
-          croppedAreaPixels.height
-        )
-
-        // Convertir en base64
-        canvas.toBlob((blob) => {
-          if (!blob) return
-          const reader = new FileReader()
-          reader.readAsDataURL(blob)
-          reader.onloadend = () => {
-            resolve(reader.result as string)
-          }
-        }, 'image/jpeg', 0.95)
-      }
-    })
-  }
 
   const handleComplete = async () => {
     try {
