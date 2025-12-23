@@ -263,6 +263,28 @@ export async function POST(request: NextRequest) {
       console.log('⚠️ Aucun setting trouvé - Par défaut activé');
     }
 
+    // 🔒 SÉCURITÉ : Empêcher 2 photos consécutives de l'assistant
+    const lastAssistantMsg = await sql`
+      SELECT image_url
+      FROM messages
+      WHERE user_id = ${userId}
+        AND creator_id = ${creatorUuid}
+        AND role = 'assistant'
+      ORDER BY created_at DESC
+      LIMIT 1
+    `;
+
+    const canSendImage = !(lastAssistantMsg.rows.length > 0 && lastAssistantMsg.rows[0].image_url);
+
+    console.log('🖼️ Vérification photo précédente:', {
+      lastMsgHadImage: lastAssistantMsg.rows.length > 0 && !!lastAssistantMsg.rows[0].image_url,
+      canSendImage
+    });
+
+    if (!canSendImage) {
+      console.log('🚫 Envoi d\'image bloqué - le dernier message contenait déjà une image');
+    }
+
     const openai = new OpenAI({
       apiKey: process.env.DEEPSEEK_API_KEY,
       baseURL: 'https://api.deepseek.com'
@@ -346,33 +368,12 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
       contextMessages = [contextSummary, ...oldImagesGpt, ...recentGptMessages];
       console.log(`📨 Mémoire optimisée: ${oldMessagesToSummarize.length} résumés + ${oldMessagesWithImages.length} vieilles images + ${recentMessages.length} récents`);
     } else {
-      // Si moins de 20 messages, envoyer tout avec support multimodal
+      // Si moins de 20 messages, envoyer tout en texte simple (DeepSeek ne supporte PAS les images)
       contextMessages = validMessages.map((m: any) => {
-        if (m.image_url) {
-          // Message avec image - Format multimodal GPT-4o
-          const imageUrl = m.image_url.startsWith('http')
-            ? m.image_url
-            : `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}${m.image_url}`;
-
-          return {
-            role: m.role,
-            content: [
-              {
-                type: 'image_url',
-                image_url: { url: imageUrl }
-              },
-              {
-                type: 'text',
-                text: m.content || 'Regarde cette image'
-              }
-            ]
-          };
-        }
-
-        // Message texte simple
+        // DeepSeek n'accepte pas les images - toujours retourner texte simple
         return {
           role: m.role,
-          content: m.content
+          content: m.content || 'Message'
         };
       });
       console.log('📨 Messages complets:', contextMessages.length, 'messages');
@@ -384,8 +385,18 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
 
     let selectedPhotoUrl: string | null = null;
 
-    if (shouldSelectPhoto) {
-      // SÉCURITÉ TEMPORAIREMENT DÉSACTIVÉE - À CORRIGER
+    // Vérifier si on a déjà parlé de nourriture dans les 3 derniers messages de l'assistant
+    const recentAssistantMessages = messages
+      .filter((m: any) => m.role === 'assistant')
+      .slice(-3);
+
+    const alreadyTalkedAboutFood = recentAssistantMessages.some((m: any) => {
+      const content = m.content?.toLowerCase() || '';
+      return content.includes('mangé') || content.includes('burger') || content.includes('tacos') ||
+             content.includes('pizza') || content.includes('plat') || content.includes('repas');
+    });
+
+    if (shouldSelectPhoto && canSendImage && !alreadyTalkedAboutFood) {
       console.log('📸 Photo demandée - envoi...');
 
       // Déterminer la catégorie
@@ -404,11 +415,15 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
 
         contextMessages.push({
           role: 'system',
-          content: `Tu as mangé: ${foodName}. Réponds de manière naturelle et enthousiaste !`
+          content: `IMPORTANT: Tu viens de manger ${foodName} (ignore ce que tu as dit avant). Réponds de manière naturelle et enthousiaste en parlant de ${foodName} !`
         });
 
         console.log(`🍽️ DeepSeek informé: ${foodName}`);
       }
+    } else if (shouldSelectPhoto && !canSendImage) {
+      console.log('🚫 Photo demandée mais bloquée (dernier message avait déjà une image)');
+    } else if (shouldSelectPhoto && alreadyTalkedAboutFood) {
+      console.log('🚫 Photo demandée mais bloquée (a déjà parlé de nourriture récemment)');
     }
 
     const response = await openai.chat.completions.create({
@@ -466,7 +481,7 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
     // Si DeepSeek mentionne un plat spécifique, envoyer la photo correspondante
     const specificFood = detectSpecificFood(text);
 
-    if (specificFood && !selectedPhotoUrl) {
+    if (specificFood && !selectedPhotoUrl && canSendImage) {
       try {
         console.log('🍽️ DeepSeek mentionne:', specificFood);
         const imageResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/images/generate`, {
@@ -489,6 +504,8 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
       } catch (error: any) {
         console.error('❌ Erreur sélection photo:', error.message);
       }
+    } else if (specificFood && !canSendImage) {
+      console.log('🚫 DeepSeek mentionne un plat mais envoi bloqué (dernier message avait déjà une image)');
     }
 
     return NextResponse.json({
