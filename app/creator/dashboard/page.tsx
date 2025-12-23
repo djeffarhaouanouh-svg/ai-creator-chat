@@ -109,27 +109,46 @@ export default function CreatorDashboardPage() {
 
         {/* En-tête */}
         <div className="bg-white rounded-2xl shadow-xl p-5 md:p-8 mb-6 md:mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Dashboard Créatrice
-              </h1>
-              <p className="text-gray-600">
-                Connectée en tant que <span className="font-semibold text-purple-600">@{slug}</span>
-              </p>
-              {name && (
-                <p className="text-sm text-gray-500 mt-1">{name}</p>
-              )}
-            </div>
-
-            <button
-              onClick={logout}
-              className="px-6 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg"
-            >
-              Se déconnecter
-            </button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Dashboard Créatrice
+            </h1>
+            <p className="text-gray-600">
+              Connectée en tant que <span className="font-semibold text-purple-600">@{slug}</span>
+            </p>
+            {name && (
+              <p className="text-sm text-gray-500 mt-1">{name}</p>
+            )}
           </div>
         </div>
+
+        {/* Bouton Modifier mon profil */}
+        <button
+          onClick={() => router.push('/creator/dashboard/edit-profile')}
+          className="w-full mb-8 p-4 border-2 border-purple-300 bg-white rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-left"
+        >
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+              <svg
+                className="w-5 h-5 text-purple-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">Modifier mon profil</h3>
+              <p className="text-sm text-gray-500">Photo, nom et contenu exclusif</p>
+            </div>
+          </div>
+        </button>
 
         {/* Statistiques */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -639,6 +658,16 @@ export default function CreatorDashboardPage() {
               />
             </svg>
             {statsLoading ? 'Actualisation...' : 'Actualiser les statistiques'}
+          </button>
+        </div>
+
+        {/* Bouton Se déconnecter */}
+        <div className="mt-8 flex justify-center pb-8">
+          <button
+            onClick={logout}
+            className="px-8 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg"
+          >
+            Se déconnecter
           </button>
         </div>
 
