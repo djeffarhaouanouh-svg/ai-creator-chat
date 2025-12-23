@@ -20,7 +20,8 @@
       "Bash(psql:*)",
       "Bash(git rm:*)",
       "Bash(npx dotenv:*)",
-      "Bash(node -c:*)"
+      "Bash(node -c:*)",
+      "Bash(tasklist:*)"
     ]
   }
 }

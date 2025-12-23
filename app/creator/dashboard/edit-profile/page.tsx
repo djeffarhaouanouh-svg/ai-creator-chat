@@ -87,9 +87,27 @@ export default function EditProfilePage() {
     setName(creatorName || '')
     setLoading(false)
 
+    // Charger les données du créateur
+    loadCreatorData(creatorSlug)
     // Charger les stories
     loadStories(creatorSlug)
   }, [router])
+
+  const loadCreatorData = async (creatorSlug: string) => {
+    try {
+      const response = await fetch(`/api/creators/${creatorSlug}`)
+      const data = await response.json()
+
+      if (data.avatar_url) {
+        setAvatarUrl(data.avatar_url)
+      }
+      if (data.cover_image) {
+        setCoverUrl(data.cover_image)
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des données du créateur:', error)
+    }
+  }
 
   const loadStories = async (creatorSlug: string) => {
     setLoadingStories(true)
@@ -211,11 +229,43 @@ export default function EditProfilePage() {
   }
 
   const handleSave = async () => {
+    if (!slug) return
+
     setSaving(true)
-    // TODO: Implémenter la sauvegarde en base de données
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setSaving(false)
-    alert('Profil sauvegardé avec succès !')
+
+    try {
+      const response = await fetch('/api/creator/update-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          creatorSlug: slug,
+          name,
+          avatarUrl,
+          coverUrl
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        // Mettre à jour le localStorage
+        localStorage.setItem('creatorName', name)
+
+        alert('Profil sauvegardé avec succès !')
+
+        // Optionnel : recharger la page pour voir les changements
+        setTimeout(() => {
+          window.location.reload()
+        }, 500)
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error)
+      alert('Erreur lors de la sauvegarde du profil')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleStoryClick = () => {
