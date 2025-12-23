@@ -1,14 +1,15 @@
 /**
  * Utilitaire pour télécharger les images générées par DALL-E
- * et les sauvegarder dans Vercel Blob Storage
+ * et les sauvegarder localement dans /public/generated-images
  */
 
-import { put } from '@vercel/blob';
+import { writeFile, mkdir } from 'fs/promises';
+import { join } from 'path';
 
 /**
- * Télécharge une image depuis une URL et la sauvegarde dans Vercel Blob
+ * Télécharge une image depuis une URL et la sauvegarde localement
  * @param url URL de l'image (généralement depuis DALL-E)
- * @returns URL publique de l'image sur Vercel Blob
+ * @returns URL publique de l'image
  */
 export async function downloadImage(url: string): Promise<string> {
   try {
@@ -22,19 +23,23 @@ export async function downloadImage(url: string): Promise<string> {
     // Générer un nom de fichier unique
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
-    const fileName = `uploads/ai-${timestamp}-${randomString}.png`;
+    const fileName = `ai-${timestamp}-${randomString}.png`;
 
-    // Upload vers Vercel Blob Storage
-    const blob = await put(fileName, response.body as ReadableStream, {
-      access: 'public',
-      addRandomSuffix: false,
-      contentType: 'image/png',
-    });
+    // Créer le dossier si nécessaire
+    const publicDir = join(process.cwd(), 'public', 'generated-images');
+    await mkdir(publicDir, { recursive: true });
 
-    console.log('✅ Image DALL-E uploadée vers Blob:', blob.url);
+    // Sauvegarder l'image localement
+    const filePath = join(publicDir, fileName);
+    const buffer = Buffer.from(await response.arrayBuffer());
+    await writeFile(filePath, buffer);
 
-    // Retourner l'URL publique Vercel Blob
-    return blob.url;
+    // URL publique (relative depuis /public)
+    const publicUrl = `/generated-images/${fileName}`;
+
+    console.log('✅ Image DALL-E sauvegardée localement:', publicUrl);
+
+    return publicUrl;
   } catch (error) {
     console.error('Error downloading image:', error);
     throw error;

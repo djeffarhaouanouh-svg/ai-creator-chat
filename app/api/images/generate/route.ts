@@ -1,22 +1,82 @@
 /**
- * API de génération d'images avec DALL-E 3
- * GÉNÉRATION ILLIMITÉE - Pas de limite de fréquence
- * - Niveau intimité modéré (bloque lingerie/intime uniquement)
+ * API de sélection d'images depuis photos réelles pré-enregistrées
+ * Sélectionne aléatoirement une photo du dossier correspondant
+ * - Photos réelles authentiques (pas d'IA)
+ * - Organisées par catégories
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
-import OpenAI from 'openai';
-import { downloadImage } from '@/lib/downloadImage';
+import { readdir } from 'fs/promises';
+import { join } from 'path';
+
+/**
+ * Détermine la catégorie de photo selon le scenario
+ */
+function getCategoryFromScenario(scenario: string): string {
+  const lower = scenario.toLowerCase();
+
+  // REPAS & NOURRITURE
+  if (lower.includes('meal') || lower.includes('food') || lower.includes('dish') ||
+      lower.includes('pasta') || lower.includes('pizza') || lower.includes('burger') ||
+      lower.includes('steak') || lower.includes('meat') || lower.includes('fries') ||
+      lower.includes('taco') || lower.includes('curry') || lower.includes('ramen') ||
+      lower.includes('sandwich') || lower.includes('delicious')) {
+    return 'food';
+  }
+
+  // SALADES
+  if (lower.includes('salad') || lower.includes('vegetables') || lower.includes('healthy')) {
+    return 'food';
+  }
+
+  // DESSERTS
+  if (lower.includes('dessert') || lower.includes('cake') || lower.includes('pastry') ||
+      lower.includes('ice cream') || lower.includes('chocolate') || lower.includes('cookie') ||
+      lower.includes('pancake') || lower.includes('crepe') || lower.includes('croissant')) {
+    return 'desserts';
+  }
+
+  // BOISSONS
+  if (lower.includes('coffee') || lower.includes('tea') || lower.includes('drink') ||
+      lower.includes('beer') || lower.includes('wine') || lower.includes('cocktail') ||
+      lower.includes('juice') || lower.includes('beverage') || lower.includes('cup')) {
+    return 'drinks';
+  }
+
+  // ACTIVITÉS
+  if (lower.includes('gaming') || lower.includes('game') || lower.includes('reading') ||
+      lower.includes('book') || lower.includes('workout') || lower.includes('yoga') ||
+      lower.includes('music') || lower.includes('art')) {
+    return 'activities';
+  }
+
+  // LIEUX
+  if (lower.includes('park') || lower.includes('beach') || lower.includes('restaurant') ||
+      lower.includes('cafe') || lower.includes('mountain') || lower.includes('city') ||
+      lower.includes('museum') || lower.includes('pool')) {
+    return 'places';
+  }
+
+  // NATURE
+  if (lower.includes('sunset') || lower.includes('sky') || lower.includes('flower') ||
+      lower.includes('tree') || lower.includes('forest') || lower.includes('nature')) {
+    return 'nature';
+  }
+
+  // Par défaut: food (catégorie la plus commune)
+  return 'food';
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, creatorId, scenario, classification } = await request.json();
+    const { userId, creatorId, scenario, classification, specificItem } = await request.json();
 
     console.log('🎨 Demande de génération d\'image:', {
       userId: userId ? `${userId.substring(0, 8)}...` : 'MANQUANT',
       creatorId,
-      classification
+      classification,
+      specificItem: specificItem || 'random'
     });
 
     // Validation des paramètres
@@ -36,69 +96,62 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // SÉCURITÉ DÉSACTIVÉE - Génération illimitée d'images
-    console.log('✅ Génération d\'image autorisée (pas de limite)');
+    console.log('✅ Sélection photo autorisée (photos réelles)');
 
-    // 3. Vérifier la clé API OpenAI
-    if (!process.env.OPENAI_API_KEY) {
-      console.error('❌ OPENAI_API_KEY manquante');
+    // 3. Déterminer la catégorie de photo selon le scenario
+    const category = getCategoryFromScenario(scenario);
+    console.log('📁 Catégorie détectée:', category);
+
+    // 4. Chemin du dossier de photos
+    const photosDir = join(process.cwd(), 'public', 'photos', category);
+
+    // 5. Lire les fichiers du dossier
+    let photoFiles: string[];
+    try {
+      photoFiles = await readdir(photosDir);
+      photoFiles = photoFiles.filter(file =>
+        file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.png')
+      );
+    } catch (error) {
+      console.error(`❌ Dossier non trouvé: ${photosDir}`);
       return NextResponse.json(
-        { error: 'Configuration OpenAI manquante' },
-        { status: 500 }
+        { error: `Aucune photo disponible pour la catégorie: ${category}` },
+        { status: 404 }
       );
     }
 
-    // 4. Charger le profil visuel de la créatrice (si image personnelle)
-    let prompt = scenario;
+    if (photoFiles.length === 0) {
+      console.error(`❌ Aucune photo dans: ${photosDir}`);
+      return NextResponse.json(
+        { error: `Aucune photo dans le dossier: ${category}` },
+        { status: 404 }
+      );
+    }
 
-    if (classification === 'personal') {
-      try {
-        const profile = await sql`
-          SELECT base_description, style_modifiers
-          FROM creator_visual_profiles
-          WHERE creator_slug = ${creatorId}
-          LIMIT 1
-        `;
+    // 6. Chercher une photo spécifique si demandée
+    let selectedPhoto: string;
 
-        if (profile.rows.length > 0) {
-          const { base_description, style_modifiers } = profile.rows[0];
-          // Combiner profil + scénario + modifiers de style
-          prompt = `${base_description}, ${scenario}. ${style_modifiers}`;
-          console.log('✓ Profil visuel chargé pour', creatorId);
-        } else {
-          console.warn(`⚠️ Profil visuel introuvable pour ${creatorId}, utilisation du scénario brut`);
-        }
-      } catch (error: any) {
-        console.error('❌ Erreur chargement profil visuel:', error.message);
-        // Continue avec le scénario brut
+    if (specificItem) {
+      // Chercher un fichier qui commence par le nom du plat (ex: "Tacos.jpg", "tacos-2.png")
+      const specificFile = photoFiles.find(file =>
+        file.toLowerCase().startsWith(specificItem.toLowerCase())
+      );
+
+      if (specificFile) {
+        selectedPhoto = specificFile;
+        console.log(`🎯 Photo spécifique trouvée: ${selectedPhoto}`);
+      } else {
+        // Fallback: photo aléatoire
+        selectedPhoto = photoFiles[Math.floor(Math.random() * photoFiles.length)];
+        console.log(`⚠️ Pas de photo pour "${specificItem}", photo random: ${selectedPhoto}`);
       }
+    } else {
+      // Photo aléatoire
+      selectedPhoto = photoFiles[Math.floor(Math.random() * photoFiles.length)];
+      console.log(`🎲 Photo aléatoire: ${selectedPhoto}`);
     }
 
-    // 5. Générer l'image avec DALL-E 3
-    console.log('🎨 Génération DALL-E 3...');
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
-    });
-
-    const response = await openai.images.generate({
-      model: 'dall-e-3',
-      prompt: prompt,
-      n: 1,
-      size: '1024x1024',
-      quality: 'standard' // Standard pour réduire les coûts (vs 'hd')
-    });
-
-    if (!response.data || response.data.length === 0 || !response.data[0].url) {
-      throw new Error('DALL-E n\'a pas retourné d\'URL d\'image');
-    }
-
-    const imageUrl = response.data[0].url;
-
-    console.log('✅ Image générée par DALL-E');
-
-    // 6. Télécharger et sauvegarder l'image localement
-    const localPath = await downloadImage(imageUrl);
-    console.log('✅ Image sauvegardée:', localPath);
+    const localPath = `/photos/${category}/${selectedPhoto}`;
 
     // 7. Tracker dans la base de données
     try {
@@ -110,8 +163,8 @@ export async function POST(request: NextRequest) {
           ${creatorId},
           ${localPath},
           ${classification},
-          ${prompt},
-          0.04
+          ${scenario},
+          0.00
         )
       `;
       console.log('✅ Image trackée en BDD');
@@ -129,7 +182,13 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('❌ Erreur génération image:', error);
+    console.error('❌ Erreur génération image DÉTAILLÉE:', {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      type: error.type,
+      stack: error.stack?.substring(0, 500)
+    });
 
     // Erreurs OpenAI spécifiques
     if (error.status === 401) {
@@ -147,7 +206,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Erreur lors de la génération de l\'image' },
+      { error: `Erreur lors de la génération: ${error.message}` },
       { status: 500 }
     );
   }

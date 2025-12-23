@@ -6,59 +6,144 @@ import { detectImageIntent } from '@/lib/imageDetection';
 import { imageToBase64 } from '@/lib/imageToBase64';
 
 /**
- * Détecte si l'utilisateur DEMANDE une photo et détermine le type
+ * Détecte si l'user demande quelque chose qui nécessite une photo
  */
-function detectUserPhotoRequest(text: string): { wantsPhoto: boolean; scenario: string; classification: 'generic' | 'personal' } | null {
-  const lowerText = text.toLowerCase();
+function detectPhotoNeed(message: string): boolean {
+  const lower = message.toLowerCase();
 
-  // Photos de CHOSES (nourriture, lieux, objets) - PRIORITÉ
-  if (lowerText.includes('plat') || lowerText.includes('nourriture') || lowerText.includes('bouffe') || lowerText.includes('repas')) {
-    return {
-      wantsPhoto: true,
-      scenario: 'a delicious healthy meal on a plate, food photography, restaurant quality, overhead shot, natural lighting',
-      classification: 'generic'
-    };
-  }
-
-  if (lowerText.includes('lieu') || lowerText.includes('endroit') || lowerText.includes('où tu es')) {
-    return {
-      wantsPhoto: true,
-      scenario: 'beautiful place, scenic view, lifestyle photography',
-      classification: 'generic'
-    };
-  }
-
-  // Photos PERSONNELLES (selfie, tenue, etc.)
-  const personalPhrases = [
-    'photo de toi',
-    'selfie',
-    'ta tenue',
-    'ton look',
-    'ta robe',
-    'ton outfit',
-    'comment tu es',
-    'à quoi tu ressembles'
+  // Mots-clés pour nourriture/boisson/activités
+  const keywords = [
+    'mangé', 'mange', 'manger', 'bouffe', 'repas', 'plat', 'déjeuner', 'dîner',
+    'bu', 'boire', 'boisson',
+    'fait', 'fais', 'faire',
+    'photo', 'montre', 'voir'
   ];
 
-  if (personalPhrases.some(phrase => lowerText.includes(phrase))) {
-    return {
-      wantsPhoto: true,
-      scenario: 'taking a mirror selfie with phone, wearing casual stylish outfit, indoor natural lighting, smiling at camera',
-      classification: 'personal'
-    };
+  // Détection simple : message contient "quoi" ou "qu'" + un mot-clé
+  const hasQuestion = lower.includes('quoi') || lower.includes('qu\'') || lower.includes('?');
+  const hasKeyword = keywords.some(k => lower.includes(k));
+
+  return hasQuestion && hasKeyword;
+}
+
+/**
+ * Détermine la catégorie selon le message utilisateur
+ */
+function getCategoryFromUserMessage(message: string): string {
+  const lower = message.toLowerCase();
+
+  if (lower.includes('mange') || lower.includes('repas') || lower.includes('bouffe')) {
+    return 'food';
+  }
+  if (lower.includes('bois') || lower.includes('boisson')) {
+    return 'drinks';
+  }
+  if (lower.includes('dessert') || lower.includes('gâteau')) {
+    return 'desserts';
+  }
+  if (lower.includes('fais') || lower.includes('activité')) {
+    return 'activities';
+  }
+  if (lower.includes('es') || lower.includes('lieu') || lower.includes('où')) {
+    return 'places';
+  }
+
+  return 'food';
+}
+
+/**
+ * Détecte un plat spécifique dans la réponse de DeepSeek
+ */
+function detectSpecificFood(response: string): string | null {
+  const lower = response.toLowerCase();
+
+  // Liste des plats avec leurs variations
+  const foods: { [key: string]: string[] } = {
+    'tacos': ['tacos', 'taco'],
+    'burger': ['burger', 'hamburger'],
+    'pizza': ['pizza'],
+    'pasta': ['pasta', 'pâtes', 'spaghetti'],
+    'salad': ['salad', 'salade'],
+    'sushi': ['sushi'],
+    'ramen': ['ramen'],
+    'sandwich': ['sandwich'],
+  };
+
+  // Chercher le premier plat mentionné
+  for (const [food, variations] of Object.entries(foods)) {
+    if (variations.some(v => lower.includes(v))) {
+      return food;
+    }
   }
 
   return null;
 }
 
+/**
+ * Sélectionne une photo aléatoire du dossier
+ */
+async function selectRandomPhoto(category: string): Promise<string | null> {
+  const { readdir } = await import('fs/promises');
+  const { join } = await import('path');
+
+  const photosDir = join(process.cwd(), 'public', 'photos', category);
+
+  try {
+    let photoFiles = await readdir(photosDir);
+    photoFiles = photoFiles.filter(file =>
+      file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.png')
+    );
+
+    if (photoFiles.length === 0) {
+      throw new Error(`Aucune photo dans ${category}`);
+    }
+
+    const randomIndex = Math.floor(Math.random() * photoFiles.length);
+    const selectedPhoto = photoFiles[randomIndex];
+
+    return `/photos/${category}/${selectedPhoto}`;
+  } catch (error) {
+    console.error(`Erreur lecture photos: ${error}`);
+    return null;
+  }
+}
+
+/**
+ * Liste les plats disponibles dans le dossier food
+ */
+async function getAvailableFoods(): Promise<string[]> {
+  const { readdir } = await import('fs/promises');
+  const { join } = await import('path');
+
+  const photosDir = join(process.cwd(), 'public', 'photos', 'food');
+
+  try {
+    let photoFiles = await readdir(photosDir);
+    photoFiles = photoFiles.filter(file =>
+      file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.png')
+    );
+
+    // Extraire les noms des plats (enlever l'extension)
+    return photoFiles.map(file => {
+      const name = file.split('.')[0];
+      return name.toLowerCase();
+    });
+  } catch (error) {
+    return [];
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    if (!process.env.OPENAI_API_KEY) {
+    // Vérification désactivée temporairement pour debug
+    /*
+    if (!process.env.DEEPSEEK_API_KEY) {
       return NextResponse.json(
-        { error: 'Clé API non configurée. Ajoute OPENAI_API_KEY dans .env.local' },
+        { error: 'Clé API non configurée. Ajoute DEEPSEEK_API_KEY dans .env.local' },
         { status: 500 }
       );
     }
+    */
 
     const body = await request.json();
     const { messages, creatorId, userId, mode, userImage } = body;
@@ -179,8 +264,15 @@ export async function POST(request: NextRequest) {
     }
 
     const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: process.env.DEEPSEEK_API_KEY,
+      baseURL: 'https://api.deepseek.com'
     });
+
+    // Récupérer les plats disponibles pour que l'IA ne mente pas
+    const availableFoods = await getAvailableFoods();
+    const foodList = availableFoods.length > 0
+      ? `\n\nIMPORTANT: Si on te demande ce que tu as mangé, tu DOIS répondre uniquement avec un de ces plats (tu as des photos pour eux): ${availableFoods.join(', ')}`
+      : '';
 
     // Prompt système simple et efficace
     const systemPrompt = `Tu es ${creator.name}, une créatrice de contenu française chaleureuse et authentique.
@@ -195,41 +287,11 @@ IMPORTANT - IMAGES :
 - Tu peux envoyer des photos de plats, de lieux, ou de toi (selfies, tenues, activités)
 - Sois DIRECTE et NATURELLE quand tu parles des images, pas besoin de t'excuser ou de te justifier
 
-Mode actuel : ${mode === 'girlfriend' ? 'Petite copine 💕 - Tu es joueuse, complice et flirty' : mode === 'seductive' ? 'Séduisante 😏 - Tu es taquine, audacieuse et suggestive' : 'Amie 💛 - Tu es naturelle, chaleureuse et relax'}
+Mode actuel : ${mode === 'girlfriend' ? 'Petite copine 💕 - Tu es joueuse, complice et flirty' : mode === 'seductive' ? 'Séduisante 😏 - Tu es taquine, audacieuse et suggestive' : 'Amie 💛 - Tu es naturelle, chaleureuse et relax'}${foodList}
 
 Réponds toujours en français, de manière courte (2-3 phrases max), et reste dans le personnage de ${creator.name}.`;
 
-    console.log('🤖 Envoi à GPT avec', messages.length, 'messages');
-
-    // NOUVELLE APPROCHE : Détecter si l'utilisateur DEMANDE une photo
-    const lastUserMessage = messages[messages.length - 1];
-    const photoRequest = lastUserMessage?.role === 'user' ? detectUserPhotoRequest(lastUserMessage.content) : null;
-
-    let preGeneratedImageUrl = null;
-
-    if (photoRequest?.wantsPhoto) {
-      console.log('📸 Utilisateur demande une photo -', photoRequest.classification, '- Génération AVANT Claude...');
-      try {
-        const imageResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/images/generate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId,
-            creatorId,
-            scenario: photoRequest.scenario,
-            classification: photoRequest.classification
-          })
-        });
-
-        if (imageResponse.ok) {
-          const imageData = await imageResponse.json();
-          preGeneratedImageUrl = imageData.imageUrl;
-          console.log('✅ Image pré-générée:', preGeneratedImageUrl);
-        }
-      } catch (error: any) {
-        console.error('❌ Erreur pré-génération image:', error.message);
-      }
-    }
+    console.log('🤖 Envoi à DeepSeek avec', messages.length, 'messages');
 
     // Filtrer les messages avec des URLs localhost invalides
     const validMessages = messages.map((m: any) => {
@@ -268,31 +330,12 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
         content: `📋 Résumé de la conversation précédente (${oldMessagesToSummarize.length} messages) :\n${summary}\n\n---\nImages et conversation récente ci-dessous :`
       };
 
-      // Fonction pour convertir un message en format GPT multimodal
+      // Fonction pour convertir un message - DeepSeek: IGNORER les images
       const toGptMessage = (m: any) => {
-        if (m.image_url) {
-          const imageUrl = m.image_url.startsWith('http')
-            ? m.image_url
-            : `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}${m.image_url}`;
-
-          return {
-            role: m.role,
-            content: [
-              {
-                type: 'image_url',
-                image_url: { url: imageUrl }
-              },
-              {
-                type: 'text',
-                text: m.content || 'Regarde cette image'
-              }
-            ]
-          };
-        }
-
+        // DeepSeek n'accepte pas les images - toujours retourner texte simple
         return {
           role: m.role,
-          content: m.content
+          content: m.content || 'Message'
         };
       };
 
@@ -335,8 +378,41 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
       console.log('📨 Messages complets:', contextMessages.length, 'messages');
     }
 
+    // NOUVEAU FLUX: Sélection photo AVANT appel DeepSeek
+    const lastUserMessage = messages[messages.length - 1]?.content || '';
+    const shouldSelectPhoto = detectPhotoNeed(lastUserMessage);
+
+    let selectedPhotoUrl: string | null = null;
+
+    if (shouldSelectPhoto) {
+      // SÉCURITÉ TEMPORAIREMENT DÉSACTIVÉE - À CORRIGER
+      console.log('📸 Photo demandée - envoi...');
+
+      // Déterminer la catégorie
+      const category = getCategoryFromUserMessage(lastUserMessage);
+
+      // Sélectionner photo aléatoire
+      selectedPhotoUrl = await selectRandomPhoto(category);
+
+      if (selectedPhotoUrl) {
+        console.log(`📸 Photo sélectionnée: ${selectedPhotoUrl} (catégorie: ${category})`);
+
+        // DeepSeek ne supporte PAS le format image_url
+        // Solution: Dire à DeepSeek ce qu'il a mangé selon le nom du fichier
+        const fileName = selectedPhotoUrl.split('/').pop() || '';
+        const foodName = fileName.split('.')[0]; // "Tacos.jpg" -> "Tacos"
+
+        contextMessages.push({
+          role: 'system',
+          content: `Tu as mangé: ${foodName}. Réponds de manière naturelle et enthousiaste !`
+        });
+
+        console.log(`🍽️ DeepSeek informé: ${foodName}`);
+      }
+    }
+
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'deepseek-chat',
       max_tokens: 300,
       messages: [
         { role: 'system', content: systemPrompt },
@@ -347,7 +423,7 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
 
     let text = response.choices[0]?.message?.content || '';
 
-    console.log('✅ Réponse de GPT (brute):', text.substring(0, 100) + '...');
+    console.log('✅ Réponse de DeepSeek (brute):', text.substring(0, 100) + '...');
 
     // POST-TRAITEMENT : Détecter et corriger les refus de GPT
     const lastUserMsg = validMessages[validMessages.length - 1];
@@ -370,20 +446,8 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
     const hasRefusal = refusalPhrases.some(phrase => text.toLowerCase().includes(phrase));
 
     if (hasRefusal) {
-      // Si on a généré une image POUR l'utilisateur
-      if (preGeneratedImageUrl) {
-        const positiveResponses = [
-          'Voici une photo de moi ! 💕',
-          'Tiens, regarde cette photo ! ✨',
-          'Je t\'envoie une photo ! 😊',
-          'Voilà pour toi ! 💖',
-          'Check ça ! 🌟'
-        ];
-        text = positiveResponses[Math.floor(Math.random() * positiveResponses.length)];
-        console.log('🔄 Réponse corrigée (refus détecté - image générée) →', text);
-      }
       // Si l'utilisateur nous a envoyé une image
-      else if (userSentImage) {
+      if (userSentImage) {
         const naturalResponses = [
           'Super photo ! 😊 J\'adore ce que je vois !',
           'Oh j\'aime bien ! 💕',
@@ -396,37 +460,34 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
       }
     }
 
-    let finalImageUrl = preGeneratedImageUrl; // Image déjà générée si user a demandé
+    // Détection de plats spécifiques dans la réponse de DeepSeek
+    let finalImageUrl = selectedPhotoUrl;
 
-    // Si pas d'image pré-générée, vérifier si GPT parle de quelque chose de visuel
-    if (!finalImageUrl) {
-      const imageIntent = detectImageIntent(text, validMessages.slice(-5));
+    // Si DeepSeek mentionne un plat spécifique, envoyer la photo correspondante
+    const specificFood = detectSpecificFood(text);
 
-      if (imageIntent.shouldGenerateImage && imageIntent.confidence > 0.7) {
-        try {
-          console.log('🎨 GPT mentionne quelque chose de visuel, génération...');
-          const imageResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/images/generate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              userId,
-              creatorId,
-              scenario: imageIntent.scenario,
-              classification: imageIntent.classification
-            })
-          });
+    if (specificFood && !selectedPhotoUrl) {
+      try {
+        console.log('🍽️ DeepSeek mentionne:', specificFood);
+        const imageResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/images/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            creatorId,
+            scenario: specificFood,
+            classification: 'generic',
+            specificItem: specificFood
+          })
+        });
 
-          if (imageResponse.ok) {
-            const imageData = await imageResponse.json();
-            finalImageUrl = imageData.imageUrl;
-            console.log('✅ Image générée:', finalImageUrl);
-          } else {
-            const errorData = await imageResponse.json();
-            console.warn('⚠️ Génération refusée:', errorData.error);
-          }
-        } catch (error: any) {
-          console.error('❌ Erreur génération image:', error.message);
+        if (imageResponse.ok) {
+          const imageData = await imageResponse.json();
+          finalImageUrl = imageData.imageUrl;
+          console.log('✅ Photo envoyée:', finalImageUrl);
         }
+      } catch (error: any) {
+        console.error('❌ Erreur sélection photo:', error.message);
       }
     }
 

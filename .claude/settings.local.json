@@ -18,7 +18,9 @@
       "Bash(ls:*)",
       "Bash(npm install:*)",
       "Bash(psql:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(npx dotenv:*)",
+      "Bash(node -c:*)"
     ]
   }
 }
