@@ -6,6 +6,7 @@ import { MessageCircle, Users, Star } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import PaypalButton from "@/components/PaypalButton";
 import { storage } from "@/lib/storage";
+import StoryViewer from "@/components/StoryViewer";
 
 export default function LaurynPage() {
   const router = useRouter();
@@ -50,6 +51,11 @@ const data = await res.json();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
+  // Stories
+  const [stories, setStories] = useState<any[]>([]);
+  const [selectedStory, setSelectedStory] = useState<any>(null);
+  const [storyIndex, setStoryIndex] = useState(0);
+
   // 🔥 DONNÉES UNIQUES POUR LAURYN
   const price = 6.97;
   const audio = "/audio/alice.mp3";
@@ -84,8 +90,23 @@ const data = await res.json();
       // Accorder l'accès si c'est la créatrice ou si l'utilisateur est abonné
       const hasAccess = isOwnProfile || isSubbed;
       setIsSubscribed(hasAccess);
+
+      // Charger les stories
+      loadStories(creator.slug || creator.id, hasAccess);
     }
   }, [creator]);
+
+  const loadStories = async (creatorId: string, hasAccess: boolean) => {
+    try {
+      const response = await fetch(`/api/stories/list?creatorId=${creatorId}`);
+      const data = await response.json();
+      if (data.success) {
+        setStories(data.stories);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des stories:', error);
+    }
+  };
 
   // Préparer l'audio
   useEffect(() => {
@@ -183,6 +204,73 @@ const data = await res.json();
             <span className="text-gray-500 text-sm">note</span>
           </div>
         </div>
+
+        {/* STORIES */}
+        {stories.length > 0 && (
+          <div className="px-4 md:px-8 pb-6 mt-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Stories</h2>
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {stories.map((story, index) => {
+                const canView = !story.is_locked || isSubscribed;
+                return (
+                  <div
+                    key={story.id}
+                    onClick={() => {
+                      if (canView) {
+                        setSelectedStory(story);
+                        setStoryIndex(index);
+                        // Enregistrer la vue
+                        if (typeof window !== 'undefined') {
+                          const userId = localStorage.getItem('userId');
+                          if (userId) {
+                            fetch('/api/stories/view', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ storyId: story.id, userId })
+                            }).catch(console.error);
+                          }
+                        }
+                      }
+                    }}
+                    className={`flex-shrink-0 ${canView ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                  >
+                    <div className="relative">
+                      <div className={`w-20 h-20 rounded-full overflow-hidden border-4 ${
+                        canView ? 'border-gradient-to-r from-purple-500 to-pink-500' : 'border-gray-300'
+                      } p-0.5 bg-gradient-to-r from-purple-500 to-pink-500`}>
+                        <div className="w-full h-full rounded-full overflow-hidden bg-white">
+                          {story.media_type === 'video' ? (
+                            <video
+                              src={story.media_url}
+                              className={`w-full h-full object-cover ${!canView ? 'blur-sm' : ''}`}
+                              muted
+                            />
+                          ) : (
+                            <img
+                              src={story.media_url}
+                              alt="Story"
+                              className={`w-full h-full object-cover ${!canView ? 'blur-sm' : ''}`}
+                            />
+                          )}
+                        </div>
+                      </div>
+                      {!canView && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center">
+                            🔒
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-600 text-center mt-1 max-w-[80px] truncate">
+                      {story.title || 'Story'}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* GALERIE EN HAUT (position comme Lucile) */}
         <div className="px-4 md:px-8 pb-16 mt-10">
@@ -379,6 +467,15 @@ const data = await res.json();
             />
           </div>
         </div>
+      )}
+
+      {/* STORY VIEWER */}
+      {selectedStory && (
+        <StoryViewer
+          stories={stories}
+          initialIndex={storyIndex}
+          onClose={() => setSelectedStory(null)}
+        />
       )}
     </main>
   );
