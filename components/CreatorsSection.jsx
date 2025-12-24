@@ -34,7 +34,7 @@ const CreatorsSection = () => {
           </div>
 
           {/* 📱 VERSION MOBILE — DÉCALAGE AVEC EFFET AU CLIC & HOVER */}
-          <div className="lg:hidden mb-10 grid grid-cols-3 gap-4">
+          <div className="lg:hidden mb-10 mt-20 grid grid-cols-3 gap-4">
 
             <div className="w-full h-64 -mt-4 rounded-2xl overflow-hidden border border-white/10 
                             cursor-pointer transition-transform duration-300 

@@ -792,14 +792,14 @@ export default function EditProfilePage() {
 
         {/* Galerie de contenu exclusif */}
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold text-gray-900">Contenu exclusif</h2>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Contenu exclusif</h2>
 
+            <div className="flex items-center gap-3">
               {/* Bouton toggle pour mobile */}
               <button
                 onClick={() => setShowGallery(!showGallery)}
-                className="md:hidden px-3 py-1.5 bg-purple-100 text-purple-600 rounded-lg font-semibold hover:bg-purple-200 transition-all flex items-center gap-2 text-sm"
+                className="md:hidden flex-1 px-3 py-2 bg-purple-100 text-purple-600 rounded-lg font-semibold hover:bg-purple-200 transition-all flex items-center justify-center gap-2 text-sm"
               >
                 {showGallery ? (
                   <>
@@ -817,22 +817,22 @@ export default function EditProfilePage() {
                   </>
                 )}
               </button>
-            </div>
 
-            <input
-              ref={galleryInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleGalleryChange}
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={handleGalleryClick}
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:opacity-90 transition-all"
-            >
-              + Ajouter
-            </button>
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleGalleryChange}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={handleGalleryClick}
+                className="flex-1 md:flex-none px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:opacity-90 transition-all"
+              >
+                + Ajouter
+              </button>
+            </div>
           </div>
 
           <p className="text-gray-600 mb-6">

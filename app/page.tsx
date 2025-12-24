@@ -332,17 +332,70 @@ export default function Home() {
 
       {/* ================= AUTRES SECTIONS ================= */}
       {imagesLoaded && (
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-        className="space-y-16 md:space-y-32"
-      >
-        <ContenusPersonnalises />
-        <CreatorsSection />
-        <PrivateContentSection />
-      </motion.div>
+      <>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+        >
+          <ContenusPersonnalises />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scaleX: 0 }}
+          whileInView={{ opacity: 1, scaleX: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          viewport={{ once: true }}
+          className="relative w-full flex justify-center my-6 md:my-10 overflow-visible"
+        >
+          <div
+            className="
+              h-[2px]
+              w-48 md:w-80 lg:w-[520px]
+              bg-white rounded-full
+              shadow-[0_0_20px_rgba(255,255,255,0.6)]
+              translate-y-0
+            "
+          />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+        >
+          <CreatorsSection />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scaleX: 0 }}
+          whileInView={{ opacity: 1, scaleX: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          viewport={{ once: true }}
+          className="relative w-full flex justify-center my-6 md:my-10 overflow-visible"
+        >
+          <div
+            className="
+              h-[2px]
+              w-48 md:w-80 lg:w-[520px]
+              bg-white rounded-full
+              shadow-[0_0_20px_rgba(255,255,255,0.6)]
+              translate-y-[80px] md:translate-y-0
+            "
+          />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+        >
+          <PrivateContentSection />
+        </motion.div>
+      </>
       )}
 
       {/* ================= FAQ SECTION ================= */}
@@ -352,7 +405,7 @@ export default function Home() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         viewport={{ once: true }}
-        className="w-full mt-32 md:mt-0 py-16 md:py-24 px-4 bg-black text-white"
+        className="w-full mt-24 md:mt-0 py-16 md:py-24 px-4 bg-black text-white"
       >
         <div className="max-w-4xl mx-auto">
           {/* TITRE */}

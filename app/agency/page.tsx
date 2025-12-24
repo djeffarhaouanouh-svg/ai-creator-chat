@@ -336,7 +336,7 @@ export default function Page() {
       </section>
 
       {/* ================= TESTIMONIALS ================= */}
-      <TestimonialsSection />
+
 
       {/* ================= FAQ ================= */}
       <motion.section

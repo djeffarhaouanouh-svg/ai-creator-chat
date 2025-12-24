@@ -103,12 +103,12 @@ export default function PrivateContentSection() {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
       viewport={{ once: true }}
-      className="pt-12 pb-16 px-4 md:pt-20 md:pb-32 md:px-6 bg-black"
+      className="pt-12 pb-0 px-4 md:pt-20 md:pb-32 md:px-6 bg-black"
     >
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-14 items-center">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-32 md:gap-14 items-center">
 
         {/* 📱 CHAT */}
-        <div className="flex justify-center">
+        <div className="flex justify-center mt-32 lg:mt-0">
           <div className="relative w-[300px] h-[520px] md:w-[340px] md:h-[600px] rounded-[32px] overflow-hidden bg-gradient-to-b from-[#1a2332] via-[#0f1419] to-black shadow-2xl">
 
             <div
@@ -229,6 +229,17 @@ export default function PrivateContentSection() {
         </div>
 
       </div>
+
+      {/* Trait blanc décoratif */}
+      <motion.div
+        initial={{ opacity: 0, scaleX: 0 }}
+        whileInView={{ opacity: 1, scaleX: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        viewport={{ once: true }}
+        className="relative w-full flex justify-center mt-32 lg:mt-40"
+      >
+        <div className="h-[2px] w-48 md:w-80 lg:w-[520px] bg-white rounded-full shadow-[0_0_20px_rgba(255,255,255,0.6)]" />
+      </motion.div>
     </motion.section>
   );
 }
