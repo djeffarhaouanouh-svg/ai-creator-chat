@@ -8,6 +8,13 @@ import PaypalButton from "@/components/PaypalButton";
 import { storage } from "@/lib/storage";
 import StoryViewer from "@/components/StoryViewer";
 
+interface GalleryPhoto {
+  id?: string;
+  url: string;
+  isLocked: boolean;
+  order: number;
+}
+
 export default function LaurynPage() {
   const router = useRouter();
  const [creator, setCreator] = useState<any>(null);
@@ -68,7 +75,7 @@ const data = await res.json();
     "/laurin-6.png",
   ];
   // Utiliser les photos de galerie de la DB ou les photos statiques comme fallback
-  const photos = creator?.galleryPhotos && creator.galleryPhotos.length > 0
+  const photos: GalleryPhoto[] = creator?.galleryPhotos && creator.galleryPhotos.length > 0
     ? creator.galleryPhotos
     : photosStatic.map((url, i) => ({ url, isLocked: i !== 0 && i !== 2, order: i }));
   const rating = 4.9;
@@ -283,15 +290,14 @@ const data = await res.json();
           </h2>
 
           <div className="grid grid-cols-3 gap-2 max-w-3xl mx-auto">
-            {photos.map((photo, i) => {
-              // Si photo est un objet (DB), utiliser photo.isLocked, sinon fallback sur index
-              const photoUrl = typeof photo === 'string' ? photo : photo.url;
-              const photoIsLocked = typeof photo === 'object' ? photo.isLocked : (i !== 0 && i !== 2);
+            {photos.map((photo: GalleryPhoto, i: number) => {
+              const photoUrl = photo.url;
+              const photoIsLocked = photo.isLocked;
               const isUnlocked = isSubscribed || !photoIsLocked;
 
               return (
                 <div
-                  key={typeof photo === 'object' ? photo.id : i}
+                  key={photo.id || i}
                   className={`relative rounded-2xl overflow-hidden bg-gray-200 aspect-square ${
                     isUnlocked ? 'cursor-pointer hover:opacity-90 transition' : ''
                   }`}
