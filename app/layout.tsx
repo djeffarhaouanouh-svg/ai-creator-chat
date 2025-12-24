@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
+import NavBar from "@/components/NavBar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,7 +31,7 @@ export default function RootLayout({
         <Header />
 
         {/* WRAPPER GLOBAL */}
-        <div className="pt-20 min-h-screen flex flex-col">
+        <div className="pt-20 pb-20 min-h-screen flex flex-col">
           <main className="flex-1">
             {children}
           </main>
@@ -70,6 +71,7 @@ export default function RootLayout({
             </div>
           </footer>
         </div>
+        <NavBar />
       </body>
     </html>
   );
