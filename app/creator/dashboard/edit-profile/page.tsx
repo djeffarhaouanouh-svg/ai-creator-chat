@@ -72,6 +72,9 @@ export default function EditProfilePage() {
   const [storyCaption, setStoryCaption] = useState('')
   const [uploadingStory, setUploadingStory] = useState(false)
 
+  // État pour afficher/masquer la galerie sur mobile
+  const [showGallery, setShowGallery] = useState(false)
+
   useEffect(() => {
     const accountType = localStorage.getItem('accountType')
     const creatorSlug = localStorage.getItem('creatorSlug')
@@ -103,7 +106,8 @@ export default function EditProfilePage() {
       if (data.cover_image) {
         setCoverUrl(data.cover_image)
       }
-      if (data.galleryPhotos && Array.isArray(data.galleryPhotos)) {
+      // Charger les photos uniquement si le tableau n'est pas vide
+      if (data.galleryPhotos && Array.isArray(data.galleryPhotos) && data.galleryPhotos.length > 0) {
         setGalleryPhotos(data.galleryPhotos)
       }
     } catch (error) {
@@ -772,7 +776,32 @@ export default function EditProfilePage() {
         {/* Galerie de contenu exclusif */}
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Contenu exclusif</h2>
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-bold text-gray-900">Contenu exclusif</h2>
+
+              {/* Bouton toggle pour mobile */}
+              <button
+                onClick={() => setShowGallery(!showGallery)}
+                className="md:hidden px-3 py-1.5 bg-purple-100 text-purple-600 rounded-lg font-semibold hover:bg-purple-200 transition-all flex items-center gap-2 text-sm"
+              >
+                {showGallery ? (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                    Masquer
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                    Voir ({galleryPhotos.length})
+                  </>
+                )}
+              </button>
+            </div>
+
             <input
               ref={galleryInputRef}
               type="file"
@@ -793,6 +822,7 @@ export default function EditProfilePage() {
             Gérez les photos qui apparaissent sur votre profil. Les photos avec le cadenas sont réservées aux abonnés.
           </p>
 
+          {/* Contenu de la galerie */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {galleryPhotos.length === 0 ? (
               <div className="col-span-2 md:col-span-3 text-center py-12">
@@ -805,7 +835,9 @@ export default function EditProfilePage() {
                 <p className="text-gray-400 text-sm">Cliquez sur "Ajouter une photo" pour commencer</p>
               </div>
             ) : null}
-            {galleryPhotos.map((photo) => (
+            {/* Sur mobile: afficher 2 photos si masqué, toutes si affiché */}
+            {/* Sur desktop: toujours afficher toutes */}
+            {(typeof window !== 'undefined' && window.innerWidth < 768 && !showGallery ? galleryPhotos.slice(0, 2) : galleryPhotos).map((photo) => (
               <div
                 key={photo.id}
                 className="relative group rounded-xl overflow-hidden aspect-square border-2 border-gray-200 hover:border-purple-400 transition-all"

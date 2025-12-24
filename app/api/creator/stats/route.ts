@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     `
     const totalSubscribers = Number(subscribersResult.rows[0]?.total) || 0
 
-    // 4. Calculer les revenus totaux
+    // 4. Calculer les revenus totaux (abonnements uniquement)
     const revenueResult = await sql`
       SELECT COALESCE(SUM(p.amount), 0) as total
       FROM payments p
@@ -63,9 +63,9 @@ export async function GET(request: NextRequest) {
       WHERE s.creator_id = ${creatorId}
       AND p.status = 'succeeded'
     `
-    const totalRevenue = Number(revenueResult.rows[0]?.total) || 0
+    const totalRevenueFromSubscriptions = Number(revenueResult.rows[0]?.total) || 0
 
-    // 5. Revenus du mois en cours
+    // 5. Revenus du mois en cours (abonnements uniquement)
     const monthlyRevenueResult = await sql`
       SELECT COALESCE(SUM(p.amount), 0) as total
       FROM payments p
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       AND p.status = 'succeeded'
       AND DATE_TRUNC('month', p.created_at) = DATE_TRUNC('month', NOW())
     `
-    const monthlyRevenue = Number(monthlyRevenueResult.rows[0]?.total) || 0
+    const monthlyRevenueFromSubscriptions = Number(monthlyRevenueResult.rows[0]?.total) || 0
 
     // 6. Messages du mois en cours
     // NOTE: messages.creator_id est TEXT (slug), pas UUID
@@ -190,6 +190,12 @@ export async function GET(request: NextRequest) {
       AND status = 'pending'
     `
     const pendingRequests = Number(pendingRequestsResult.rows[0]?.total) || 0
+
+    // Calculer les revenus totaux (abonnements + contenus personnalisés)
+    const totalRevenue = totalRevenueFromSubscriptions + contentRevenue
+
+    // Calculer le revenu mensuel total (abonnements + contenus personnalisés)
+    const monthlyRevenue = monthlyRevenueFromSubscriptions + contentRevenueThisMonth
 
     // Retourner toutes les statistiques
     return NextResponse.json({

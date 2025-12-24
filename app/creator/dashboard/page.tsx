@@ -122,33 +122,101 @@ export default function CreatorDashboardPage() {
           </div>
         </div>
 
-        {/* Bouton Modifier mon profil */}
-        <button
-          onClick={() => router.push('/creator/dashboard/edit-profile')}
-          className="w-full mb-8 p-4 border-2 border-purple-300 bg-white rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-left"
-        >
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-              <svg
-                className="w-5 h-5 text-purple-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Modifier mon profil</h3>
-              <p className="text-sm text-gray-500">Photo, nom et contenu exclusif</p>
-            </div>
+        {/* Actions rapides */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Actions rapides</h2>
+
+          <div className="grid grid-cols-1 gap-4">
+            <button
+              onClick={() => router.push('/creator/dashboard/edit-profile')}
+              className="p-4 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-left"
+            >
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                  <svg
+                    className="w-5 h-5 text-purple-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">Modifier mon profil</h3>
+                  <p className="text-sm text-gray-500">Photo, nom et contenu exclusif</p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                router.push('/creator/dashboard/messages#meilleurs-messages')
+                setTimeout(() => {
+                  const element = document.getElementById('meilleurs-messages')
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                }, 300)
+              }}
+              className="p-4 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-left"
+            >
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mr-4">
+                  <svg
+                    className="w-5 h-5 text-pink-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">Les meilleurs messages</h3>
+                  <p className="text-sm text-gray-500">Partager en story</p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => router.push(`/creator/${slug}`)}
+              className="p-4 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-left"
+            >
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                  <svg
+                    className="w-5 h-5 text-purple-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">Voir mon profil</h3>
+                  <p className="text-sm text-gray-500">Accéder à ma page créatrice</p>
+                </div>
+              </div>
+            </button>
           </div>
-        </button>
+        </div>
 
         {/* Statistiques */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -475,76 +543,6 @@ export default function CreatorDashboardPage() {
             </div>
           </div>
         )}
-
-        {/* Actions rapides */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Actions rapides</h2>
-
-          <div className="grid grid-cols-1 gap-4">
-            <button
-              onClick={() => router.push(`/creator/${slug}`)}
-              className="p-4 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-left"
-            >
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-                  <svg
-                    className="w-5 h-5 text-purple-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Voir mon profil</h3>
-                  <p className="text-sm text-gray-500">Accéder à ma page créatrice</p>
-                </div>
-              </div>
-            </button>
-
-            <button
-              onClick={() => {
-                router.push('/creator/dashboard/messages#meilleurs-messages')
-                // Scroll vers la section après un court délai pour laisser la page charger
-                setTimeout(() => {
-                  const element = document.getElementById('meilleurs-messages')
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                  }
-                }, 300)
-              }}
-              className="p-4 border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-left"
-            >
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mr-4">
-                  <svg
-                    className="w-5 h-5 text-pink-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Les meilleurs messages</h3>
-                  <p className="text-sm text-gray-500">Partager en story</p>
-                </div>
-              </div>
-            </button>
-          </div>
-        </div>
 
         {/* Liste des abonnés */}
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
