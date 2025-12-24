@@ -831,7 +831,7 @@ export default function EditProfilePage() {
               onClick={handleGalleryClick}
               className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:opacity-90 transition-all"
             >
-              + Ajouter une photo
+              + Ajouter
             </button>
           </div>
 
