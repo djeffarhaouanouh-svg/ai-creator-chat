@@ -105,7 +105,7 @@ export default function PrivateContentSection() {
       viewport={{ once: true }}
       className="pt-12 pb-0 px-4 md:pt-20 md:pb-32 md:px-6 bg-black"
     >
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-32 md:gap-14 items-center">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-14 items-center">
 
         {/* 📱 CHAT */}
         <div className="flex justify-center mt-32 lg:mt-0">

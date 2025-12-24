@@ -21,7 +21,8 @@
       "Bash(git rm:*)",
       "Bash(npx dotenv:*)",
       "Bash(node -c:*)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "Bash(git restore:*)"
     ]
   }
 }
