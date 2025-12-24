@@ -835,9 +835,8 @@ export default function EditProfilePage() {
                 <p className="text-gray-400 text-sm">Cliquez sur "Ajouter une photo" pour commencer</p>
               </div>
             ) : null}
-            {/* Sur mobile: afficher 2 photos si masqué, toutes si affiché */}
-            {/* Sur desktop: toujours afficher toutes */}
-            {(typeof window !== 'undefined' && window.innerWidth < 768 && !showGallery ? galleryPhotos.slice(0, 2) : galleryPhotos).map((photo) => (
+            {/* Sur mobile: 2 photos par défaut, toutes si showGallery. Sur desktop: toutes */}
+            {galleryPhotos.map((photo, index) => (
               <div
                 key={photo.id}
                 className="relative group rounded-xl overflow-hidden aspect-square border-2 border-gray-200 hover:border-purple-400 transition-all"
