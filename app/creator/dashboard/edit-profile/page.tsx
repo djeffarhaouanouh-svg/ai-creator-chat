@@ -668,11 +668,28 @@ export default function EditProfilePage() {
               <p>Aucune story publiée</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className={`${
+              stories.filter(s => s.status !== 'deleted').length > 2
+                ? 'flex overflow-x-auto gap-4 pb-2 md:grid md:grid-cols-4 snap-x snap-mandatory scrollbar-hide'
+                : 'grid grid-cols-2 md:grid-cols-4 gap-4'
+            }`}
+            style={stories.filter(s => s.status !== 'deleted').length > 2 ? {
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            } : {}}>
+              <style jsx>{`
+                .scrollbar-hide::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
               {stories.filter(story => story.status !== 'deleted').map((story) => (
                 <div
                   key={story.id}
-                  className="relative group rounded-xl overflow-hidden aspect-[9/16] border-2 border-gray-200 hover:border-purple-400 transition-all"
+                  className={`relative group rounded-xl overflow-hidden aspect-[9/16] border-2 border-gray-200 hover:border-purple-400 transition-all ${
+                    stories.filter(s => s.status !== 'deleted').length > 2
+                      ? 'flex-shrink-0 w-[45%] md:w-auto snap-start'
+                      : ''
+                  }`}
                 >
                   {story.media_type === 'video' ? (
                     <video
@@ -839,7 +856,9 @@ export default function EditProfilePage() {
             {galleryPhotos.map((photo, index) => (
               <div
                 key={photo.id}
-                className="relative group rounded-xl overflow-hidden aspect-square border-2 border-gray-200 hover:border-purple-400 transition-all"
+                className={`relative group rounded-xl overflow-hidden aspect-square border-2 border-gray-200 hover:border-purple-400 transition-all ${
+                  index >= 2 && !showGallery ? 'hidden md:block' : ''
+                }`}
               >
                 <img
                   src={photo.url}
