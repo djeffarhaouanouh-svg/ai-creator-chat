@@ -19,6 +19,9 @@ export async function GET(
     let totalSubscribers = 0
     let totalMessages = 0
 
+    // Récupérer les photos de galerie
+    let galleryPhotos: any[] = []
+
     if (db?.id) {
       const creatorId = db.id
 
@@ -38,13 +41,28 @@ export async function GET(
         WHERE creator_id = ${creatorId}
       `
       totalMessages = Number(messagesResult.rows[0]?.total) || 0
+
+      // Récupérer les photos de galerie
+      const galleryResult = await sql`
+        SELECT id, url, is_locked, "order"
+        FROM gallery_photos
+        WHERE creator_id = ${creatorId}
+        ORDER BY "order" ASC
+      `
+      galleryPhotos = galleryResult.rows.map(row => ({
+        id: row.id,
+        url: row.url,
+        isLocked: row.is_locked,
+        order: row.order
+      }))
     }
 
     return NextResponse.json({
       ...local,
       ...(db || {}),
       totalSubscribers,
-      totalMessages
+      totalMessages,
+      galleryPhotos
     });
   } catch (error) {
     console.error("❌ Erreur:", error);

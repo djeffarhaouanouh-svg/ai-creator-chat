@@ -59,7 +59,7 @@ const data = await res.json();
   // 🔥 DONNÉES UNIQUES POUR LAURYN
   const price = 6.97;
   const audio = "/audio/alice.mp3";
-  const photos = [
+  const photosStatic = [
     "/laurin.png",
     "/laurin-4.png",
     "/laurin-2.png",
@@ -67,6 +67,10 @@ const data = await res.json();
     "/laurin-3.png",
     "/laurin-6.png",
   ];
+  // Utiliser les photos de galerie de la DB ou les photos statiques comme fallback
+  const photos = creator?.galleryPhotos && creator.galleryPhotos.length > 0
+    ? creator.galleryPhotos
+    : photosStatic.map((url, i) => ({ url, isLocked: i !== 0 && i !== 2, order: i }));
   const rating = 4.9;
 
   // Vérifie abonnement dans le localStorage
@@ -280,18 +284,21 @@ const data = await res.json();
 
           <div className="grid grid-cols-3 gap-2 max-w-3xl mx-auto">
             {photos.map((photo, i) => {
-              const isUnlocked = isSubscribed || i === 0 || i === 2;
+              // Si photo est un objet (DB), utiliser photo.isLocked, sinon fallback sur index
+              const photoUrl = typeof photo === 'string' ? photo : photo.url;
+              const photoIsLocked = typeof photo === 'object' ? photo.isLocked : (i !== 0 && i !== 2);
+              const isUnlocked = isSubscribed || !photoIsLocked;
 
               return (
                 <div
-                  key={i}
+                  key={typeof photo === 'object' ? photo.id : i}
                   className={`relative rounded-2xl overflow-hidden bg-gray-200 aspect-square ${
                     isUnlocked ? 'cursor-pointer hover:opacity-90 transition' : ''
                   }`}
-                  onClick={() => isUnlocked && setSelectedPhoto(photo)}
+                  onClick={() => isUnlocked && setSelectedPhoto(photoUrl)}
                 >
                   <img
-                    src={photo}
+                    src={photoUrl}
                     alt={`Photo ${i + 1}`}
                     className={`w-full h-full object-cover ${isUnlocked ? '' : 'blur-lg scale-110'}`}
                   />

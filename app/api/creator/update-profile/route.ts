@@ -6,7 +6,7 @@ const sql = neon(process.env.DATABASE_URL!)
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { creatorSlug, name, avatarUrl, coverUrl } = body
+    const { creatorSlug, name, avatarUrl, coverUrl, galleryPhotos } = body
 
     if (!creatorSlug) {
       return NextResponse.json(
@@ -20,12 +20,16 @@ export async function POST(request: Request) {
       SELECT * FROM creators WHERE slug = ${creatorSlug}
     `
 
+    let creatorId: string
+
     if (existingCreator.length === 0) {
       // Créer le créateur s'il n'existe pas
-      await sql`
+      const newCreator = await sql`
         INSERT INTO creators (slug, name, avatar_url, cover_image)
         VALUES (${creatorSlug}, ${name || null}, ${avatarUrl || null}, ${coverUrl || null})
+        RETURNING id
       `
+      creatorId = newCreator[0].id
     } else {
       // Mettre à jour le créateur existant
       await sql`
@@ -37,6 +41,21 @@ export async function POST(request: Request) {
           updated_at = NOW()
         WHERE slug = ${creatorSlug}
       `
+      creatorId = existingCreator[0].id
+    }
+
+    // Gérer les photos de galerie si présentes
+    if (galleryPhotos && Array.isArray(galleryPhotos)) {
+      // Supprimer les anciennes photos de galerie
+      await sql`DELETE FROM gallery_photos WHERE creator_id = ${creatorId}`
+
+      // Insérer les nouvelles photos
+      for (const photo of galleryPhotos) {
+        await sql`
+          INSERT INTO gallery_photos (creator_id, url, is_locked, "order")
+          VALUES (${creatorId}, ${photo.url}, ${photo.isLocked}, ${photo.order})
+        `
+      }
     }
 
     return NextResponse.json({

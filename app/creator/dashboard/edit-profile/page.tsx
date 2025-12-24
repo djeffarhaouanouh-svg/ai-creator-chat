@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import ImageCropModal from '@/components/ImageCropModal'
 
 interface GalleryPhoto {
@@ -104,6 +103,9 @@ export default function EditProfilePage() {
       if (data.cover_image) {
         setCoverUrl(data.cover_image)
       }
+      if (data.galleryPhotos && Array.isArray(data.galleryPhotos)) {
+        setGalleryPhotos(data.galleryPhotos)
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des données du créateur:', error)
     }
@@ -132,6 +134,12 @@ export default function EditProfilePage() {
           : photo
       )
     )
+  }
+
+  const removePhoto = (photoId: string) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette photo ?')) {
+      setGalleryPhotos(prev => prev.filter(photo => photo.id !== photoId))
+    }
   }
 
   const handleAvatarClick = () => {
@@ -241,7 +249,8 @@ export default function EditProfilePage() {
           creatorSlug: slug,
           name,
           avatarUrl,
-          coverUrl
+          coverUrl,
+          galleryPhotos
         })
       })
 
@@ -285,9 +294,13 @@ export default function EditProfilePage() {
       return
     }
 
-    // Vérifier la taille (max 50MB)
-    if (file.size > 50 * 1024 * 1024) {
-      alert('Fichier trop volumineux (max 50MB)')
+    // Vérifier la taille (max 200MB pour vidéos, 50MB pour images)
+    const maxSize = isVideo ? 200 * 1024 * 1024 : 50 * 1024 * 1024
+    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2)
+
+    if (file.size > maxSize) {
+      const maxSizeMB = isVideo ? '200MB' : '50MB'
+      alert(`Fichier trop volumineux (${fileSizeMB}MB)\nTaille maximale : ${maxSizeMB}`)
       return
     }
 
@@ -295,6 +308,7 @@ export default function EditProfilePage() {
 
     try {
       // Upload du fichier
+      console.log(`📤 Upload de ${fileSizeMB}MB en cours...`)
       const formData = new FormData()
       formData.append('file', file)
 
@@ -304,11 +318,14 @@ export default function EditProfilePage() {
       })
 
       if (!uploadResponse.ok) {
-        throw new Error('Erreur lors de l\'upload')
+        const errorText = await uploadResponse.text()
+        console.error('Erreur upload:', errorText)
+        throw new Error(`Erreur lors de l'upload: ${uploadResponse.status}`)
       }
 
       const uploadData = await uploadResponse.json()
       const mediaUrl = uploadData.url
+      console.log('✅ Upload réussi:', mediaUrl)
 
       // Créer la story
       const storyResponse = await fetch('/api/stories/create', {
@@ -777,6 +794,17 @@ export default function EditProfilePage() {
           </p>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {galleryPhotos.length === 0 ? (
+              <div className="col-span-2 md:col-span-3 text-center py-12">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p className="text-gray-500 font-medium mb-2">Aucune photo dans la galerie</p>
+                <p className="text-gray-400 text-sm">Cliquez sur "Ajouter une photo" pour commencer</p>
+              </div>
+            ) : null}
             {galleryPhotos.map((photo) => (
               <div
                 key={photo.id}
@@ -811,6 +839,7 @@ export default function EditProfilePage() {
                   </button>
 
                   <button
+                    onClick={() => removePhoto(photo.id)}
                     className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all"
                     title="Supprimer"
                   >

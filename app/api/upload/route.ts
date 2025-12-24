@@ -17,11 +17,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vérifier la taille du fichier (max 50MB)
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    // Vérifier la taille du fichier (max 200MB pour vidéos, 50MB pour autres)
+    const isVideo = file.type.startsWith('video/');
+    const maxSize = isVideo ? 200 * 1024 * 1024 : 50 * 1024 * 1024; // 200MB pour vidéos, 50MB pour images
+
     if (file.size > maxSize) {
+      const maxSizeMB = isVideo ? '200MB' : '50MB';
       return NextResponse.json(
-        { success: false, error: 'Fichier trop volumineux (max 50MB)' },
+        { success: false, error: `Fichier trop volumineux (max ${maxSizeMB})` },
         { status: 400 }
       );
     }
