@@ -155,7 +155,7 @@ export default function MesMessagesPage() {
               >
                 <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800 hover:border-[#e31fc1] transition-all duration-300 hover:shadow-lg hover:shadow-[#e31fc1]/20">
                   {/* Header avec avatar et nom */}
-                  <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-4 mb-3">
                     <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[#e31fc1]">
                       <Image
                         src={creator.avatar || "/default-avatar.png"}
@@ -171,9 +171,18 @@ export default function MesMessagesPage() {
                       </h3>
                       <p className="text-sm text-gray-400">@{creator.slug}</p>
                     </div>
-
-                    <MessageCircle className="w-6 h-6 text-[#e31fc1]" />
                   </div>
+
+                  {/* Bouton Accéder au profil */}
+                  <Link
+                    href={`/creator/${creator.slug || creator.id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="block mb-4"
+                  >
+                    <button className="w-full px-4 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] hover:opacity-90 transition-opacity">
+                      Accéder au profil
+                    </button>
+                  </Link>
 
                   {/* Dernier message ou état */}
                   {lastMessage ? (

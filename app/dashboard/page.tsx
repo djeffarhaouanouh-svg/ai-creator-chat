@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Users, MessageCircle, DollarSign, TrendingUp, CreditCard, Settings, LogOut, X } from 'lucide-react'
+import { Users, MessageCircle, DollarSign, TrendingUp, CreditCard, Settings, LogOut, X, User } from 'lucide-react'
 import Image from 'next/image'
 import { storage } from '@/lib/storage'
 
@@ -274,10 +274,10 @@ export default function MonCompte() {
                     <button
                       className="px-3 py-1 text-sm border rounded-md"
                       style={{ borderColor: '#e31fc1', color: '#e31fc1' }}
-                      onClick={() => router.push(`/chat/${subscription.creator_slug || subscription.creator_id}`)}
+                      onClick={() => router.push(`/creator/${subscription.creator_slug || subscription.creator_id}`)}
                     >
-                      <MessageCircle size={16} className="mr-2 inline" />
-                      Discuter
+                      <User size={16} className="mr-2 inline" />
+                      Voir profil
                     </button>
                   </div>
                 ))}

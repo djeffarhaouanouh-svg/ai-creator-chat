@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, MessageCircle, User, Users } from 'lucide-react'
+import { storage } from '@/lib/storage'
 
 export default function NavBar() {
   const [mounted, setMounted] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [accountType, setAccountType] = useState<string | null>(null)
+  const [hasNewMessages, setHasNewMessages] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
@@ -17,6 +19,108 @@ export default function NavBar() {
     const accountTypeFromStorage = localStorage.getItem('accountType')
     setAccountType(accountTypeFromStorage)
     setIsAuthenticated(!!accountTypeFromStorage)
+
+    // Check for new messages
+    const checkMessages = async () => {
+      let hasUnread = false
+
+      // Si c'est une créatrice, vérifier les messages utilisateurs
+      if (accountTypeFromStorage === 'creator') {
+        const creatorSlug = localStorage.getItem('creatorSlug')
+        if (creatorSlug) {
+          try {
+            const response = await fetch(`/api/creator/conversations?slug=${creatorSlug}`)
+            if (response.ok) {
+              const data = await response.json()
+
+              if (data.conversations && data.conversations.length > 0) {
+                for (const conv of data.conversations) {
+                  if (conv.last_message_role === 'user' && conv.last_message_at) {
+                    const lastReadKey = `creator_conversation_lastRead_${creatorSlug}_${conv.user_id}`
+                    const lastReadTime = localStorage.getItem(lastReadKey)
+                    const lastReadDate = lastReadTime ? new Date(lastReadTime) : null
+                    const msgDate = new Date(conv.last_message_at)
+
+                    if (!lastReadDate || msgDate > lastReadDate) {
+                      hasUnread = true
+                      break
+                    }
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Erreur vérification messages créatrice:', error)
+          }
+        }
+      } else {
+        // Si c'est un utilisateur, vérifier les messages créatrices
+        const subscriptions = storage.getSubscriptions()
+        const userId = localStorage.getItem('userId')
+
+        // Vérifier les messages dans la base de données (messages manuels de la créatrice)
+        if (userId) {
+          for (const creatorId of subscriptions) {
+            try {
+              const response = await fetch(`/api/messages?userId=${userId}&creatorId=${creatorId}`)
+              if (response.ok) {
+                const data = await response.json()
+                if (data.messages && data.messages.length > 0) {
+                  const lastReadKey = `lastRead_${creatorId}`
+                  const lastReadTime = localStorage.getItem(lastReadKey)
+                  const lastReadDate = lastReadTime ? new Date(lastReadTime) : null
+
+                  // Vérifier s'il y a des messages de l'assistant plus récents que la dernière lecture
+                  const hasNewInConversation = data.messages.some((msg: any) => {
+                    // Seulement les messages de l'assistant (réponses de la créatrice)
+                    if (msg.role !== 'assistant') return false
+
+                    if (!lastReadDate) return true // Si jamais lu, tous les messages sont nouveaux
+                    const msgDate = new Date(msg.timestamp)
+                    return msgDate > lastReadDate
+                  })
+
+                  if (hasNewInConversation) {
+                    hasUnread = true
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Erreur lors de la vérification des messages:', error)
+            }
+          }
+        }
+
+        // Fallback: vérifier aussi dans le localStorage (pour les messages stockés localement)
+        subscriptions.forEach(creatorId => {
+          const session = storage.getChatSession(creatorId)
+          if (!session || !session.messages || session.messages.length === 0) return
+
+          const lastReadKey = `lastRead_${creatorId}`
+          const lastReadTime = localStorage.getItem(lastReadKey)
+          const lastReadDate = lastReadTime ? new Date(lastReadTime) : null
+
+          const hasNewInConversation = session.messages.some(msg => {
+            if (msg.role !== 'assistant') return false
+            if (!lastReadDate) return true
+            const msgDate = new Date(msg.timestamp)
+            return msgDate > lastReadDate
+          })
+
+          if (hasNewInConversation) {
+            hasUnread = true
+          }
+        })
+      }
+
+      setHasNewMessages(hasUnread)
+    }
+
+    checkMessages()
+
+    // Check messages every 5 seconds when on the page
+    const interval = setInterval(checkMessages, 5000)
+    return () => clearInterval(interval)
   }, [])
 
   // Don't render anything until mounted (avoid hydration issues)
@@ -66,7 +170,13 @@ export default function NavBar() {
                   transition-all duration-200
                   ${isActive ? 'text-[#E31FC1]' : 'text-gray-400 group-hover:text-gray-200'}
                 `}>
-                  <Icon className={`w-6 h-6 ${!isActive && 'group-hover:scale-110 transition-transform'}`} />
+                  <div className="relative">
+                    <Icon className={`w-6 h-6 ${!isActive && 'group-hover:scale-110 transition-transform'}`} />
+                    {/* Bulle de notification pour les messages */}
+                    {item.name === 'Mes messages' && hasNewMessages && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-black"></div>
+                    )}
+                  </div>
                   <span className="text-xs font-medium">{item.name}</span>
                 </div>
               </Link>

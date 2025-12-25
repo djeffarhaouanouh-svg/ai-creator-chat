@@ -355,6 +355,14 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Marquer les messages comme lus quand on voit les messages
+  useEffect(() => {
+    if (!creator || messages.length === 0) return;
+
+    const lastReadKey = `lastRead_${creator.slug || creator.id}`;
+    localStorage.setItem(lastReadKey, new Date().toISOString());
+  }, [messages, creator]);
+
   // Recharger l'état de l'IA quand la fenêtre reprend le focus
   useEffect(() => {
     if (!creator) return;
@@ -665,7 +673,10 @@ export default function ChatPage() {
             <ArrowLeft size={20} />
           </Button>
 
-          <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+          <div
+            className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+            onClick={() => router.push(`/creator/${creator.slug || creator.username}`)}
+          >
             <Image
               src={creator.avatar}
               alt={creator.name}
@@ -742,7 +753,10 @@ export default function ChatPage() {
             >
               <div className="flex gap-3 max-w-[70%]">
                 {message.role === 'assistant' && (
-                  <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                  <div
+                    className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+                    onClick={() => router.push(`/creator/${creator.slug || creator.username}`)}
+                  >
                     <Image
                       src={creator.avatar}
                       alt={creator.name}
@@ -897,7 +911,10 @@ export default function ChatPage() {
           {isLoading && (
             <div className="flex justify-start">
               <div className="flex gap-3 max-w-[70%]">
-                <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                <div
+                  className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+                  onClick={() => router.push(`/creator/${creator.slug || creator.username}`)}
+                >
                   <Image
                     src={creator.avatar}
                     alt={creator.name}

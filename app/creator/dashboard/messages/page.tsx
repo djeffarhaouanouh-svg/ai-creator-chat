@@ -42,11 +42,13 @@ export default function MessagesPage() {
   const [expandedConversations, setExpandedConversations] = useState<Set<string>>(new Set())
   const [conversationInputs, setConversationInputs] = useState<Record<string, string>>({})
   const [sendingMessages, setSendingMessages] = useState<Set<string>>(new Set())
+  const [conversationsWithNewMessages, setConversationsWithNewMessages] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     loadConversations()
     loadMessages()
-    
+    checkNewMessages()
+
     // Vérifier si on doit scroller vers la section "meilleurs-messages"
     if (window.location.hash === '#meilleurs-messages') {
       setTimeout(() => {
@@ -56,6 +58,10 @@ export default function MessagesPage() {
         }
       }, 500)
     }
+
+    // Vérifier les nouveaux messages toutes les 5 secondes
+    const interval = setInterval(checkNewMessages, 5000)
+    return () => clearInterval(interval)
   }, [])
 
   const loadConversations = async () => {
@@ -91,6 +97,41 @@ export default function MessagesPage() {
       console.error('Erreur:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const checkNewMessages = async () => {
+    try {
+      const creatorSlug = localStorage.getItem('creatorSlug')
+      if (!creatorSlug) return
+
+      const response = await fetch(`/api/creator/conversations?slug=${creatorSlug}`)
+      if (!response.ok) return
+
+      const data = await response.json()
+      const newMessagesSet = new Set<string>()
+
+      if (data.conversations && data.conversations.length > 0) {
+        for (const conv of data.conversations) {
+          // Vérifier seulement si le dernier message est de l'utilisateur
+          if (conv.last_message_role === 'user' && conv.last_message_at) {
+            const lastReadKey = `creator_conversation_lastRead_${creatorSlug}_${conv.user_id}`
+            const lastReadTime = localStorage.getItem(lastReadKey)
+            const lastReadDate = lastReadTime ? new Date(lastReadTime) : null
+
+            const msgDate = new Date(conv.last_message_at)
+
+            // Si jamais lu OU si le message est plus récent que la dernière lecture
+            if (!lastReadDate || msgDate > lastReadDate) {
+              newMessagesSet.add(conv.user_id)
+            }
+          }
+        }
+      }
+
+      setConversationsWithNewMessages(newMessagesSet)
+    } catch (error) {
+      console.error('Erreur vérification nouveaux messages:', error)
     }
   }
 
@@ -170,7 +211,21 @@ export default function MessagesPage() {
     if (target.closest('button') || target.closest('textarea') || target.closest('.message-input-container') || target.closest('.expand-toggle')) {
       return
     }
-    
+
+    // Marquer les messages comme lus pour cette conversation
+    const creatorSlug = localStorage.getItem('creatorSlug')
+    if (creatorSlug) {
+      const lastReadKey = `creator_conversation_lastRead_${creatorSlug}_${conversation.user_id}`
+      localStorage.setItem(lastReadKey, new Date().toISOString())
+
+      // Retirer cette conversation de la liste des conversations avec nouveaux messages
+      setConversationsWithNewMessages(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(conversation.user_id)
+        return newSet
+      })
+    }
+
     // Naviguer vers le chat complet
     router.push(`/creator/dashboard/messages/${conversation.user_id}`)
   }
@@ -490,8 +545,12 @@ export default function MessagesPage() {
                     >
                       <div className="flex items-start gap-4">
                         {/* Avatar */}
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                        <div className="relative w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
                           {getInitials(conversation.user_name)}
+                          {/* Bulle de notification verte */}
+                          {conversationsWithNewMessages.has(conversation.user_id) && (
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                          )}
                         </div>
 
                         {/* Contenu */}

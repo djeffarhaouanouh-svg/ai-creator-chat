@@ -14,6 +14,7 @@ export default function DashboardLayout({
   const [slug, setSlug] = useState<string | null>(null)
   const [name, setName] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [hasNewMessages, setHasNewMessages] = useState(false)
 
   useEffect(() => {
     const accountType = localStorage.getItem('accountType')
@@ -27,7 +28,48 @@ export default function DashboardLayout({
 
     setSlug(creatorSlug)
     setName(creatorName)
-  }, [router])
+
+    // Vérifier les nouveaux messages des utilisateurs
+    const checkMessages = async () => {
+      try {
+        const response = await fetch(`/api/creator/conversations?slug=${creatorSlug}`)
+        if (response.ok) {
+          const data = await response.json()
+
+          // Vérifier s'il y a des messages plus récents que la dernière lecture
+          let hasUnread = false
+          if (data.conversations && data.conversations.length > 0) {
+            for (const conv of data.conversations) {
+              // Vérifier seulement si le dernier message est de l'utilisateur
+              if (conv.last_message_role === 'user' && conv.last_message_at) {
+                const lastReadKey = `creator_conversation_lastRead_${creatorSlug}_${conv.user_id}`
+                const lastReadTime = localStorage.getItem(lastReadKey)
+                const lastReadDate = lastReadTime ? new Date(lastReadTime) : null
+
+                const msgDate = new Date(conv.last_message_at)
+
+                // Si jamais lu OU si le message est plus récent que la dernière lecture
+                if (!lastReadDate || msgDate > lastReadDate) {
+                  hasUnread = true
+                  break
+                }
+              }
+            }
+          }
+
+          setHasNewMessages(hasUnread)
+        }
+      } catch (error) {
+        console.error('Erreur vérification messages créatrice:', error)
+      }
+    }
+
+    checkMessages()
+
+    // Vérifier toutes les 5 secondes
+    const interval = setInterval(checkMessages, 5000)
+    return () => clearInterval(interval)
+  }, [router, slug])
 
   const logout = () => {
     localStorage.removeItem('accountType')
@@ -99,7 +141,13 @@ export default function DashboardLayout({
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <Icon size={20} />
+                  <div className="relative">
+                    <Icon size={20} />
+                    {/* Bulle de notification pour les messages */}
+                    {item.label === 'Mes messages' && hasNewMessages && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                    )}
+                  </div>
                   <span className="font-medium">{item.label}</span>
                 </button>
               )
