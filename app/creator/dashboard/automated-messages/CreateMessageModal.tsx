@@ -89,6 +89,11 @@ export default function CreateMessageModal({ message, onClose }: CreateMessageMo
     }
   };
 
+  const handleRemoveFile = () => {
+    setImageFile(null);
+    setImagePreview('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -134,6 +139,10 @@ export default function CreateMessageModal({ message, onClose }: CreateMessageMo
         } else {
           setError('Erreur lors de l\'upload de l\'image (le message sera sauvegardé sans image)');
         }
+      } else if (!imagePreview) {
+        // Si pas de fichier ET pas de preview, on supprime l'image
+        imageUrl = undefined;
+        imageType = undefined;
       }
 
       // Prepare request body
@@ -284,7 +293,7 @@ export default function CreateMessageModal({ message, onClose }: CreateMessageMo
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={5}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900"
               placeholder="Écrivez votre message ici..."
               required
             />
@@ -309,7 +318,7 @@ export default function CreateMessageModal({ message, onClose }: CreateMessageMo
             </p>
 
             {imagePreview && (
-              <div className="mt-3">
+              <div className="mt-3 relative inline-block">
                 {message?.image_type?.startsWith('video/') || imageFile?.type.startsWith('video/') ? (
                   <video
                     src={imagePreview}
@@ -325,6 +334,16 @@ export default function CreateMessageModal({ message, onClose }: CreateMessageMo
                     className="max-w-xs rounded-lg shadow-md"
                   />
                 )}
+                <button
+                  type="button"
+                  onClick={handleRemoveFile}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                  title="Supprimer le fichier"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
             )}
           </div>
