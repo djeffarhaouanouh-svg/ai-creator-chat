@@ -50,12 +50,18 @@ export default function MesMessagesPage() {
           const lastViewedTimestamp = localStorage.getItem(lastViewedKey);
 
           let unreadCount = 0;
-          if (lastViewedTimestamp && messages.length > 0) {
-            const lastViewed = new Date(lastViewedTimestamp);
-            unreadCount = messages.filter((msg: any) => {
-              const msgTime = new Date(msg.timestamp);
-              return msgTime > lastViewed && msg.role === 'assistant';
-            }).length;
+          if (messages.length > 0) {
+            if (lastViewedTimestamp) {
+              // Si déjà visité, compter les messages plus récents que lastViewed
+              const lastViewed = new Date(lastViewedTimestamp);
+              unreadCount = messages.filter((msg: any) => {
+                const msgTime = new Date(msg.timestamp);
+                return msgTime > lastViewed && msg.role === 'assistant';
+              }).length;
+            } else {
+              // Si jamais visité, compter TOUS les messages assistant
+              unreadCount = messages.filter((msg: any) => msg.role === 'assistant').length;
+            }
           }
 
           console.log(`💬 ${creatorSlug}: ${messages.length} messages, ${unreadCount} unread`);
@@ -254,12 +260,6 @@ export default function MesMessagesPage() {
                         fill
                         className="object-cover"
                       />
-                      {/* Bulle verte de notification */}
-                      {unreadCount > 0 && (
-                        <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-gray-900 flex items-center justify-center">
-                          <span className="text-xs font-bold text-white">{unreadCount}</span>
-                        </div>
-                      )}
                     </div>
 
                     <div className="flex-1">
@@ -284,27 +284,26 @@ export default function MesMessagesPage() {
                   {/* Dernier message ou état */}
                   {lastMessage ? (
                     <div className={`rounded-lg p-3 ${unreadCount > 0 ? 'bg-green-900/20 border border-green-500/30' : 'bg-gray-800'}`}>
-                      <p className="text-sm text-gray-300 line-clamp-2">
-                        <span className="font-semibold">
-                          {lastMessage.role === 'user' ? "Toi: " : `${creator.name}: `}
-                        </span>
-                        {lastMessage.content}
-                      </p>
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="text-xs text-gray-500">
-                          {new Date(lastMessage.timestamp).toLocaleDateString("fr-FR", {
-                            day: "numeric",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                      {unreadCount > 0 ? (
+                        <p className="text-sm font-semibold text-green-400">
+                          {unreadCount} message{unreadCount > 1 ? 's' : ''} non lu{unreadCount > 1 ? 's' : ''}
                         </p>
-                        {unreadCount > 0 && (
-                          <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-semibold">
-                            {unreadCount} nouveau{unreadCount > 1 ? 'x' : ''}
+                      ) : (
+                        <p className="text-sm text-gray-300 line-clamp-2">
+                          <span className="font-semibold">
+                            {lastMessage.role === 'user' ? "Toi: " : `${creator.name}: `}
                           </span>
-                        )}
-                      </div>
+                          {lastMessage.content}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-2">
+                        {new Date(lastMessage.timestamp).toLocaleDateString("fr-FR", {
+                          day: "numeric",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
                     </div>
                   ) : (
                     <div className="bg-gray-800 rounded-lg p-3">
