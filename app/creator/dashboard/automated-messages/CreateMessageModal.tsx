@@ -259,7 +259,7 @@ export default function CreateMessageModal({ message, onClose }: CreateMessageMo
                 type="datetime-local"
                 value={scheduledAt}
                 onChange={(e) => setScheduledAt(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
                 required={triggerType === 'scheduled'}
               />
             </div>
@@ -275,7 +275,7 @@ export default function CreateMessageModal({ message, onClose }: CreateMessageMo
                 min="1"
                 value={messageCount}
                 onChange={(e) => setMessageCount(parseInt(e.target.value))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
                 required={triggerType === 'message_count'}
               />
               <p className="text-xs text-gray-500 mt-1">
