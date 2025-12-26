@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
+import { checkAndTriggerAutomatedMessages } from '@/lib/automated-messages';
 
 export const dynamic = 'force-dynamic';
 
@@ -116,20 +117,17 @@ export async function POST(request: Request) {
 
     // Vérifier les triggers de messages automatiques (si message de l'utilisateur)
     if (role === 'user') {
+      // Appel direct de la fonction (pas de fetch HTTP)
+      console.log('🔔 Checking automated message triggers:', { userId, creatorId });
+
       // Fire-and-forget - ne pas bloquer le flux principal
-      const baseUrl = process.env.NEXT_PUBLIC_URL ||
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-
-      console.log('🔔 Calling automated message trigger check:', { userId, creatorId, baseUrl });
-
-      fetch(`${baseUrl}/api/automated-messages/check-trigger`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, creatorId })
-      })
-      .then(res => res.json())
-      .then(data => console.log('✅ Trigger check result:', data))
-      .catch(err => console.error('❌ Trigger check failed:', err));
+      checkAndTriggerAutomatedMessages(userId, creatorId)
+        .then(result => {
+          console.log('✅ Trigger check result:', result);
+        })
+        .catch(err => {
+          console.error('❌ Trigger check failed:', err);
+        });
     }
 
     return NextResponse.json({ message: result.rows[0] });
