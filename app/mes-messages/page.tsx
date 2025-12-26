@@ -27,6 +27,55 @@ export default function MesMessagesPage() {
   const [initialized, setInitialized] = useState(false);
   const [conversations, setConversations] = useState<Map<string, ConversationSummary>>(new Map());
 
+  // Charger les derniers messages de toutes les conversations
+  const loadConversations = async (userId: string, allCreators: any[]) => {
+    console.log('🔄 Loading conversations for', allCreators.length, 'creators');
+    const conversationsMap = new Map<string, ConversationSummary>();
+
+    for (const creator of allCreators) {
+      const creatorSlug = creator.slug || creator.id;
+
+      try {
+        const response = await fetch(`/api/messages?userId=${userId}&creatorId=${creatorSlug}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          const messages = data.messages || [];
+
+          // Trouver le dernier message
+          const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
+
+          // Compter les messages non lus (depuis localStorage)
+          const lastViewedKey = `lastViewed_${creatorSlug}`;
+          const lastViewedTimestamp = localStorage.getItem(lastViewedKey);
+
+          let unreadCount = 0;
+          if (lastViewedTimestamp && messages.length > 0) {
+            const lastViewed = new Date(lastViewedTimestamp);
+            unreadCount = messages.filter((msg: any) => {
+              const msgTime = new Date(msg.timestamp);
+              return msgTime > lastViewed && msg.role === 'assistant';
+            }).length;
+          }
+
+          console.log(`💬 ${creatorSlug}: ${messages.length} messages, ${unreadCount} unread`);
+
+          conversationsMap.set(creatorSlug, {
+            creatorSlug,
+            lastMessage: lastMsg,
+            unreadCount,
+            totalMessages: messages.length
+          });
+        }
+      } catch (error) {
+        console.error(`Error loading conversation for ${creatorSlug}:`, error);
+      }
+    }
+
+    console.log('✅ Conversations loaded:', conversationsMap.size);
+    setConversations(conversationsMap);
+  };
+
   useEffect(() => {
     // Si compte créatrice => rediriger vers le dashboard créatrice "Mes messages"
     const accountType = localStorage.getItem("accountType");
@@ -61,62 +110,26 @@ export default function MesMessagesPage() {
     }
   }, [router]);
 
-  // Charger les derniers messages de toutes les conversations
-  async function loadConversations(userId: string, allCreators: any[]) {
-    const conversationsMap = new Map<string, ConversationSummary>();
-
-    for (const creator of allCreators) {
-      const creatorSlug = creator.slug || creator.id;
-
-      try {
-        const response = await fetch(`/api/messages?userId=${userId}&creatorId=${creatorSlug}`);
-
-        if (response.ok) {
-          const data = await response.json();
-          const messages = data.messages || [];
-
-          // Trouver le dernier message
-          const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
-
-          // Compter les messages non lus (depuis localStorage)
-          const lastViewedKey = `lastViewed_${creatorSlug}`;
-          const lastViewedTimestamp = localStorage.getItem(lastViewedKey);
-
-          let unreadCount = 0;
-          if (lastViewedTimestamp && messages.length > 0) {
-            const lastViewed = new Date(lastViewedTimestamp);
-            unreadCount = messages.filter((msg: any) => {
-              const msgTime = new Date(msg.timestamp);
-              return msgTime > lastViewed && msg.role === 'assistant';
-            }).length;
-          }
-
-          conversationsMap.set(creatorSlug, {
-            creatorSlug,
-            lastMessage: lastMsg,
-            unreadCount,
-            totalMessages: messages.length
-          });
-        }
-      } catch (error) {
-        console.error(`Error loading conversation for ${creatorSlug}:`, error);
-      }
-    }
-
-    setConversations(conversationsMap);
-  }
-
   // Polling pour mettre à jour les conversations toutes les 5 secondes
   useEffect(() => {
     const userId = localStorage.getItem('userId');
-    if (!userId || creators.length === 0) return;
+    if (!userId || creators.length === 0) {
+      console.log('⏸️ Polling paused:', { userId: !!userId, creatorsCount: creators.length });
+      return;
+    }
+
+    console.log('🔄 Starting polling for', creators.length, 'creators');
 
     const interval = setInterval(() => {
+      console.log('⏰ Polling tick - refreshing conversations');
       loadConversations(userId, creators);
     }, 5000);
 
-    return () => clearInterval(interval);
-  }, [creators]);
+    return () => {
+      console.log('🛑 Stopping polling');
+      clearInterval(interval);
+    };
+  }, [creators, loadConversations]);
 
   // Filtrer les créatrices auxquelles l'utilisateur est abonné
   const subscribedCreators = creators.filter((creator) =>
