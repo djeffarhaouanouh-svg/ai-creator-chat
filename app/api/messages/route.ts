@@ -114,6 +114,19 @@ export async function POST(request: Request) {
 
     console.log('✅ Message inserted successfully:', result.rows[0].id);
 
+    // Vérifier les triggers de messages automatiques (si message de l'utilisateur)
+    if (role === 'user') {
+      // Fire-and-forget - ne pas bloquer le flux principal
+      const baseUrl = process.env.NEXT_PUBLIC_URL ||
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
+      fetch(`${baseUrl}/api/automated-messages/check-trigger`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, creatorId })
+      }).catch(err => console.error('Trigger check failed:', err));
+    }
+
     return NextResponse.json({ message: result.rows[0] });
   } catch (error) {
     console.error('❌ Error saving message:', error);

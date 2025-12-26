@@ -774,22 +774,39 @@ export default function ChatPage() {
                         : 'bg-white text-gray-900 shadow-sm'
                     }`}
                   >
-                    {/* AFFICHAGE IMAGE SI PRÉSENTE */}
+                    {/* AFFICHAGE IMAGE/VIDÉO SI PRÉSENTE */}
                     {message.image_url && (
                       <div className="mb-2">
-                        <img
-                          src={message.image_url.startsWith('http')
-                            ? message.image_url
-                            : `${window.location.origin}${message.image_url}`}
-                          alt={message.image_type === 'user_upload' ? 'Image envoyée' : 'Image générée'}
-                          className="max-w-full rounded-lg shadow-md"
-                          style={{ maxHeight: '400px', maxWidth: '100%' }}
-                          onError={(e) => {
-                            console.error('Erreur chargement image:', message.image_url);
-                            e.currentTarget.style.display = 'none';
-                          }}
-                          loading="lazy"
-                        />
+                        {message.image_type?.startsWith('video/') ? (
+                          <video
+                            src={message.image_url.startsWith('http')
+                              ? message.image_url
+                              : `${window.location.origin}${message.image_url}`}
+                            controls
+                            preload="metadata"
+                            playsInline
+                            className="max-w-full rounded-lg shadow-md"
+                            style={{ maxHeight: '400px', maxWidth: '100%' }}
+                            onError={(e) => {
+                              console.error('Erreur chargement vidéo:', message.image_url);
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <img
+                            src={message.image_url.startsWith('http')
+                              ? message.image_url
+                              : `${window.location.origin}${message.image_url}`}
+                            alt={message.image_type === 'user_upload' ? 'Image envoyée' : 'Image générée'}
+                            className="max-w-full rounded-lg shadow-md"
+                            style={{ maxHeight: '400px', maxWidth: '100%' }}
+                            onError={(e) => {
+                              console.error('Erreur chargement image:', message.image_url);
+                              e.currentTarget.style.display = 'none';
+                            }}
+                            loading="lazy"
+                          />
+                        )}
                       </div>
                     )}
 
