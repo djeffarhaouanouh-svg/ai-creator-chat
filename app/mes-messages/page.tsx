@@ -49,7 +49,9 @@ export default function MesMessagesPage() {
         setCreators(data || []);
 
         // Charger les conversations pour chaque créatrice
-        await loadConversations(userId, data || []);
+        if (userId) {
+          await loadConversations(userId, data || []);
+        }
 
         setInitialized(true);
       }
