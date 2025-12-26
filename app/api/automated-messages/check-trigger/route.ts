@@ -6,39 +6,43 @@ export const dynamic = 'force-dynamic';
 // POST - Vérifier et déclencher les messages automatiques basés sur le compteur
 export async function POST(request: Request) {
   try {
-    const { userId, creatorSlug } = await request.json();
+    console.log('🎯 check-trigger endpoint called');
+    const { userId, creatorId } = await request.json();
 
-    if (!userId || !creatorSlug) {
+    console.log('📦 Received parameters:', { userId, creatorId });
+
+    if (!userId || !creatorId) {
+      console.error('❌ Missing parameters!');
       return NextResponse.json({
-        error: 'Missing required parameters: userId, creatorSlug'
+        error: 'Missing required parameters: userId, creatorId'
       }, { status: 400 });
     }
 
-    console.log('🔍 Checking automated message triggers for:', { userId, creatorSlug });
+    console.log('🔍 Checking automated message triggers for:', { userId, creatorId });
 
-    // Récupérer le creator_id depuis le slug
+    // Récupérer le creator UUID depuis le slug
     const creatorResult = await sql`
-      SELECT id FROM creators WHERE slug = ${creatorSlug} LIMIT 1
+      SELECT id FROM creators WHERE slug = ${creatorId} LIMIT 1
     `;
 
     if (creatorResult.rows.length === 0) {
-      console.log('⚠️ Creator not found:', creatorSlug);
+      console.log('⚠️ Creator not found:', creatorId);
       return NextResponse.json({ triggered: false, messagesSent: 0 });
     }
 
-    const creatorId = creatorResult.rows[0].id;
+    const creatorUuid = creatorResult.rows[0].id;
 
     // Compter les messages de l'utilisateur (role = 'user')
     const countResult = await sql`
       SELECT COUNT(*) as count
       FROM messages
       WHERE user_id = ${userId}
-        AND creator_id = ${creatorSlug}
+        AND creator_id = ${creatorId}
         AND role = 'user'
     `;
 
     const userMessageCount = parseInt(countResult.rows[0].count);
-    console.log(`📊 User has sent ${userMessageCount} messages to ${creatorSlug}`);
+    console.log(`📊 User has sent ${userMessageCount} messages to ${creatorId}`);
 
     // Trouver les triggers de type message_count qui correspondent au seuil
     const triggersResult = await sql`
@@ -49,7 +53,7 @@ export async function POST(request: Request) {
         am.image_type,
         am.message_count_threshold
       FROM automated_messages am
-      WHERE am.creator_id = ${creatorId}::uuid
+      WHERE am.creator_id = ${creatorUuid}::uuid
         AND am.trigger_type = 'message_count'
         AND am.is_active = true
         AND am.message_count_threshold = ${userMessageCount}
@@ -86,7 +90,7 @@ export async function POST(request: Request) {
           )
           VALUES (
             ${userId},
-            ${creatorSlug},
+            ${creatorId},
             'assistant',
             ${trigger.content},
             ${trigger.image_url || null},

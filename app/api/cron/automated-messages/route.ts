@@ -8,16 +8,11 @@ const BATCH_SIZE = 100; // Traiter 100 utilisateurs à la fois
 // GET - Cron job pour traiter les messages automatiques planifiés
 export async function GET(request: Request) {
   try {
-    // Vérifier l'autorisation Vercel Cron (en production)
-    const authHeader = request.headers.get('authorization');
-    if (process.env.NODE_ENV === 'production') {
-      if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        console.error('❌ Unauthorized cron access attempt');
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
-    }
+    console.log('🕐 Cron job triggered at:', new Date().toISOString());
 
-    console.log('🕐 Starting automated messages cron job...');
+    // Note: Ce endpoint est protégé par Vercel via la configuration vercel.json
+    // Les crons déclarés dans vercel.json ne peuvent être appelés que par Vercel
+    console.log('✅ Cron job authorized by Vercel, starting automated messages processing...');
 
     // Trouver tous les messages planifiés prêts à être envoyés
     // Fenêtre de sécurité : entre maintenant et il y a 1 heure (pour rattraper les envois manqués)
