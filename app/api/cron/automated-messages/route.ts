@@ -16,6 +16,10 @@ export async function GET(request: Request) {
 
     // Trouver tous les messages planifiés prêts à être envoyés
     // Fenêtre de sécurité : entre maintenant et il y a 1 heure (pour rattraper les envois manqués)
+    const now = new Date();
+    console.log(`🕐 Current time (NOW): ${now.toISOString()}`);
+    console.log(`🕐 Window start (NOW - 1 hour): ${new Date(now.getTime() - 60*60*1000).toISOString()}`);
+
     const messagesResult = await sql`
       SELECT
         id,
@@ -23,7 +27,8 @@ export async function GET(request: Request) {
         content,
         image_url,
         image_type,
-        scheduled_at
+        scheduled_at,
+        is_active
       FROM automated_messages
       WHERE trigger_type = 'scheduled'
         AND is_active = true
@@ -34,6 +39,25 @@ export async function GET(request: Request) {
 
     const scheduledMessages = messagesResult.rows;
     console.log(`📬 Found ${scheduledMessages.length} scheduled messages ready to send`);
+
+    if (scheduledMessages.length > 0) {
+      scheduledMessages.forEach(msg => {
+        console.log(`  - Message ${msg.id}: scheduled for ${msg.scheduled_at}, active: ${msg.is_active}`);
+      });
+    }
+
+    // Debug: Vérifier TOUS les messages scheduled, même inactifs
+    const allScheduledResult = await sql`
+      SELECT id, scheduled_at, is_active, trigger_type
+      FROM automated_messages
+      WHERE trigger_type = 'scheduled'
+      ORDER BY scheduled_at DESC
+      LIMIT 5
+    `;
+    console.log(`🔍 DEBUG: Last 5 scheduled messages in DB:`);
+    allScheduledResult.rows.forEach(msg => {
+      console.log(`  - ${msg.id}: ${msg.scheduled_at}, active: ${msg.is_active}`);
+    });
 
     if (scheduledMessages.length === 0) {
       return NextResponse.json({
