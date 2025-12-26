@@ -7,12 +7,25 @@ import Image from "next/image";
 import { MessageCircle } from "lucide-react";
 import { storage } from "@/lib/storage";
 
+interface ConversationSummary {
+  creatorSlug: string;
+  lastMessage: {
+    id: string;
+    role: string;
+    content: string;
+    timestamp: string;
+  } | null;
+  unreadCount: number;
+  totalMessages: number;
+}
+
 export default function MesMessagesPage() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [creators, setCreators] = useState<any[]>([]);
   const [subscriptions, setSubscriptions] = useState<string[]>([]);
   const [initialized, setInitialized] = useState(false);
+  const [conversations, setConversations] = useState<Map<string, ConversationSummary>>(new Map());
 
   useEffect(() => {
     // Si compte créatrice => rediriger vers le dashboard créatrice "Mes messages"
@@ -34,6 +47,10 @@ export default function MesMessagesPage() {
         const res = await fetch("/api/creators");
         const data = await res.json();
         setCreators(data || []);
+
+        // Charger les conversations pour chaque créatrice
+        await loadConversations(userId, data || []);
+
         setInitialized(true);
       }
       loadCreators();
@@ -41,6 +58,63 @@ export default function MesMessagesPage() {
       setInitialized(true);
     }
   }, [router]);
+
+  // Charger les derniers messages de toutes les conversations
+  async function loadConversations(userId: string, allCreators: any[]) {
+    const conversationsMap = new Map<string, ConversationSummary>();
+
+    for (const creator of allCreators) {
+      const creatorSlug = creator.slug || creator.id;
+
+      try {
+        const response = await fetch(`/api/messages?userId=${userId}&creatorId=${creatorSlug}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          const messages = data.messages || [];
+
+          // Trouver le dernier message
+          const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
+
+          // Compter les messages non lus (depuis localStorage)
+          const lastViewedKey = `lastViewed_${creatorSlug}`;
+          const lastViewedTimestamp = localStorage.getItem(lastViewedKey);
+
+          let unreadCount = 0;
+          if (lastViewedTimestamp && messages.length > 0) {
+            const lastViewed = new Date(lastViewedTimestamp);
+            unreadCount = messages.filter((msg: any) => {
+              const msgTime = new Date(msg.timestamp);
+              return msgTime > lastViewed && msg.role === 'assistant';
+            }).length;
+          }
+
+          conversationsMap.set(creatorSlug, {
+            creatorSlug,
+            lastMessage: lastMsg,
+            unreadCount,
+            totalMessages: messages.length
+          });
+        }
+      } catch (error) {
+        console.error(`Error loading conversation for ${creatorSlug}:`, error);
+      }
+    }
+
+    setConversations(conversationsMap);
+  }
+
+  // Polling pour mettre à jour les conversations toutes les 5 secondes
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    if (!userId || creators.length === 0) return;
+
+    const interval = setInterval(() => {
+      loadConversations(userId, creators);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [creators]);
 
   // Filtrer les créatrices auxquelles l'utilisateur est abonné
   const subscribedCreators = creators.filter((creator) =>
@@ -144,13 +218,19 @@ export default function MesMessagesPage() {
 
         <div className="grid md:grid-cols-2 gap-6">
           {subscribedCreators.map((creator) => {
-            const chatSession = storage.getChatSession(creator.slug || creator.id);
-            const lastMessage = chatSession?.messages[chatSession.messages.length - 1];
+            const creatorSlug = creator.slug || creator.id;
+            const conversation = conversations.get(creatorSlug);
+            const lastMessage = conversation?.lastMessage;
+            const unreadCount = conversation?.unreadCount || 0;
 
             return (
               <Link
                 key={creator.id}
-                href={`/chat/${creator.slug || creator.id}`}
+                href={`/chat/${creatorSlug}`}
+                onClick={() => {
+                  // Marquer comme lu lors du clic
+                  localStorage.setItem(`lastViewed_${creatorSlug}`, new Date().toISOString());
+                }}
                 className="group"
               >
                 <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800 hover:border-[#e31fc1] transition-all duration-300 hover:shadow-lg hover:shadow-[#e31fc1]/20">
@@ -163,6 +243,12 @@ export default function MesMessagesPage() {
                         fill
                         className="object-cover"
                       />
+                      {/* Bulle verte de notification */}
+                      {unreadCount > 0 && (
+                        <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-gray-900 flex items-center justify-center">
+                          <span className="text-xs font-bold text-white">{unreadCount}</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex-1">
@@ -186,34 +272,34 @@ export default function MesMessagesPage() {
 
                   {/* Dernier message ou état */}
                   {lastMessage ? (
-                    <div className="bg-gray-800 rounded-lg p-3">
+                    <div className={`rounded-lg p-3 ${unreadCount > 0 ? 'bg-green-900/20 border border-green-500/30' : 'bg-gray-800'}`}>
                       <p className="text-sm text-gray-300 line-clamp-2">
-                        {lastMessage.role === 'user' ? "Toi: " : `${creator.name}: `}
+                        <span className="font-semibold">
+                          {lastMessage.role === 'user' ? "Toi: " : `${creator.name}: `}
+                        </span>
                         {lastMessage.content}
                       </p>
-                      <p className="text-xs text-gray-500 mt-2">
-                        {new Date(lastMessage.timestamp).toLocaleDateString("fr-FR", {
-                          day: "numeric",
-                          month: "short",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-xs text-gray-500">
+                          {new Date(lastMessage.timestamp).toLocaleDateString("fr-FR", {
+                            day: "numeric",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        {unreadCount > 0 && (
+                          <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-semibold">
+                            {unreadCount} nouveau{unreadCount > 1 ? 'x' : ''}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="bg-gray-800 rounded-lg p-3">
                       <p className="text-sm text-gray-400">
                         Aucun message. Commence la conversation ! 💬
                       </p>
-                    </div>
-                  )}
-
-                  {/* Badge si nouveaux messages */}
-                  {chatSession && chatSession.messageCount > 0 && (
-                    <div className="mt-3 flex justify-end">
-                      <span className="text-xs bg-[#e31fc1] text-white px-3 py-1 rounded-full">
-                        {chatSession.messageCount} message{chatSession.messageCount > 1 ? "s" : ""}
-                      </span>
                     </div>
                   )}
                 </div>

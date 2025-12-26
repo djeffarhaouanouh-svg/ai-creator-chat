@@ -311,7 +311,60 @@ export default function ChatPage() {
     }
 
     loadMessages();
+
+    // Marquer cette conversation comme vue (pour les notifications non lues)
+    if (creator) {
+      const creatorSlug = creator.slug || creator.id;
+      localStorage.setItem(`lastViewed_${creatorSlug}`, new Date().toISOString());
+    }
   }, [creator, router]);
+
+  // Polling automatique pour les nouveaux messages (toutes les 3 secondes)
+  useEffect(() => {
+    if (!creator || !isSubscribed) return;
+
+    const userId = localStorage.getItem('userId');
+    if (!userId) return; // Pas de polling si pas connecté
+
+    const pollNewMessages = async () => {
+      try {
+        const response = await fetch(`/api/messages?userId=${userId}&creatorId=${creator.slug || creator.id}`);
+
+        if (response.ok) {
+          const data = await response.json();
+
+          if (data.messages && data.messages.length > 0) {
+            const dbMessages = data.messages.map((msg: any) => ({
+              ...msg,
+              timestamp: new Date(msg.timestamp)
+            }));
+
+            // Vérifier s'il y a de nouveaux messages
+            setMessages(prevMessages => {
+              const lastMessageId = prevMessages[prevMessages.length - 1]?.id;
+              const lastDbMessageId = dbMessages[dbMessages.length - 1]?.id;
+
+              // Si le dernier message de la DB est différent, mettre à jour
+              if (lastMessageId !== lastDbMessageId || dbMessages.length !== prevMessages.length) {
+                console.log('📨 Nouveaux messages détectés, mise à jour...');
+                return dbMessages;
+              }
+
+              return prevMessages;
+            });
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error polling messages:', error);
+      }
+    };
+
+    // Polling toutes les 3 secondes
+    const intervalId = setInterval(pollNewMessages, 3000);
+
+    // Cleanup
+    return () => clearInterval(intervalId);
+  }, [creator, isSubscribed]);
 
   // Charger la dernière demande de contenu (si elle existe déjà)
   useEffect(() => {
