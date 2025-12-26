@@ -66,7 +66,7 @@ export default function NavBar() {
               if (response.ok) {
                 const data = await response.json()
                 if (data.messages && data.messages.length > 0) {
-                  const lastReadKey = `lastRead_${creatorId}`
+                  const lastReadKey = `lastViewed_${creatorId}`
                   const lastReadTime = localStorage.getItem(lastReadKey)
                   const lastReadDate = lastReadTime ? new Date(lastReadTime) : null
 
@@ -96,7 +96,7 @@ export default function NavBar() {
           const session = storage.getChatSession(creatorId)
           if (!session || !session.messages || session.messages.length === 0) return
 
-          const lastReadKey = `lastRead_${creatorId}`
+          const lastReadKey = `lastViewed_${creatorId}`
           const lastReadTime = localStorage.getItem(lastReadKey)
           const lastReadDate = lastReadTime ? new Date(lastReadTime) : null
 

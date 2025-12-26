@@ -242,10 +242,6 @@ export default function MesMessagesPage() {
               <Link
                 key={creator.id}
                 href={`/chat/${creatorSlug}`}
-                onClick={() => {
-                  // Marquer comme lu lors du clic
-                  localStorage.setItem(`lastViewed_${creatorSlug}`, new Date().toISOString());
-                }}
                 className="group"
               >
                 <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800 hover:border-[#e31fc1] transition-all duration-300 hover:shadow-lg hover:shadow-[#e31fc1]/20">
