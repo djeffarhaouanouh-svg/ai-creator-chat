@@ -16,20 +16,26 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
   const isChatPage = pathname?.startsWith('/chat/');
+  const isDashboardPage = pathname === '/dashboard';
+  const isClassementPage = pathname === '/meilleur-fan';
+  const isCreatorDashboardPage = pathname?.startsWith('/creator/dashboard');
+  const hideFooter = isChatPage || isDashboardPage || isClassementPage || isCreatorDashboardPage;
+  const hideHeader = isChatPage;
 
   return (
     <html lang="fr">
       <body className={`${inter.className} bg-black text-white`}>
-        <Header />
+        {/* HEADER - Caché sur les pages de chat */}
+        {!hideHeader && <Header />}
 
         {/* WRAPPER GLOBAL */}
-        <div className="pt-20 pb-20 min-h-screen flex flex-col">
+        <div className={isChatPage ? "min-h-screen flex flex-col" : "pt-20 pb-20 min-h-screen flex flex-col"}>
           <main className="flex-1">
             {children}
           </main>
 
-          {/* FOOTER - Caché sur les pages de chat */}
-          {!isChatPage && (
+          {/* FOOTER - Caché sur les pages de chat, dashboard et classement */}
+          {!hideFooter && (
             <footer className="bg-black border-t border-white/10">
             <div className="max-w-7xl mx-auto px-4 py-12">
               <div className="grid md:grid-cols-3 gap-8">
@@ -65,7 +71,8 @@ export default function RootLayout({
           </footer>
           )}
         </div>
-        <NavBar />
+        {/* NAVBAR - Caché sur les pages de chat */}
+        {!isChatPage && <NavBar />}
       </body>
     </html>
   );

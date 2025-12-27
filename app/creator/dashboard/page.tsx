@@ -41,6 +41,29 @@ export default function CreatorDashboardPage() {
   const [statsLoading, setStatsLoading] = useState(false)
   const [statsError, setStatsError] = useState<string | null>(null)
 
+  const loadStats = async (creatorSlug: string) => {
+    setStatsLoading(true)
+    setStatsError(null)
+
+    try {
+      // Ajouter un timestamp pour éviter le cache
+      const response = await fetch(`/api/creator/stats?slug=${creatorSlug}&_t=${Date.now()}`)
+
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement des statistiques')
+      }
+
+      const data = await response.json()
+      setStats(data.stats)
+      setSubscribers(data.subscribers || [])
+    } catch (error) {
+      console.error('Erreur stats:', error)
+      setStatsError(error instanceof Error ? error.message : 'Erreur inconnue')
+    } finally {
+      setStatsLoading(false)
+    }
+  }
+
   useEffect(() => {
     const accountType = localStorage.getItem('accountType')
     const creatorSlug = localStorage.getItem('creatorSlug')
@@ -61,29 +84,23 @@ export default function CreatorDashboardPage() {
 
     // Charger les statistiques
     loadStats(creatorSlug)
-  }, [router])
 
-  const loadStats = async (creatorSlug: string) => {
-    setStatsLoading(true)
-    setStatsError(null)
+    // Rafraîchir automatiquement toutes les 30 secondes pour avoir les noms à jour
+    const refreshInterval = setInterval(() => {
+      loadStats(creatorSlug)
+    }, 30000) // 30 secondes
 
-    try {
-      const response = await fetch(`/api/creator/stats?slug=${creatorSlug}`)
-
-      if (!response.ok) {
-        throw new Error('Erreur lors du chargement des statistiques')
-      }
-
-      const data = await response.json()
-      setStats(data.stats)
-      setSubscribers(data.subscribers || [])
-    } catch (error) {
-      console.error('Erreur stats:', error)
-      setStatsError(error instanceof Error ? error.message : 'Erreur inconnue')
-    } finally {
-      setStatsLoading(false)
+    // Rafraîchir quand la fenêtre reprend le focus
+    const handleFocus = () => {
+      loadStats(creatorSlug)
     }
-  }
+    window.addEventListener('focus', handleFocus)
+
+    return () => {
+      clearInterval(refreshInterval)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [router])
 
   const logout = () => {
     localStorage.removeItem('accountType')
@@ -111,10 +128,13 @@ export default function CreatorDashboardPage() {
         <div className="bg-white rounded-2xl shadow-xl p-5 md:p-8 mb-6 md:mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Dashboard Créatrice
+              Dashboard{" "}
+              <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
+                Créatrice
+              </span>
             </h1>
             <p className="text-gray-600">
-              Connectée en tant que <span className="font-semibold text-purple-600">@{slug}</span>
+              Connectée en tant que <span className="font-semibold bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">@{slug}</span>
             </p>
             {name && (
               <p className="text-sm text-gray-500 mt-1">{name}</p>
@@ -690,7 +710,7 @@ export default function CreatorDashboardPage() {
         <div className="mt-8 flex justify-center pb-8">
           <button
             onClick={logout}
-            className="px-8 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg"
+            className="px-8 py-3 rounded-lg bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white font-semibold hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all shadow-lg"
           >
             Se déconnecter
           </button>

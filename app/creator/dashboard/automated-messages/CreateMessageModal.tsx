@@ -353,7 +353,7 @@ export default function CreateMessageModal({ message, onClose }: CreateMessageMo
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? 'Sauvegarde...' : (message ? 'Mettre à jour' : 'Créer')}
             </button>

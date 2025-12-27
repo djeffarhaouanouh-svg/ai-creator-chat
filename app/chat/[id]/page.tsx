@@ -169,6 +169,7 @@ export default function ChatPage() {
   // États pour la barre de progression gamifiée
   const [userMessageCount, setUserMessageCount] = useState(0);
   const [rewardUnlocked, setRewardUnlocked] = useState(false);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
   if (!creator) {
     return (
@@ -218,6 +219,28 @@ export default function ChatPage() {
       return true; // Par défaut activé
     }
   };
+
+  /* ---------------------------- Charger avatar utilisateur --------------------------- */
+  useEffect(() => {
+    async function loadUserAvatar() {
+      const userId = localStorage.getItem('userId');
+      if (!userId) return;
+
+      try {
+        const response = await fetch(`/api/user/stats?userId=${userId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user?.avatar_url) {
+            setUserAvatar(data.user.avatar_url);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user avatar:', error);
+      }
+    }
+
+    loadUserAvatar();
+  }, []);
 
   /* ---------------------------- Chargement session --------------------------- */
   useEffect(() => {
@@ -318,9 +341,19 @@ export default function ChatPage() {
     loadMessages();
 
     // Marquer cette conversation comme vue (pour les notifications non lues)
-    if (creator) {
+    // Seulement quand on charge les messages, pas à chaque changement
+    if (creator && messages.length > 0) {
       const creatorSlug = creator.slug || creator.id;
-      localStorage.setItem(`lastViewed_${creatorSlug}`, new Date().toISOString());
+      const lastViewedKey = `lastViewed_${creatorSlug}`;
+      const lastReadKey = `lastRead_${creatorSlug}`;
+      const now = new Date().toISOString();
+      
+      // Mettre à jour seulement si on n'a pas déjà une date plus récente
+      const existing = localStorage.getItem(lastViewedKey);
+      if (!existing || new Date(now) > new Date(existing)) {
+        localStorage.setItem(lastViewedKey, now);
+        localStorage.setItem(lastReadKey, now);
+      }
     }
   }, [creator, router]);
 
@@ -414,11 +447,22 @@ export default function ChatPage() {
   }, [messages]);
 
   // Marquer les messages comme lus quand on voit les messages
+  // Seulement quand l'utilisateur est vraiment sur la page et a scrollé jusqu'en bas
   useEffect(() => {
     if (!creator || messages.length === 0) return;
 
-    const lastReadKey = `lastRead_${creator.slug || creator.id}`;
-    localStorage.setItem(lastReadKey, new Date().toISOString());
+    // Attendre un peu pour s'assurer que l'utilisateur a vraiment vu les messages
+    const timer = setTimeout(() => {
+      const lastReadKey = `lastRead_${creator.slug || creator.id}`;
+      const lastViewedKey = `lastViewed_${creator.slug || creator.id}`;
+      const now = new Date().toISOString();
+      
+      // Mettre à jour les deux clés pour compatibilité
+      localStorage.setItem(lastReadKey, now);
+      localStorage.setItem(lastViewedKey, now);
+    }, 1000); // Attendre 1 seconde après le chargement
+
+    return () => clearTimeout(timer);
   }, [messages, creator]);
 
   // Recharger l'état de l'IA quand la fenêtre reprend le focus
@@ -1044,12 +1088,23 @@ export default function ChatPage() {
                       ) : (
                         <>
                           <Volume2 size={14} />
-                          <span>🔉 Écouter</span>
+                          <span>Écouter</span>
                         </>
                       )}
                     </button>
                   )}
                 </div>
+
+                {message.role === 'user' && userAvatar && (
+                  <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-[#E31FC1]">
+                    <Image
+                      src={userAvatar}
+                      alt="Votre avatar"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           ))}

@@ -47,23 +47,30 @@ export default function MesMessagesPage() {
 
           // Compter les messages non lus (depuis localStorage)
           const lastViewedKey = `lastViewed_${creatorSlug}`;
-          const lastViewedTimestamp = localStorage.getItem(lastViewedKey);
+          const lastReadKey = `lastRead_${creator.slug || creator.id}`;
+          let lastViewedTimestamp = localStorage.getItem(lastViewedKey) || localStorage.getItem(lastReadKey);
 
-          let unreadCount = 0;
-          if (messages.length > 0) {
-            if (lastViewedTimestamp) {
-              // Si déjà visité, compter les messages plus récents que lastViewed
-              const lastViewed = new Date(lastViewedTimestamp);
-              unreadCount = messages.filter((msg: any) => {
-                const msgTime = new Date(msg.timestamp);
-                return msgTime > lastViewed && msg.role === 'assistant';
-              }).length;
-            } else {
-              // Si jamais visité, compter TOUS les messages assistant
-              unreadCount = messages.filter((msg: any) => msg.role === 'assistant').length;
-            }
+          // Si jamais visité, initialiser avec une date récente (il y a 10 minutes) pour ne compter que les messages vraiment nouveaux
+          if (!lastViewedTimestamp && messages.length > 0) {
+            const tenMinutesAgo = new Date();
+            tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10);
+            lastViewedTimestamp = tenMinutesAgo.toISOString();
+            // Sauvegarder cette date pour éviter de recompter à chaque fois
+            localStorage.setItem(lastViewedKey, lastViewedTimestamp);
           }
 
+          let unreadCount = 0;
+          if (messages.length > 0 && lastViewedTimestamp) {
+            // Compter uniquement les messages assistant plus récents que lastViewed
+            const lastViewed = new Date(lastViewedTimestamp);
+            unreadCount = messages.filter((msg: any) => {
+              if (msg.role !== 'assistant') return false; // Seulement les messages assistant
+              const msgTime = new Date(msg.timestamp);
+              // Utiliser > avec une marge de 1 seconde pour éviter les faux positifs
+              return msgTime.getTime() > lastViewed.getTime() + 1000; // 1 seconde de marge
+            }).length;
+          }
+          
           console.log(`💬 ${creatorSlug}: ${messages.length} messages, ${unreadCount} unread`);
 
           conversationsMap.set(creatorSlug, {

@@ -24,6 +24,7 @@ export default function CreatorChatPage() {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [userInfo, setUserInfo] = useState<{ name: string; email: string } | null>(null)
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
   const [aiEnabled, setAiEnabled] = useState(true)
   const [creatorAvatar, setCreatorAvatar] = useState<string | null>(null)
 
@@ -99,6 +100,10 @@ export default function CreatorChatPage() {
             name: userData.user.name || 'Utilisateur',
             email: userData.user.email || ''
           })
+          // Charger l'avatar de l'utilisateur si disponible
+          if (userData.user.avatar_url) {
+            setUserAvatar(userData.user.avatar_url)
+          }
         }
       }
     } catch (error) {
@@ -210,8 +215,20 @@ export default function CreatorChatPage() {
               className={`flex gap-3 ${message.role === 'user' ? 'justify-start' : 'justify-end'}`}
             >
               {message.role === 'user' && (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
-                  {userInfo?.name?.charAt(0).toUpperCase() || 'U'}
+                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-[#E31FC1] flex-shrink-0">
+                  {userAvatar ? (
+                    <Image
+                      src={userAvatar}
+                      alt={userInfo?.name || 'Utilisateur'}
+                      width={32}
+                      height={32}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
+                      {userInfo?.name?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                  )}
                 </div>
               )}
               

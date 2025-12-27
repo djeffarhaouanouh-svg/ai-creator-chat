@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Heart, Laugh, Flame, MessageCircle, Share2, Sparkles, Bot, ChevronRight, Send, ChevronUp } from 'lucide-react'
+import Image from 'next/image'
 
 interface Message {
   id: string
@@ -16,6 +17,7 @@ interface Conversation {
   user_id: string
   user_name: string
   user_email: string
+  user_avatar_url: string | null
   last_message: string
   last_message_role: 'user' | 'assistant'
   last_message_at: string
@@ -121,8 +123,9 @@ export default function MessagesPage() {
 
             const msgDate = new Date(conv.last_message_at)
 
-            // Si jamais lu OU si le message est plus récent que la dernière lecture
-            if (!lastReadDate || msgDate > lastReadDate) {
+            // Ne pas compter comme non lu si jamais lu (première visite)
+            // Seulement si le message est vraiment plus récent (avec marge de 1 seconde)
+            if (lastReadDate && msgDate.getTime() > lastReadDate.getTime() + 1000) {
               newMessagesSet.add(conv.user_id)
             }
           }
@@ -292,6 +295,213 @@ export default function MessagesPage() {
     setReactingTo(null)
   }
 
+  /**
+   * Génère un sticker PNG transparent pour Instagram Stories
+   * Utilise le même design que handleShare mais avec un fond transparent
+   * Le sticker laisse la caméra active en arrière-plan
+   */
+  const generateTransparentSticker = async (message: Message): Promise<Blob | null> => {
+    return new Promise((resolve) => {
+      // Dimensions identiques au design actuel
+      const width = 1200
+      const cardX = 40
+      const cardY = 30
+      const headerHeight = 72
+      const cardRadius = 36
+      const cardW = width - cardX * 2
+      const textPaddingX = 40
+      const nameX = cardX + 48
+      const nameY = cardY + headerHeight + 56
+      const textStartX = nameX
+      const lineHeight = 34
+
+      // 1) Mesure du texte sur un canvas temporaire
+      const measureCanvas = document.createElement('canvas')
+      const measureCtx = measureCanvas.getContext('2d')
+      if (!measureCtx) {
+        resolve(null)
+        return
+      }
+      measureCtx.font = '24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+
+      const maxTextWidth = cardX + cardW - textStartX - textPaddingX
+      const words = message.content.split(' ')
+      const lines: string[] = []
+      let currentLine = ''
+
+      for (const word of words) {
+        const testLine = currentLine ? currentLine + ' ' + word : word
+        const metrics = measureCtx.measureText(testLine)
+        if (metrics.width > maxTextWidth && currentLine) {
+          lines.push(currentLine)
+          currentLine = word
+        } else {
+          currentLine = testLine
+        }
+      }
+      if (currentLine) lines.push(currentLine)
+
+      const textStartY = nameY + 40
+      const textHeight = lines.length * lineHeight
+      const cardH = (textStartY - cardY) + textHeight + 40 // marge bas
+      const height = cardH + cardY * 2
+
+      // 2) Canvas final avec fond transparent
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        resolve(null)
+        return
+      }
+
+      // IMPORTANT: Ne pas remplir le fond - le canvas est transparent par défaut
+      // On dessine directement les éléments sans la carte blanche
+
+      // Fonction pour dessiner un rectangle arrondi (pour l'onglet)
+      const drawRoundedRect = (
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+        r: number
+      ) => {
+        const radius = Math.min(r, h / 2, w / 2)
+        ctx.beginPath()
+        ctx.moveTo(x + radius, y)
+        ctx.lineTo(x + w - radius, y)
+        ctx.quadraticCurveTo(x + w, y, x + w, y + radius)
+        ctx.lineTo(x + w, y + h - radius)
+        ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h)
+        ctx.lineTo(x + radius, y + h)
+        ctx.quadraticCurveTo(x, y + h, x, y + h - radius)
+        ctx.lineTo(x, y + radius)
+        ctx.quadraticCurveTo(x, y, x + radius, y)
+        ctx.closePath()
+        ctx.fill()
+      }
+
+      // Onglet MyDouble (identique au design actuel)
+      ctx.save()
+      ctx.beginPath()
+      ctx.moveTo(cardX + 24, cardY)
+      ctx.lineTo(cardX + 260, cardY)
+      ctx.quadraticCurveTo(cardX + 280, cardY, cardX + 280, cardY + 20)
+      ctx.lineTo(cardX + 280, cardY + headerHeight)
+      ctx.lineTo(cardX + 24, cardY + headerHeight)
+      ctx.quadraticCurveTo(cardX, cardY + headerHeight, cardX, cardY + headerHeight - 20)
+      ctx.lineTo(cardX, cardY + 20)
+      ctx.quadraticCurveTo(cardX, cardY, cardX + 24, cardY)
+      ctx.closePath()
+      const headerGradient = ctx.createLinearGradient(cardX, cardY, cardX + 280, cardY)
+      headerGradient.addColorStop(0, '#f4399c')
+      headerGradient.addColorStop(1, '#ff7ac4')
+      ctx.fillStyle = headerGradient
+      ctx.fill()
+
+      ctx.fillStyle = '#ffffff'
+      ctx.font = 'bold 34px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+      ctx.textAlign = 'left'
+      ctx.fillText('MyDouble', cardX + 40, cardY + 46)
+      ctx.restore()
+
+      // Nom du fan (identique au design actuel)
+      ctx.textAlign = 'left'
+      ctx.fillStyle = '#111827'
+      ctx.font = '600 30px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+      ctx.fillText(message.fan_nickname || 'Fan', nameX, nameY)
+
+      // Message multi-lignes (identique au design actuel)
+      ctx.font = '24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+      ctx.fillStyle = '#111827'
+      lines.forEach((line, index) => {
+        ctx.fillText(line, textStartX, textStartY + index * lineHeight)
+      })
+
+      // Signature "mydouble" (identique au design actuel)
+      ctx.font = '600 22px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+      ctx.fillStyle = '#9ca3af'
+      ctx.textAlign = 'right'
+      ctx.fillText('mydouble', cardX + cardW - textPaddingX, cardY + cardH - 24)
+
+      // Convertir en PNG avec transparence
+      canvas.toBlob((blob) => {
+        resolve(blob)
+      }, 'image/png')
+    })
+  }
+
+  /**
+   * Partage un message en story Instagram avec un sticker transparent
+   * Utilise le URL Scheme Instagram Stories pour ouvrir l'app avec la caméra active
+   */
+  const shareToInstagramStory = async (message: Message): Promise<void> => {
+    try {
+      // Générer le sticker transparent
+      const stickerBlob = await generateTransparentSticker(message)
+      if (!stickerBlob) {
+        alert('Erreur lors de la génération du sticker')
+        return
+      }
+
+      // Uploader le sticker pour obtenir une URL publique (nécessaire pour Instagram)
+      const formData = new FormData()
+      const fileName = `instagram-sticker-${Date.now()}.png`
+      const file = new File([stickerBlob], fileName, { type: 'image/png' })
+      formData.append('file', file)
+      formData.append('contentType', 'image')
+
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!uploadResponse.ok) {
+        throw new Error('Erreur lors de l\'upload du sticker')
+      }
+
+      const uploadData = await uploadResponse.json()
+      if (!uploadData.success || !uploadData.url) {
+        throw new Error(uploadData.error || 'Erreur lors de l\'upload')
+      }
+
+      const stickerUrl = uploadData.url
+
+      // Vérifier si on est sur mobile
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
+      if (isMobile) {
+        // Utiliser le URL Scheme Instagram Stories
+        // Format: instagram-stories://share?stickerImage=URL
+        // Ce format ouvre Instagram Stories avec la caméra active et le sticker ajouté
+        const instagramUrl = `instagram-stories://share?stickerImage=${encodeURIComponent(stickerUrl)}`
+        
+        // Tentative d'ouverture de l'app Instagram avec window.location.href
+        // C'est la méthode la plus fiable pour les URL schemes
+        window.location.href = instagramUrl
+
+        // Note: Si Instagram n'est pas installé, l'utilisateur verra une erreur du navigateur
+        // Le fallback idéal serait d'utiliser une iframe ou un lien caché, mais pour l'instant
+        // on laisse le comportement natif du système
+      } else {
+        // Sur desktop, télécharger le sticker
+        const url = URL.createObjectURL(stickerBlob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = fileName
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        alert('Sticker téléchargé. Partagez-le manuellement sur Instagram depuis votre mobile.')
+      }
+    } catch (error) {
+      console.error('Erreur lors du partage Instagram Story:', error)
+      alert('Erreur lors du partage. Veuillez réessayer.')
+    }
+  }
+
   const shareToInstagram = async (file: File): Promise<boolean> => {
     if (typeof navigator === 'undefined') return false
 
@@ -326,6 +536,13 @@ export default function MessagesPage() {
   }
 
   const handleShare = async (message: Message, platform: 'instagram' | 'snapchat') => {
+    if (platform === 'instagram') {
+      // Utiliser la nouvelle fonction pour Instagram Stories avec sticker transparent
+      await shareToInstagramStory(message)
+      return
+    }
+
+    // Logique Snapchat : générer une image plein écran (comportement existant)
     // Dimensions de base du sticker
     const width = 1200
     const cardX = 40
@@ -443,29 +660,17 @@ export default function MessagesPage() {
     ctx.textAlign = 'right'
     ctx.fillText('mydouble', cardX + cardW - textPaddingX, cardY + cardH - 24)
 
-    // Export de l'image puis partage ou téléchargement
+    // Export de l'image puis téléchargement pour Snapchat
     canvas.toBlob(async (blob) => {
       if (!blob) return
 
       const fileName = `mydouble-sticker-${Date.now()}.png`
       const url = URL.createObjectURL(blob)
 
-      if (platform === 'instagram') {
-        const file = new File([blob], fileName, { type: 'image/png' })
-        const shared = await shareToInstagram(file)
-        if (!shared) {
-          const a = document.createElement('a')
-          a.href = url
-          a.download = fileName
-          a.click()
-        }
-        URL.revokeObjectURL(url)
-      } else {
-        // Snapchat : téléchargement + ouverture de l'app
-        shareToSnapchat(url)
-        // on libère l'URL un peu plus tard
-        setTimeout(() => URL.revokeObjectURL(url), 5000)
-      }
+      // Snapchat : téléchargement + ouverture de l'app
+      shareToSnapchat(url)
+      // on libère l'URL un peu plus tard
+      setTimeout(() => URL.revokeObjectURL(url), 5000)
     })
   }
 
@@ -545,8 +750,20 @@ export default function MessagesPage() {
                     >
                       <div className="flex items-start gap-4">
                         {/* Avatar */}
-                        <div className="relative w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
-                          {getInitials(conversation.user_name)}
+                        <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-[#E31FC1] flex-shrink-0">
+                          {conversation.user_avatar_url ? (
+                            <Image
+                              src={conversation.user_avatar_url}
+                              alt={conversation.user_name}
+                              width={48}
+                              height={48}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
+                              {getInitials(conversation.user_name)}
+                            </div>
+                          )}
                           {/* Bulle de notification verte */}
                           {conversationsWithNewMessages.has(conversation.user_id) && (
                             <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
@@ -581,7 +798,7 @@ export default function MessagesPage() {
                                 disabled={togglingConversation === conversation.user_id}
                                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
                                   conversation.ai_enabled
-                                    ? 'bg-gradient-to-r from-purple-600 to-pink-600'
+                                    ? 'bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb]'
                                     : 'bg-gray-200'
                                 } ${togglingConversation === conversation.user_id ? 'opacity-50 cursor-not-allowed' : ''}`}
                               >
@@ -599,7 +816,7 @@ export default function MessagesPage() {
                             <div className="mt-2">
                               <p className="text-sm text-gray-600 line-clamp-2 flex items-start gap-1">
                                 {conversation.last_message_role === 'assistant' && (
-                                  <Bot size={14} className="mt-0.5 flex-shrink-0 text-purple-600" />
+                                  <Bot size={14} className="mt-0.5 flex-shrink-0 text-[#e31fc1]" />
                                 )}
                                 <span>{conversation.last_message}</span>
                               </p>
@@ -625,7 +842,7 @@ export default function MessagesPage() {
                           <div className="mt-3">
                             <button
                               onClick={(e) => handleToggleExpand(conversation.user_id, e)}
-                              className="expand-toggle flex items-center gap-1 text-purple-600 text-sm font-medium hover:text-purple-700 transition-colors"
+                              className="expand-toggle flex items-center gap-1 text-[#e31fc1] text-sm font-medium hover:text-[#ff6b9d] transition-colors"
                             >
                               {isExpanded ? (
                                 <>
@@ -676,7 +893,7 @@ export default function MessagesPage() {
                                 }
                               }}
                               placeholder="Tape ton message..."
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black placeholder-gray-400 bg-white resize-none text-sm"
+                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e31fc1] focus:border-transparent text-black placeholder-gray-400 bg-white resize-none text-sm"
                               disabled={isSending}
                               rows={1}
                               style={{ minHeight: '40px', maxHeight: '80px' }}
@@ -684,7 +901,7 @@ export default function MessagesPage() {
                             <button
                               onClick={() => handleSendMessage(conversation)}
                               disabled={!inputValue.trim() || isSending}
-                              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                              className="px-4 py-2 bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white rounded-lg hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                               {isSending ? (
                                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -756,7 +973,7 @@ export default function MessagesPage() {
                   <button
                     onClick={() => handleReact(message.id)}
                     disabled={reactingTo === message.id}
-                    className="sm:w-1/2 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 text-sm lg:text-base font-semibold hover:from-purple-200 hover:to-pink-200 transition-all disabled:opacity-50"
+                    className="sm:w-1/2 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-[#e31fc1]/10 to-[#ff6b9d]/10 text-[#e31fc1] border border-[#e31fc1]/20 text-sm lg:text-base font-semibold hover:from-[#e31fc1]/20 hover:to-[#ff6b9d]/20 transition-all disabled:opacity-50"
                   >
                     <Heart size={18} className={reactingTo === message.id ? 'fill-current animate-pulse' : ''} />
                     <span>{reactingTo === message.id ? 'Réaction envoyée!' : 'Réagir'}</span>
@@ -769,7 +986,7 @@ export default function MessagesPage() {
                           current === message.id ? null : message.id
                         )
                       }
-                      className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm lg:text-base font-semibold hover:from-purple-700 hover:to-pink-700 transition-all"
+                      className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white text-sm lg:text-base font-semibold hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all"
                     >
                       <Share2 size={18} />
                       <span>Partager en story</span>
@@ -785,7 +1002,7 @@ export default function MessagesPage() {
                     <div className="mt-2 flex items-center justify-center gap-2">
                       <button
                         onClick={() => handleShare(message, 'instagram')}
-                        className="px-3 py-1 rounded-full text-xs font-semibold bg-white border border-purple-200 text-purple-700 shadow-sm hover:bg-purple-50 transition-colors"
+                        className="px-3 py-1 rounded-full text-xs font-semibold bg-white border border-[#e31fc1]/30 text-[#e31fc1] shadow-sm hover:bg-[#e31fc1]/10 transition-colors"
                       >
                         📸 Instagram
                       </button>

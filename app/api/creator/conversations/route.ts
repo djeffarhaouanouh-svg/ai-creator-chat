@@ -33,7 +33,10 @@ export async function GET(request: NextRequest) {
     // Récupérer toutes les conversations avec le dernier message et les infos utilisateur
     // messages.creator_id est TEXT (slug), donc on cherche avec le slug
     // messages.user_id est TEXT (UUID stocké comme texte)
-    const conversationsResult = await sql`
+    // On essaie d'abord avec avatar_url, sinon on fait sans
+    let conversationsResult;
+    try {
+      conversationsResult = await sql`
       WITH last_messages AS (
         SELECT DISTINCT ON (m.user_id)
           m.user_id,
@@ -56,6 +59,7 @@ export async function GET(request: NextRequest) {
         lm.user_id,
         u.name as user_name,
         u.email as user_email,
+        u.avatar_url as user_avatar_url,
         lm.last_message,
         lm.last_message_role,
         lm.last_message_at,
@@ -64,7 +68,46 @@ export async function GET(request: NextRequest) {
       LEFT JOIN users u ON lm.user_id::uuid = u.id
       LEFT JOIN message_counts mc ON lm.user_id = mc.user_id
       ORDER BY lm.last_message_at DESC
-    `
+      `
+    } catch (error: any) {
+      // Si la colonne avatar_url n'existe pas encore, on fait sans
+      if (error.message && error.message.includes('avatar_url')) {
+        conversationsResult = await sql`
+          WITH last_messages AS (
+            SELECT DISTINCT ON (m.user_id)
+              m.user_id,
+              m.content as last_message,
+              m.role as last_message_role,
+              m.created_at as last_message_at
+            FROM messages m
+            WHERE m.creator_id = ${creatorSlug}
+            ORDER BY m.user_id, m.created_at DESC
+          ),
+          message_counts AS (
+            SELECT 
+              m.user_id,
+              COUNT(*) as total_messages
+            FROM messages m
+            WHERE m.creator_id = ${creatorSlug}
+            GROUP BY m.user_id
+          )
+          SELECT 
+            lm.user_id,
+            u.name as user_name,
+            u.email as user_email,
+            lm.last_message,
+            lm.last_message_role,
+            lm.last_message_at,
+            COALESCE(mc.total_messages, 0) as total_messages
+          FROM last_messages lm
+          LEFT JOIN users u ON lm.user_id::uuid = u.id
+          LEFT JOIN message_counts mc ON lm.user_id = mc.user_id
+          ORDER BY lm.last_message_at DESC
+        `
+      } else {
+        throw error;
+      }
+    }
 
     // Récupérer les settings IA pour chaque conversation
     // On crée une table conversation_settings si elle n'existe pas déjà
@@ -92,6 +135,7 @@ export async function GET(request: NextRequest) {
           user_id: conv.user_id,
           user_name: conv.user_name || 'Utilisateur',
           user_email: conv.user_email,
+          user_avatar_url: (conv.user_avatar_url !== undefined) ? (conv.user_avatar_url || null) : null,
           last_message: conv.last_message,
           last_message_role: (conv.last_message_role === 'user' || conv.last_message_role === 'assistant') 
             ? conv.last_message_role 

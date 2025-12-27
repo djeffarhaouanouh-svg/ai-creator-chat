@@ -3,22 +3,32 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, MessageCircle, User, Users } from 'lucide-react'
+import { Home, MessageCircle, User, Users, Trophy, Lock, Globe } from 'lucide-react'
 import { storage } from '@/lib/storage'
 
 export default function NavBar() {
   const [mounted, setMounted] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [accountType, setAccountType] = useState<string | null>(null)
+  const [hasSubscriptions, setHasSubscriptions] = useState(false)
   const [hasNewMessages, setHasNewMessages] = useState(false)
+  const [creatorSlug, setCreatorSlug] = useState<string | null>(null)
   const pathname = usePathname()
 
   useEffect(() => {
     setMounted(true)
     // Check if user is authenticated
     const accountTypeFromStorage = localStorage.getItem('accountType')
+    const creatorSlugFromStorage = localStorage.getItem('creatorSlug')
     setAccountType(accountTypeFromStorage)
+    setCreatorSlug(creatorSlugFromStorage)
     setIsAuthenticated(!!accountTypeFromStorage)
+    
+    // Check if user has active subscriptions (paying user)
+    if (accountTypeFromStorage === 'user') {
+      const subscriptions = storage.getSubscriptions()
+      setHasSubscriptions(subscriptions.length > 0)
+    }
 
     // Check for new messages
     const checkMessages = async () => {
@@ -128,28 +138,87 @@ export default function NavBar() {
     return null
   }
 
-  const navItems = [
-    {
-      name: 'Accueil',
-      href: '/',
-      icon: Home,
-    },
-    {
-      name: 'Mes messages',
-      href: '/mes-messages',
-      icon: MessageCircle,
-    },
-    {
-      name: 'Mon compte',
-      href: isAuthenticated ? '/mon-compte' : '/login',
-      icon: User,
-    },
-    {
-      name: 'Nous rejoindre',
-      href: '/pourquoi-nous-rejoindre',
-      icon: Users,
-    },
-  ]
+  // Menu selon le type d'utilisateur
+  let navItems: Array<{ name: string; href: string; icon: any }> = []
+
+  if (accountType === 'creator') {
+    // Menu créatrice
+    navItems = [
+      {
+        name: 'Mes messages',
+        href: '/mes-messages',
+        icon: MessageCircle,
+      },
+      {
+        name: 'Mon profil',
+        href: '/mon-compte',
+        icon: User,
+      },
+      {
+        name: 'Ma page',
+        href: creatorSlug ? `/creator/${creatorSlug}` : '/',
+        icon: Globe,
+      },
+      {
+        name: 'Classement',
+        href: '/meilleur-fan',
+        icon: Trophy,
+      },
+      {
+        name: 'Contenu privé',
+        href: '/creator/dashboard/requests',
+        icon: Lock,
+      },
+    ]
+  } else if (hasSubscriptions) {
+    // Menu utilisateur payant
+    navItems = [
+      {
+        name: 'Accueil',
+        href: '/',
+        icon: Home,
+      },
+      {
+        name: 'Mes messages',
+        href: '/mes-messages',
+        icon: MessageCircle,
+      },
+      {
+        name: 'Mon compte',
+        href: isAuthenticated ? '/mon-compte' : '/login',
+        icon: User,
+      },
+      {
+        name: 'Classement',
+        href: '/meilleur-fan',
+        icon: Trophy,
+      },
+    ]
+  } else {
+    // Menu visiteur normal (non connecté ou pas d'abonnement)
+    navItems = [
+      {
+        name: 'Accueil',
+        href: '/',
+        icon: Home,
+      },
+      {
+        name: 'Mes messages',
+        href: '/mes-messages',
+        icon: MessageCircle,
+      },
+      {
+        name: 'Mon compte',
+        href: isAuthenticated ? '/mon-compte' : '/login',
+        icon: User,
+      },
+      {
+        name: 'Nous rejoindre',
+        href: '/pourquoi-nous-rejoindre',
+        icon: Users,
+      },
+    ]
+  }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t border-gray-800">

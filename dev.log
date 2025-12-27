@@ -9,3 +9,117 @@
 
  ✓ Starting...
  ✓ Ready in 2.7s
+ ⚠ Found a change in next.config.js. Restarting the server to apply the changes...
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.7s
+ ⚠ Found a change in next.config.js. Restarting the server to apply the changes...
+ ⚠ Port 3000 is in use, trying 3001 instead.
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3001
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.8s
+ ⚠ Found a change in next.config.js. Restarting the server to apply the changes...
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.7s
+ ○ Compiling /api/messages ...
+ ✓ Compiled /api/messages in 980ms (89 modules)
+ GET /api/messages?userId=5df8ad8b-6079-48ae-9235-00fa40872dd9&creatorId=lauryncrl 200 in 1291ms
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../typescript/lib/typescript' in c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build for build dependencies doesn't lead to expected result 'C:\Users\Thomas\Downloads\ai-creator-chat\node_modules\typescript\lib\typescript.js', but to 'c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\typescript\lib\typescript.js' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../typescript/lib/typescript (expected C:\Users\Thomas\Downloads\ai-creator-chat\node_modules\typescript\lib\typescript.js)
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack-config.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack-config.js
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\handle-externals.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\handle-externals.js
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at resolve commonjs c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+ GET /api/messages?userId=5df8ad8b-6079-48ae-9235-00fa40872dd9&creatorId=lauryncrl 200 in 71ms
+ GET /api/messages?userId=5df8ad8b-6079-48ae-9235-00fa40872dd9&creatorId=lauryncrl 200 in 75ms
+ GET /api/messages?userId=5df8ad8b-6079-48ae-9235-00fa40872dd9&creatorId=lauryncrl 200 in 138ms
+ ○ Compiling / ...
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../typescript/lib/typescript' in c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build for build dependencies doesn't lead to expected result 'C:\Users\Thomas\Downloads\ai-creator-chat\node_modules\typescript\lib\typescript.js', but to 'c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\typescript\lib\typescript.js' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../typescript/lib/typescript (expected C:\Users\Thomas\Downloads\ai-creator-chat\node_modules\typescript\lib\typescript.js)
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack-config.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack-config.js
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\handle-externals.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\handle-externals.js
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\swc\index.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\swc\index.js
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at resolve commonjs c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../typescript/lib/typescript' in c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build for build dependencies doesn't lead to expected result 'C:\Users\Thomas\Downloads\ai-creator-chat\node_modules\typescript\lib\typescript.js', but to 'c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\typescript\lib\typescript.js' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../typescript/lib/typescript (expected C:\Users\Thomas\Downloads\ai-creator-chat\node_modules\typescript\lib\typescript.js)
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack-config.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack-config.js
+<w>  at file dependencies c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at resolve commonjs c:\Users\Thomas\Downloads\ai-creator-chat\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+ ✓ Compiled /meilleur-fan in 12s (1427 modules)
+ ✓ Compiled in 599ms (685 modules)
+ ✓ Compiled in 300ms (679 modules)
+ GET /api/messages?userId=5df8ad8b-6079-48ae-9235-00fa40872dd9&creatorId=lauryncrl 200 in 10298ms
+ GET /meilleur-fan 200 in 2356ms
+ ✓ Compiled /api/user/stats in 173ms (745 modules)
+ GET /api/messages?userId=5df8ad8b-6079-48ae-9235-00fa40872dd9&creatorId=lauryncrl 200 in 425ms
+ GET /api/messages?userId=5df8ad8b-6079-48ae-9235-00fa40872dd9&creatorId=lauryncrl 200 in 60ms
+ GET /api/user/stats?userId=5df8ad8b-6079-48ae-9235-00fa40872dd9 200 in 743ms
+ ✓ Compiled /api/creators/[slug] in 336ms (750 modules)
+ GET /api/user/stats?userId=5df8ad8b-6079-48ae-9235-00fa40872dd9 200 in 484ms
+ ✓ Compiled /api/creators in 205ms (753 modules)
+ GET /api/creators/lauryncrl 200 in 1258ms
+ GET /api/creators 200 in 499ms
+ GET /api/creators/lauryncrl 200 in 278ms
+ GET /api/creators 200 in 290ms
+ ✓ Compiled in 803ms (693 modules)
+ ✓ Compiled in 561ms (693 modules)
+ ✓ Compiled in 1317ms (693 modules)
+ ✓ Compiled in 484ms (693 modules)
+ ✓ Compiled in 498ms (693 modules)
+ ⚠ Found a change in next.config.js. Restarting the server to apply the changes...
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 5.3s
+ ⚠ Found a change in next.config.js. Restarting the server to apply the changes...
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 8.5s
+ ⚠ Found a change in next.config.js. Restarting the server to apply the changes...
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 5.1s

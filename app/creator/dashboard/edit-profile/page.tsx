@@ -639,7 +639,7 @@ export default function EditProfilePage() {
               type="button"
               onClick={handleStoryClick}
               disabled={uploadingStory}
-              className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white rounded-lg font-semibold hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {uploadingStory ? (
                 <>
@@ -828,7 +828,7 @@ export default function EditProfilePage() {
               <button
                 type="button"
                 onClick={handleGalleryClick}
-                className="flex-1 md:flex-none px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:opacity-90 transition-all"
+                className="flex-1 md:flex-none px-4 py-2 bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white rounded-lg font-semibold hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all"
               >
                 + Ajouter
               </button>
@@ -933,7 +933,7 @@ export default function EditProfilePage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white rounded-lg font-semibold hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
           </button>

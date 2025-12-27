@@ -48,8 +48,9 @@ export default function DashboardLayout({
 
                 const msgDate = new Date(conv.last_message_at)
 
-                // Si jamais lu OU si le message est plus récent que la dernière lecture
-                if (!lastReadDate || msgDate > lastReadDate) {
+                // Si jamais lu, ne pas compter comme non lu (première visite)
+                // Seulement si le message est vraiment plus récent que la dernière lecture (avec marge)
+                if (lastReadDate && msgDate.getTime() > lastReadDate.getTime() + 1000) {
                   hasUnread = true
                   break
                 }
@@ -137,8 +138,8 @@ export default function DashboardLayout({
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-all ${
                     isActive
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white'
+                      : 'text-gray-900 hover:bg-gray-100'
                   }`}
                 >
                   <div className="relative">
@@ -157,7 +158,7 @@ export default function DashboardLayout({
           <div className="absolute bottom-0 w-64 p-4 border-t">
             <button
               onClick={logout}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-900 hover:bg-red-50 hover:text-red-600 transition-all"
             >
               <LogOut size={20} />
               <span className="font-medium">Se déconnecter</span>

@@ -237,7 +237,10 @@ export default function CreatorRequestsPage() {
         {/* En-tête */}
         <div className="bg-white rounded-2xl shadow-xl p-5 md:p-8 mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Mes demandes personnalisées
+            Mes demandes{" "}
+            <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
+              personnalisées
+            </span>
           </h1>
           <p className="text-gray-600">
             Gérez les demandes de contenu personnalisé de vos fans
@@ -251,7 +254,7 @@ export default function CreatorRequestsPage() {
               onClick={() => setFilterStatus('all')}
               className={`px-3 py-2 rounded-lg font-medium transition-all text-sm whitespace-nowrap ${
                 filterStatus === 'all'
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                  ? 'bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -261,7 +264,7 @@ export default function CreatorRequestsPage() {
               onClick={() => setFilterStatus('pending')}
               className={`px-3 py-2 rounded-lg font-medium transition-all text-sm whitespace-nowrap ${
                 filterStatus === 'pending'
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                  ? 'bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -271,7 +274,7 @@ export default function CreatorRequestsPage() {
               onClick={() => setFilterStatus('price_proposed')}
               className={`px-3 py-2 rounded-lg font-medium transition-all text-sm whitespace-nowrap ${
                 filterStatus === 'price_proposed'
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                  ? 'bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -281,7 +284,7 @@ export default function CreatorRequestsPage() {
               onClick={() => setFilterStatus('paid')}
               className={`px-3 py-2 rounded-lg font-medium transition-all text-sm whitespace-nowrap ${
                 filterStatus === 'paid'
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                  ? 'bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -292,7 +295,7 @@ export default function CreatorRequestsPage() {
               onClick={() => setFilterStatus('delivered')}
               className={`px-3 py-2 rounded-lg font-medium transition-all text-sm whitespace-nowrap ${
                 filterStatus === 'delivered'
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                  ? 'bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -402,7 +405,7 @@ export default function CreatorRequestsPage() {
                             <div className="flex gap-2">
                               <button
                                 onClick={() => handleSetPrice(request.id)}
-                                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all"
+                                className="flex-1 px-4 py-2 bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white rounded-lg font-semibold hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all"
                               >
                                 Valider
                               </button>
@@ -421,7 +424,7 @@ export default function CreatorRequestsPage() {
                           <>
                             <button
                               onClick={() => setPricingRequest(request.id)}
-                              className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2"
+                              className="w-full px-4 py-2 bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white rounded-lg font-semibold hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all flex items-center justify-center gap-2"
                             >
                               <Euro className="w-4 h-4" />
                               Proposer un prix

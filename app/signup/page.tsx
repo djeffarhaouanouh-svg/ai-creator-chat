@@ -90,17 +90,22 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="bg-gradient-to-b from-gray-900 to-black border border-gray-800 rounded-2xl shadow-xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Créer un compte</h1>
-          <p className="text-gray-500">Rejoignez AI Creator Chat</p>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Créer un compte{" "}
+            <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">
+              MyDouble
+            </span>
+          </h1>
+          <p className="text-gray-400">Rejoignez MyDouble</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
 
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
               Nom complet
             </label>
             <input
@@ -109,14 +114,14 @@ export default function SignupPage() {
               type="text"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:ring-2 focus:ring-[#e31fc1] focus:border-transparent outline-none transition-all"
               placeholder="Jean Dupont"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
               Adresse email
             </label>
             <input
@@ -125,14 +130,14 @@ export default function SignupPage() {
               type="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:ring-2 focus:ring-[#e31fc1] focus:border-transparent outline-none transition-all"
               placeholder="email@exemple.com"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
               Mot de passe
             </label>
             <input
@@ -141,15 +146,15 @@ export default function SignupPage() {
               type="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:ring-2 focus:ring-[#e31fc1] focus:border-transparent outline-none transition-all"
               placeholder="••••••••"
               required
             />
-            <p className="text-xs text-gray-500 mt-1">Minimum 8 caractères</p>
+            <p className="text-xs text-gray-400 mt-1">Minimum 8 caractères</p>
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
               Confirmer le mot de passe
             </label>
             <input
@@ -158,14 +163,14 @@ export default function SignupPage() {
               type="password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:ring-2 focus:ring-[#e31fc1] focus:border-transparent outline-none transition-all"
               placeholder="••••••••"
               required
             />
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <div className="bg-red-900/30 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg text-sm">
               {error}
             </div>
           )}
@@ -173,23 +178,23 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white py-3 rounded-lg font-semibold hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
             {loading ? 'Création du compte...' : 'Créer mon compte'}
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-400">
             Vous avez déjà un compte ?{' '}
-            <Link href="/login" className="text-purple-600 hover:text-purple-700 font-semibold">
+            <Link href="/login" className="text-[#e31fc1] hover:text-[#ff6b9d] font-semibold hover:underline">
               Se connecter
             </Link>
           </p>
         </div>
 
         <div className="mt-4 text-center">
-          <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
+          <Link href="/" className="text-sm text-gray-400 hover:text-gray-300 transition-colors">
             ← Retour à l'accueil
           </Link>
         </div>
