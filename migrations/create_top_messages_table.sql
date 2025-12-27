@@ -24,3 +24,4 @@ COMMENT ON COLUMN top_messages.message_id IS 'ID of the message from messages ta
 COMMENT ON COLUMN top_messages.creator_id IS 'Creator slug (e.g., lauryncrl, tootatis)';
 COMMENT ON COLUMN top_messages.user_id IS 'User ID who sent the message';
 
+

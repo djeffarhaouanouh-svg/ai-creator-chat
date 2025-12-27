@@ -142,7 +142,7 @@ export default function CreatorChatPage() {
       const response = await fetch(`/api/creator/selected-messages?slug=${creatorSlug}`)
       if (response.ok) {
         const data = await response.json()
-        const topIds = new Set(data.messages.map((msg: any) => msg.id))
+        const topIds = new Set<string>(data.messages.map((msg: any) => String(msg.id)))
         setTopMessageIds(topIds)
       }
     } catch (error) {
