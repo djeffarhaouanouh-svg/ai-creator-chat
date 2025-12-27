@@ -477,13 +477,20 @@ export default function MessagesPage() {
         // Ce format ouvre Instagram Stories avec la caméra active et le sticker ajouté
         const instagramUrl = `instagram-stories://share?stickerImage=${encodeURIComponent(stickerUrl)}`
         
-        // Tentative d'ouverture de l'app Instagram avec window.location.href
-        // C'est la méthode la plus fiable pour les URL schemes
-        window.location.href = instagramUrl
-
-        // Note: Si Instagram n'est pas installé, l'utilisateur verra une erreur du navigateur
-        // Le fallback idéal serait d'utiliser une iframe ou un lien caché, mais pour l'instant
-        // on laisse le comportement natif du système
+        // Créer un lien temporaire et le cliquer pour respecter la chaîne d'interaction utilisateur
+        // Cela permet d'ouvrir le URL scheme même après une opération asynchrone
+        const link = document.createElement('a')
+        link.href = instagramUrl
+        link.style.display = 'none'
+        document.body.appendChild(link)
+        
+        // Cliquer le lien immédiatement
+        link.click()
+        
+        // Nettoyer après un court délai
+        setTimeout(() => {
+          document.body.removeChild(link)
+        }, 100)
       } else {
         // Sur desktop, télécharger le sticker
         const url = URL.createObjectURL(stickerBlob)
