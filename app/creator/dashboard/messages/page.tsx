@@ -434,39 +434,30 @@ export default function MessagesPage() {
   }
 
   /**
-   * Partage un message en story Instagram avec un sticker transparent
-   * Utilise navigator.share comme avant, mais avec un sticker transparent au lieu d'une image plein écran
+   * Partage un message en story Instagram - télécharge simplement le sticker
    */
   const shareToInstagramStory = async (message: Message): Promise<void> => {
     try {
-      // Générer le sticker transparent
+      // Générer le sticker
       const stickerBlob = await generateTransparentSticker(message)
       if (!stickerBlob) {
         alert('Erreur lors de la génération du sticker')
         return
       }
 
-      // Créer un File à partir du blob pour navigator.share
+      // Télécharger le sticker
       const fileName = `mydouble-sticker-${Date.now()}.png`
-      const file = new File([stickerBlob], fileName, { type: 'image/png' })
-
-      // Utiliser navigator.share comme avant (méthode qui fonctionnait)
-      const shared = await shareToInstagram(file)
-      
-      // Si le partage natif n'a pas fonctionné, télécharger le sticker
-      if (!shared) {
-        const url = URL.createObjectURL(stickerBlob)
-        const link = document.createElement('a')
-        link.href = url
-        link.download = fileName
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(url)
-      }
+      const url = URL.createObjectURL(stickerBlob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
     } catch (error) {
-      console.error('Erreur lors du partage Instagram Story:', error)
-      alert('Erreur lors du partage. Veuillez réessayer.')
+      console.error('Erreur lors du téléchargement du sticker:', error)
+      alert('Erreur lors du téléchargement. Veuillez réessayer.')
     }
   }
 
@@ -490,87 +481,30 @@ export default function MessagesPage() {
   }
 
   /**
-   * Partage un message en story Snapchat avec un sticker via le Share Sheet iOS
-   * Utilise l'API Web Share avec files pour ouvrir le Share Sheet et permettre à l'utilisateur
-   * de choisir Snapchat. Le sticker est téléchargé depuis l'URL publique, converti en File,
-   * puis partagé via navigator.share.
+   * Partage un message en story Snapchat - télécharge simplement le sticker
    */
   const shareToSnapchatSticker = async (message: Message): Promise<void> => {
     try {
-      // Générer le sticker (même design que pour Instagram)
+      // Générer le sticker
       const stickerBlob = await generateTransparentSticker(message)
       if (!stickerBlob) {
         alert('Erreur lors de la génération du sticker')
         return
       }
 
-      // Uploader le sticker pour obtenir une URL publique HTTPS (nécessaire pour le téléchargement)
-      const formData = new FormData()
-      const fileName = `snapchat-sticker-${Date.now()}.png`
-      const file = new File([stickerBlob], fileName, { type: 'image/png' })
-      formData.append('file', file)
-      formData.append('contentType', 'image')
-
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!uploadResponse.ok) {
-        throw new Error('Erreur lors de l\'upload du sticker')
-      }
-
-      const uploadData = await uploadResponse.json()
-      if (!uploadData.success || !uploadData.url) {
-        throw new Error(uploadData.error || 'Erreur lors de l\'upload')
-      }
-
-      const stickerUrl = uploadData.url
-
-      // Télécharger l'image depuis l'URL publique via fetch
-      const imageResponse = await fetch(stickerUrl)
-      if (!imageResponse.ok) {
-        throw new Error('Erreur lors du téléchargement de l\'image')
-      }
-
-      // Convertir la réponse en Blob
-      const imageBlob = await imageResponse.blob()
-
-      // Créer un objet File à partir du blob pour navigator.share
-      const shareFile = new File([imageBlob], fileName, { type: 'image/png' })
-
-      // Vérifier si navigator.share est disponible (comme dans shareToInstagram)
-      if (typeof navigator !== 'undefined') {
-        const anyNavigator = navigator as any
-
-        // Vérifier si on peut utiliser navigator.share et partager des fichiers
-        if (anyNavigator.share && anyNavigator.canShare && anyNavigator.canShare({ files: [shareFile] })) {
-          try {
-            // Ouvrir le Share Sheet iOS avec le fichier PNG
-            await anyNavigator.share({
-              files: [shareFile],
-              title: 'Story MyDouble',
-              text: 'Story prête à être partagée ✨',
-            })
-            // Succès : le Share Sheet s'est ouvert et l'utilisateur peut choisir Snapchat
-            return
-          } catch (error: any) {
-            // L'utilisateur a annulé le partage ou une erreur est survenue
-            if (error.name !== 'AbortError') {
-              console.error('Erreur lors du partage:', error)
-              alert('Erreur lors du partage. Veuillez réessayer.')
-            }
-            // Si AbortError, l'utilisateur a simplement annulé, on ne fait rien
-            return
-          }
-        }
-      }
-
-      // Fallback si navigator.share n'est pas disponible ou ne peut pas partager des fichiers
-      alert('Le partage natif n\'est pas disponible sur ce navigateur. Veuillez utiliser un navigateur mobile moderne.')
+      // Télécharger le sticker
+      const fileName = `mydouble-sticker-${Date.now()}.png`
+      const url = URL.createObjectURL(stickerBlob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
     } catch (error) {
-      console.error('Erreur lors du partage Snapchat Story:', error)
-      alert('Erreur lors du partage. Veuillez réessayer.')
+      console.error('Erreur lors du téléchargement du sticker:', error)
+      alert('Erreur lors du téléchargement. Veuillez réessayer.')
     }
   }
 
