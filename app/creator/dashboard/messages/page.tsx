@@ -346,7 +346,7 @@ export default function MessagesPage() {
       const cardH = (textStartY - cardY) + textHeight + 40 // marge bas
       const height = cardH + cardY * 2
 
-      // 2) Canvas final avec fond transparent
+      // 2) Canvas final avec fond blanc
       const canvas = document.createElement('canvas')
       canvas.width = width
       canvas.height = height
@@ -356,10 +356,7 @@ export default function MessagesPage() {
         return
       }
 
-      // IMPORTANT: Ne pas remplir le fond - le canvas est transparent par défaut
-      // On dessine directement les éléments sans la carte blanche
-
-      // Fonction pour dessiner un rectangle arrondi (pour l'onglet)
+      // Fonction pour dessiner un rectangle arrondi
       const drawRoundedRect = (
         x: number,
         y: number,
@@ -381,6 +378,10 @@ export default function MessagesPage() {
         ctx.closePath()
         ctx.fill()
       }
+
+      // Carte blanche (fond)
+      ctx.fillStyle = '#ffffff'
+      drawRoundedRect(cardX, cardY, cardW, cardH, cardRadius)
 
       // Onglet MyDouble (identique au design actuel)
       ctx.save()
@@ -488,28 +489,101 @@ export default function MessagesPage() {
     return false
   }
 
-  const shareToSnapchat = (url: string) => {
+  /**
+   * Partage un message en story Snapchat avec un sticker
+   * Utilise le Snapchat Creative Kit Deep Link pour ouvrir l'app avec la story pré-remplie
+   * Format: snapchat://creative-kit-web/share?attachmentUrl=URL_IMAGE_PNG&caption=TEXT_OPTIONNEL
+   * Fallback: https://www.snapchat.com/scan?attachmentUrl=URL_IMAGE_PNG
+   */
+  const shareToSnapchatSticker = async (message: Message): Promise<void> => {
     try {
-      // Télécharger simplement l'image en PNG
-      const link = document.createElement('a')
-      link.href = url
-      link.download = 'mydouble-sticker.png'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      // Générer le sticker (même design que pour Instagram)
+      const stickerBlob = await generateTransparentSticker(message)
+      if (!stickerBlob) {
+        alert('Erreur lors de la génération du sticker')
+        return
+      }
+
+      // Uploader le sticker pour obtenir une URL publique HTTPS (nécessaire pour Snapchat)
+      const formData = new FormData()
+      const fileName = `snapchat-sticker-${Date.now()}.png`
+      const file = new File([stickerBlob], fileName, { type: 'image/png' })
+      formData.append('file', file)
+      formData.append('contentType', 'image')
+
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!uploadResponse.ok) {
+        throw new Error('Erreur lors de l\'upload du sticker')
+      }
+
+      const uploadData = await uploadResponse.json()
+      if (!uploadData.success || !uploadData.url) {
+        throw new Error(uploadData.error || 'Erreur lors de l\'upload')
+      }
+
+      const stickerUrl = uploadData.url
+
+      // Vérifier si on est sur mobile
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
+      if (isMobile) {
+        // Utiliser le Deep Link Snapchat Creative Kit
+        // Format: snapchat://creative-kit-web/share?attachmentUrl=URL_IMAGE_PNG&caption=TEXT_OPTIONNEL
+        // Le caption est optionnel - on peut l'omettre pour laisser l'utilisateur ajouter du texte
+        const snapchatDeepLink = `snapchat://creative-kit-web/share?attachmentUrl=${encodeURIComponent(stickerUrl)}`
+        
+        // Créer un lien temporaire et le cliquer pour respecter la chaîne d'interaction utilisateur
+        const link = document.createElement('a')
+        link.href = snapchatDeepLink
+        link.style.display = 'none'
+        document.body.appendChild(link)
+        
+        // Cliquer le lien immédiatement
+        link.click()
+        
+        // Fallback: si Snapchat n'est pas installé, ouvrir l'URL web après un court délai
+        setTimeout(() => {
+          // Si on arrive ici, Snapchat n'a probablement pas ouvert
+          // Utiliser le fallback web Snapchat
+          const webFallback = `https://www.snapchat.com/scan?attachmentUrl=${encodeURIComponent(stickerUrl)}`
+          window.location.href = webFallback
+        }, 500)
+        
+        // Nettoyer le lien temporaire
+        setTimeout(() => {
+          if (document.body.contains(link)) {
+            document.body.removeChild(link)
+          }
+        }, 1000)
+      } else {
+        // Sur desktop, utiliser le fallback web directement
+        const webFallback = `https://www.snapchat.com/scan?attachmentUrl=${encodeURIComponent(stickerUrl)}`
+        window.open(webFallback, '_blank')
+      }
     } catch (error) {
-      console.error('Erreur téléchargement Snapchat:', error)
+      console.error('Erreur lors du partage Snapchat Story:', error)
+      alert('Erreur lors du partage. Veuillez réessayer.')
     }
   }
 
   const handleShare = async (message: Message, platform: 'instagram' | 'snapchat') => {
     if (platform === 'instagram') {
-      // Utiliser la nouvelle fonction pour Instagram Stories avec sticker transparent
+      // Utiliser la nouvelle fonction pour Instagram Stories avec sticker
       await shareToInstagramStory(message)
       return
     }
 
-    // Logique Snapchat : générer une image plein écran (comportement existant)
+    if (platform === 'snapchat') {
+      // Utiliser la nouvelle fonction pour Snapchat Stories avec deep link
+      await shareToSnapchatSticker(message)
+      return
+    }
+
+    // Ancien code Snapchat (ne devrait plus être utilisé, mais gardé pour compatibilité)
     // Dimensions de base du sticker
     const width = 1200
     const cardX = 40
@@ -627,18 +701,9 @@ export default function MessagesPage() {
     ctx.textAlign = 'right'
     ctx.fillText('mydouble', cardX + cardW - textPaddingX, cardY + cardH - 24)
 
-    // Export de l'image puis téléchargement pour Snapchat
-    canvas.toBlob(async (blob) => {
-      if (!blob) return
-
-      const fileName = `mydouble-sticker-${Date.now()}.png`
-      const url = URL.createObjectURL(blob)
-
-      // Snapchat : téléchargement + ouverture de l'app
-      shareToSnapchat(url)
-      // on libère l'URL un peu plus tard
-      setTimeout(() => URL.revokeObjectURL(url), 5000)
-    })
+    // Ce code ne devrait plus être utilisé car on utilise maintenant shareToSnapchatSticker
+    // Mais on le garde pour référence/compatibilité
+    console.warn('Ancien code Snapchat appelé - devrait utiliser shareToSnapchatSticker')
   }
 
   const formatDate = (dateString: string | null | undefined) => {
