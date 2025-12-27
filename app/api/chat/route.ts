@@ -358,8 +358,9 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
 
       // Fonction pour convertir un message - Format OpenAI pour GPT-4o Vision
       const toGptMessage = (m: any) => {
-        if (m.image_url) {
-          // Format OpenAI pour GPT-4o Vision
+        // ⚠️ IMPORTANT: Les APIs n'acceptent les images QUE pour les messages 'user'
+        if (m.image_url && m.role === 'user') {
+          // Format OpenAI pour GPT-4o Vision (seulement pour user)
           return {
             role: m.role,
             content: [
@@ -368,6 +369,7 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
             ]
           };
         }
+        // Pour assistant ou si pas d'image, retourner juste le texte
         return {
           role: m.role,
           content: m.content || 'Message'
@@ -383,8 +385,9 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
     } else {
       // Si moins de 20 messages, envoyer tout avec support des images (GPT-4o Vision)
       contextMessages = validMessages.map((m: any) => {
-        if (m.image_url) {
-          // Format OpenAI pour GPT-4o Vision
+        // ⚠️ IMPORTANT: Les APIs n'acceptent les images QUE pour les messages 'user'
+        if (m.image_url && m.role === 'user') {
+          // Format OpenAI pour GPT-4o Vision (seulement pour user)
           return {
             role: m.role,
             content: [
@@ -393,6 +396,7 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
             ]
           };
         }
+        // Pour assistant ou si pas d'image, retourner juste le texte
         return {
           role: m.role,
           content: m.content || 'Message'
@@ -448,15 +452,13 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
       console.log('🚫 Photo demandée mais bloquée (a déjà parlé de nourriture récemment)');
     }
 
-    // Détecter s'il y a des images dans les messages
-    const hasImages = validMessages.some((m: any) => m.image_url);
+    // 🔧 TOUJOURS utiliser GPT-4o (DeepSeek désactivé - trop de problèmes)
+    console.log(`🤖 GPT-4o avec ${messages.length} messages`);
 
-    console.log(`🤖 ${hasImages ? 'GPT-4o (images détectées)' : 'DeepSeek'} avec ${messages.length} messages`);
+    const client = gpt;
+    const model = 'gpt-4o';
 
-    // Utiliser GPT-4o si images, sinon DeepSeek
-    const client = hasImages ? gpt : deepseek;
-    const model = hasImages ? 'gpt-4o' : 'deepseek-chat';
-
+    // GPT-4o est plus robuste, pas besoin de nettoyage agressif
     const response = await client.chat.completions.create({
       model: model,
       max_tokens: 300,
@@ -469,7 +471,7 @@ Réponds toujours en français, de manière courte (2-3 phrases max), et reste d
 
     let text = response.choices[0]?.message?.content || '';
 
-    console.log(`✅ Réponse de ${hasImages ? 'GPT-4o' : 'DeepSeek'} (brute):`, text.substring(0, 100) + '...');
+    console.log(`✅ Réponse de GPT-4o (brute):`, text.substring(0, 100) + '...');
 
     // POST-TRAITEMENT : Détecter et corriger les refus de GPT
     const lastUserMsg = validMessages[validMessages.length - 1];

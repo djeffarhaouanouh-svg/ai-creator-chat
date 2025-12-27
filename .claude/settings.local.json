@@ -23,7 +23,10 @@
       "Bash(node -c:*)",
       "Bash(tasklist:*)",
       "Bash(git restore:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(node test-openai.mjs:*)",
+      "Bash(node test-deepseek.mjs:*)",
+      "Bash(node test-db.mjs:*)"
     ]
   }
 }
