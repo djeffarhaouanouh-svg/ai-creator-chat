@@ -490,10 +490,10 @@ export default function MessagesPage() {
   }
 
   /**
-   * Partage un message en story Snapchat avec un sticker
-   * Utilise le Snapchat Creative Kit Deep Link pour ouvrir l'app avec la story pré-remplie
-   * Format: snapchat://creative-kit-web/share?attachmentUrl=URL_IMAGE_PNG&caption=TEXT_OPTIONNEL
-   * Fallback: https://www.snapchat.com/scan?attachmentUrl=URL_IMAGE_PNG
+   * Partage un message en story Snapchat avec un sticker via le Share Sheet iOS
+   * Utilise l'API Web Share avec files pour ouvrir le Share Sheet et permettre à l'utilisateur
+   * de choisir Snapchat. Le sticker est téléchargé depuis l'URL publique, converti en File,
+   * puis partagé via navigator.share.
    */
   const shareToSnapchatSticker = async (message: Message): Promise<void> => {
     try {
@@ -504,7 +504,7 @@ export default function MessagesPage() {
         return
       }
 
-      // Uploader le sticker pour obtenir une URL publique HTTPS (nécessaire pour Snapchat)
+      // Uploader le sticker pour obtenir une URL publique HTTPS (nécessaire pour le téléchargement)
       const formData = new FormData()
       const fileName = `snapchat-sticker-${Date.now()}.png`
       const file = new File([stickerBlob], fileName, { type: 'image/png' })
@@ -527,43 +527,47 @@ export default function MessagesPage() {
 
       const stickerUrl = uploadData.url
 
-      // Vérifier si on est sur mobile
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-
-      if (isMobile) {
-        // Utiliser le Deep Link Snapchat Creative Kit
-        // Format: snapchat://creative-kit-web/share?attachmentUrl=URL_IMAGE_PNG&caption=TEXT_OPTIONNEL
-        // Le caption est optionnel - on peut l'omettre pour laisser l'utilisateur ajouter du texte
-        const snapchatDeepLink = `snapchat://creative-kit-web/share?attachmentUrl=${encodeURIComponent(stickerUrl)}`
-        
-        // Créer un lien temporaire et le cliquer pour respecter la chaîne d'interaction utilisateur
-        const link = document.createElement('a')
-        link.href = snapchatDeepLink
-        link.style.display = 'none'
-        document.body.appendChild(link)
-        
-        // Cliquer le lien immédiatement
-        link.click()
-        
-        // Fallback: si Snapchat n'est pas installé, ouvrir l'URL web après un court délai
-        setTimeout(() => {
-          // Si on arrive ici, Snapchat n'a probablement pas ouvert
-          // Utiliser le fallback web Snapchat
-          const webFallback = `https://www.snapchat.com/scan?attachmentUrl=${encodeURIComponent(stickerUrl)}`
-          window.location.href = webFallback
-        }, 500)
-        
-        // Nettoyer le lien temporaire
-        setTimeout(() => {
-          if (document.body.contains(link)) {
-            document.body.removeChild(link)
-          }
-        }, 1000)
-      } else {
-        // Sur desktop, utiliser le fallback web directement
-        const webFallback = `https://www.snapchat.com/scan?attachmentUrl=${encodeURIComponent(stickerUrl)}`
-        window.open(webFallback, '_blank')
+      // Télécharger l'image depuis l'URL publique via fetch
+      const imageResponse = await fetch(stickerUrl)
+      if (!imageResponse.ok) {
+        throw new Error('Erreur lors du téléchargement de l\'image')
       }
+
+      // Convertir la réponse en Blob
+      const imageBlob = await imageResponse.blob()
+
+      // Créer un objet File à partir du blob pour navigator.share
+      const shareFile = new File([imageBlob], fileName, { type: 'image/png' })
+
+      // Vérifier si navigator.share et navigator.canShare sont disponibles
+      if (typeof navigator !== 'undefined' && navigator.share && navigator.canShare) {
+        const anyNavigator = navigator as any
+
+        // Vérifier si on peut partager ce type de fichier
+        if (anyNavigator.canShare({ files: [shareFile] })) {
+          try {
+            // Ouvrir le Share Sheet iOS avec le fichier PNG
+            await anyNavigator.share({
+              files: [shareFile],
+              title: 'Story MyDouble',
+              text: 'Story prête à être partagée ✨',
+            })
+            // Succès : le Share Sheet s'est ouvert et l'utilisateur peut choisir Snapchat
+            return
+          } catch (error: any) {
+            // L'utilisateur a annulé le partage ou une erreur est survenue
+            if (error.name !== 'AbortError') {
+              console.error('Erreur lors du partage:', error)
+              alert('Erreur lors du partage. Veuillez réessayer.')
+            }
+            // Si AbortError, l'utilisateur a simplement annulé, on ne fait rien
+            return
+          }
+        }
+      }
+
+      // Fallback si navigator.share n'est pas disponible ou ne peut pas partager des fichiers
+      alert('Le partage natif n\'est pas disponible sur ce navigateur. Veuillez utiliser un navigateur mobile moderne.')
     } catch (error) {
       console.error('Erreur lors du partage Snapchat Story:', error)
       alert('Erreur lors du partage. Veuillez réessayer.')
