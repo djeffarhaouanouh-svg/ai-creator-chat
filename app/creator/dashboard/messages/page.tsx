@@ -434,7 +434,7 @@ export default function MessagesPage() {
 
   /**
    * Partage un message en story Instagram avec un sticker transparent
-   * Utilise le URL Scheme Instagram Stories pour ouvrir l'app avec la caméra active
+   * Utilise navigator.share comme avant, mais avec un sticker transparent au lieu d'une image plein écran
    */
   const shareToInstagramStory = async (message: Message): Promise<void> => {
     try {
@@ -445,54 +445,15 @@ export default function MessagesPage() {
         return
       }
 
-      // Uploader le sticker pour obtenir une URL publique (nécessaire pour Instagram)
-      const formData = new FormData()
-      const fileName = `instagram-sticker-${Date.now()}.png`
+      // Créer un File à partir du blob pour navigator.share
+      const fileName = `mydouble-sticker-${Date.now()}.png`
       const file = new File([stickerBlob], fileName, { type: 'image/png' })
-      formData.append('file', file)
-      formData.append('contentType', 'image')
 
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!uploadResponse.ok) {
-        throw new Error('Erreur lors de l\'upload du sticker')
-      }
-
-      const uploadData = await uploadResponse.json()
-      if (!uploadData.success || !uploadData.url) {
-        throw new Error(uploadData.error || 'Erreur lors de l\'upload')
-      }
-
-      const stickerUrl = uploadData.url
-
-      // Vérifier si on est sur mobile
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-
-      if (isMobile) {
-        // Utiliser le URL Scheme Instagram Stories
-        // Format: instagram-stories://share?stickerImage=URL
-        // Ce format ouvre Instagram Stories avec la caméra active et le sticker ajouté
-        const instagramUrl = `instagram-stories://share?stickerImage=${encodeURIComponent(stickerUrl)}`
-        
-        // Créer un lien temporaire et le cliquer pour respecter la chaîne d'interaction utilisateur
-        // Cela permet d'ouvrir le URL scheme même après une opération asynchrone
-        const link = document.createElement('a')
-        link.href = instagramUrl
-        link.style.display = 'none'
-        document.body.appendChild(link)
-        
-        // Cliquer le lien immédiatement
-        link.click()
-        
-        // Nettoyer après un court délai
-        setTimeout(() => {
-          document.body.removeChild(link)
-        }, 100)
-      } else {
-        // Sur desktop, télécharger le sticker
+      // Utiliser navigator.share comme avant (méthode qui fonctionnait)
+      const shared = await shareToInstagram(file)
+      
+      // Si le partage natif n'a pas fonctionné, télécharger le sticker
+      if (!shared) {
         const url = URL.createObjectURL(stickerBlob)
         const link = document.createElement('a')
         link.href = url
@@ -501,7 +462,6 @@ export default function MessagesPage() {
         link.click()
         document.body.removeChild(link)
         URL.revokeObjectURL(url)
-        alert('Sticker téléchargé. Partagez-le manuellement sur Instagram depuis votre mobile.')
       }
     } catch (error) {
       console.error('Erreur lors du partage Instagram Story:', error)
