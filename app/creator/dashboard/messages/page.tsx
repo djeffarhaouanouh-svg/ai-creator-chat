@@ -539,12 +539,12 @@ export default function MessagesPage() {
       // Créer un objet File à partir du blob pour navigator.share
       const shareFile = new File([imageBlob], fileName, { type: 'image/png' })
 
-      // Vérifier si navigator.share est disponible
-      if (typeof navigator !== 'undefined' && navigator.share) {
+      // Vérifier si navigator.share est disponible (comme dans shareToInstagram)
+      if (typeof navigator !== 'undefined') {
         const anyNavigator = navigator as any
 
-        // Vérifier si on peut partager ce type de fichier (canShare existe et accepte les files)
-        if (anyNavigator.canShare && anyNavigator.canShare({ files: [shareFile] })) {
+        // Vérifier si on peut utiliser navigator.share et partager des fichiers
+        if (anyNavigator.share && anyNavigator.canShare && anyNavigator.canShare({ files: [shareFile] })) {
           try {
             // Ouvrir le Share Sheet iOS avec le fichier PNG
             await anyNavigator.share({
