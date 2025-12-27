@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heart, Share2, Sparkles, Bot, ChevronRight, Send, ChevronUp, Wand2 } from 'lucide-react'
+import { Heart, Share2, Sparkles, Bot, ChevronRight, Send, ChevronUp, Wand2, MessageCircle } from 'lucide-react'
 import Image from 'next/image'
 
 interface Message {
@@ -12,6 +12,7 @@ interface Message {
   created_at: string
   user_id?: string
   user_email?: string
+  user_avatar_url?: string | null
 }
 
 interface Conversation {
@@ -369,10 +370,18 @@ export default function MessagesPage() {
       const cardRadius = 36
       const cardW = width - cardX * 2
       const textPaddingX = 40
-      const nameX = cardX + 48
       const nameY = cardY + headerHeight + 56
-      const textStartX = nameX
       const lineHeight = 34
+      
+      // Avatar agrandi, espacement titre/texte original
+      const avatarSize = 70 // Avatar encore plus grand (70px)
+      const spaceBetweenTitleAndText = 40 // Espacement original entre titre et texte
+      const textStartY = nameY + spaceBetweenTitleAndText // Position du texte avec espacement original
+      const avatarX = cardX + 48
+      // Centrer l'avatar verticalement entre le titre (nameY) et le texte (textStartY)
+      const avatarY = nameY + (textStartY - nameY) / 2 - avatarSize / 2
+      const nameX = cardX + 48 + avatarSize + 12 // Espacement entre avatar et nom
+      const textStartX = nameX
 
       // 1) Mesure du texte sur un canvas temporaire
       const measureCanvas = document.createElement('canvas')
@@ -400,7 +409,7 @@ export default function MessagesPage() {
       }
       if (currentLine) lines.push(currentLine)
 
-      const textStartY = nameY + 40
+      // Calculer la hauteur finale
       const textHeight = lines.length * lineHeight
       const cardH = (textStartY - cardY) + textHeight + 40 // marge bas
       const height = cardH + cardY * 2
@@ -438,57 +447,98 @@ export default function MessagesPage() {
         ctx.fill()
       }
 
-      // Carte blanche (fond)
-      ctx.fillStyle = '#ffffff'
-      drawRoundedRect(cardX, cardY, cardW, cardH, cardRadius)
+      // Fonction pour dessiner le sticker complet (avec avatar chargé)
+      const drawSticker = (avatarImg: HTMLImageElement | null = null) => {
+        // Carte blanche (fond)
+        ctx.fillStyle = '#ffffff'
+        drawRoundedRect(cardX, cardY, cardW, cardH, cardRadius)
 
-      // Onglet MyDouble (identique au design actuel)
-      ctx.save()
-      ctx.beginPath()
-      ctx.moveTo(cardX + 24, cardY)
-      ctx.lineTo(cardX + 260, cardY)
-      ctx.quadraticCurveTo(cardX + 280, cardY, cardX + 280, cardY + 20)
-      ctx.lineTo(cardX + 280, cardY + headerHeight)
-      ctx.lineTo(cardX + 24, cardY + headerHeight)
-      ctx.quadraticCurveTo(cardX, cardY + headerHeight, cardX, cardY + headerHeight - 20)
-      ctx.lineTo(cardX, cardY + 20)
-      ctx.quadraticCurveTo(cardX, cardY, cardX + 24, cardY)
-      ctx.closePath()
-      const headerGradient = ctx.createLinearGradient(cardX, cardY, cardX + 280, cardY)
-      headerGradient.addColorStop(0, '#f4399c')
-      headerGradient.addColorStop(1, '#ff7ac4')
-      ctx.fillStyle = headerGradient
-      ctx.fill()
+        // Onglet MyDouble (identique au design actuel)
+        ctx.save()
+        ctx.beginPath()
+        ctx.moveTo(cardX + 24, cardY)
+        ctx.lineTo(cardX + 260, cardY)
+        ctx.quadraticCurveTo(cardX + 280, cardY, cardX + 280, cardY + 20)
+        ctx.lineTo(cardX + 280, cardY + headerHeight)
+        ctx.lineTo(cardX + 24, cardY + headerHeight)
+        ctx.quadraticCurveTo(cardX, cardY + headerHeight, cardX, cardY + headerHeight - 20)
+        ctx.lineTo(cardX, cardY + 20)
+        ctx.quadraticCurveTo(cardX, cardY, cardX + 24, cardY)
+        ctx.closePath()
+        const headerGradient = ctx.createLinearGradient(cardX, cardY, cardX + 280, cardY)
+        headerGradient.addColorStop(0, '#f4399c')
+        headerGradient.addColorStop(1, '#ff7ac4')
+        ctx.fillStyle = headerGradient
+        ctx.fill()
 
-      ctx.fillStyle = '#ffffff'
-      ctx.font = 'bold 34px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
-      ctx.textAlign = 'left'
-      ctx.fillText('MyDouble', cardX + 40, cardY + 46)
-      ctx.restore()
+        ctx.fillStyle = '#ffffff'
+        ctx.font = 'bold 34px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+        ctx.textAlign = 'left'
+        ctx.fillText('MyDouble', cardX + 40, cardY + 46)
+        ctx.restore()
 
-      // Nom du fan (identique au design actuel)
-      ctx.textAlign = 'left'
-      ctx.fillStyle = '#111827'
-      ctx.font = '600 30px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
-      ctx.fillText(message.fan_nickname || 'Fan', nameX, nameY)
+        // Avatar utilisateur (avatarY est déjà défini plus haut)
+        if (avatarImg) {
+          // Dessiner un cercle pour l'avatar
+          ctx.save()
+          ctx.beginPath()
+          ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2)
+          ctx.closePath()
+          ctx.clip()
+          
+          // Dessiner l'image
+          ctx.drawImage(avatarImg, avatarX, avatarY, avatarSize, avatarSize)
+          ctx.restore()
+        } else {
+          // Pas d'avatar ou échec de chargement, dessiner un placeholder
+          drawAvatarPlaceholder(ctx, avatarX, avatarY, avatarSize, message.fan_nickname)
+        }
 
-      // Message multi-lignes (identique au design actuel)
-      ctx.font = '24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
-      ctx.fillStyle = '#111827'
-      lines.forEach((line, index) => {
-        ctx.fillText(line, textStartX, textStartY + index * lineHeight)
-      })
+        // Nom du fan (identique au design actuel, mais décalé pour laisser place à l'avatar)
+        ctx.textAlign = 'left'
+        ctx.fillStyle = '#111827'
+        ctx.font = '600 30px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+        ctx.fillText(message.fan_nickname || 'Fan', nameX, nameY)
 
-      // Signature "mydouble" (identique au design actuel)
-      ctx.font = '600 22px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
-      ctx.fillStyle = '#9ca3af'
-      ctx.textAlign = 'right'
-      ctx.fillText('mydouble', cardX + cardW - textPaddingX, cardY + cardH - 24)
+        // Message multi-lignes (identique au design actuel)
+        ctx.font = '24px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+        ctx.fillStyle = '#111827'
+        lines.forEach((line, index) => {
+          ctx.fillText(line, textStartX, textStartY + index * lineHeight)
+        })
 
-      // Convertir en PNG avec transparence
-      canvas.toBlob((blob) => {
-        resolve(blob)
-      }, 'image/png')
+        // Signature "mydouble" (identique au design actuel)
+        ctx.font = '600 22px system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+        ctx.fillStyle = '#9ca3af'
+        ctx.textAlign = 'right'
+        ctx.fillText('mydouble', cardX + cardW - textPaddingX, cardY + cardH - 24)
+
+        // Convertir en PNG avec transparence
+        canvas.toBlob((blob) => {
+          resolve(blob)
+        }, 'image/png')
+      }
+
+      // Charger l'avatar si disponible
+      if (message.user_avatar_url) {
+        // Utiliser document.createElement pour éviter le conflit avec Image de Next.js
+        const avatarImg = document.createElement('img')
+        avatarImg.crossOrigin = 'anonymous'
+        
+        avatarImg.onload = () => {
+          drawSticker(avatarImg)
+        }
+        
+        avatarImg.onerror = () => {
+          // Si l'image ne charge pas, dessiner sans avatar (avec placeholder)
+          drawSticker(null)
+        }
+        
+        avatarImg.src = message.user_avatar_url
+      } else {
+        // Pas d'avatar, dessiner directement avec placeholder
+        drawSticker(null)
+      }
     })
   }
 
@@ -735,6 +785,33 @@ export default function MessagesPage() {
       .join('')
       .toUpperCase()
       .slice(0, 2)
+  }
+
+  // Fonction helper pour dessiner un avatar placeholder (cercle avec initiales)
+  const drawAvatarPlaceholder = (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    size: number,
+    name: string
+  ) => {
+    // Cercle avec gradient
+    const gradient = ctx.createLinearGradient(x, y, x + size, y + size)
+    gradient.addColorStop(0, '#9333ea') // Purple
+    gradient.addColorStop(1, '#ec4899') // Pink
+    ctx.fillStyle = gradient
+    ctx.beginPath()
+    ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2)
+    ctx.closePath()
+    ctx.fill()
+    
+    // Initiales
+    const initials = getInitials(name || 'U')
+    ctx.fillStyle = '#ffffff'
+    ctx.font = `bold ${size * 0.4}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(initials, x + size / 2, y + size / 2)
   }
 
   if (loading || conversationsLoading) {
@@ -994,17 +1071,35 @@ export default function MessagesPage() {
                 className="bg-white rounded-2xl shadow-lg p-4 lg:p-6 hover:shadow-xl transition-all"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 text-base lg:text-lg">
-                      {message.fan_nickname}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      {new Date(message.created_at).toLocaleDateString('fr-FR', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      })}
-                    </p>
+                  <div className="flex items-center gap-3 flex-1">
+                    {/* Avatar utilisateur */}
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#E31FC1] flex-shrink-0">
+                      {message.user_avatar_url ? (
+                        <Image
+                          src={message.user_avatar_url}
+                          alt={message.fan_nickname}
+                          width={40}
+                          height={40}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-sm">
+                          {message.fan_nickname ? getInitials(message.fan_nickname) : 'U'}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 text-base lg:text-lg">
+                        {message.fan_nickname}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {new Date(message.created_at).toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </div>
                   </div>
                 </div>
 

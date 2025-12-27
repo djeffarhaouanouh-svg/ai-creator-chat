@@ -170,6 +170,7 @@ export default function ChatPage() {
   const [userMessageCount, setUserMessageCount] = useState(0);
   const [rewardUnlocked, setRewardUnlocked] = useState(false);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [creatorAvatarUrl, setCreatorAvatarUrl] = useState<string | null>(null);
 
   if (!creator) {
     return (
@@ -219,6 +220,24 @@ export default function ChatPage() {
       return true; // Par défaut activé
     }
   };
+
+  /* ---------------------------- Charger avatar créatrice --------------------------- */
+  useEffect(() => {
+    async function loadCreatorAvatar() {
+      try {
+        const response = await fetch(`/api/creators/${creatorId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.avatar_url || data.avatar) {
+            setCreatorAvatarUrl(data.avatar_url || data.avatar);
+          }
+        }
+      } catch (error) {
+        console.error('Erreur chargement avatar créatrice:', error);
+      }
+    }
+    loadCreatorAvatar();
+  }, [creatorId]);
 
   /* ---------------------------- Charger avatar utilisateur --------------------------- */
   useEffect(() => {
@@ -843,7 +862,7 @@ export default function ChatPage() {
               onClick={() => router.push(`/creator/${creator.slug || creator.username}`)}
             >
               <Image
-                src={creator.avatar}
+                src={creatorAvatarUrl || creator.avatar}
                 alt={creator.name}
                 fill
                 className="object-cover"
@@ -931,7 +950,7 @@ export default function ChatPage() {
                     onClick={() => router.push(`/creator/${creator.slug || creator.username}`)}
                   >
                     <Image
-                      src={creator.avatar}
+                      src={creatorAvatarUrl || creator.avatar}
                       alt={creator.name}
                       fill
                       className="object-cover"
@@ -1117,7 +1136,7 @@ export default function ChatPage() {
                   onClick={() => router.push(`/creator/${creator.slug || creator.username}`)}
                 >
                   <Image
-                    src={creator.avatar}
+                    src={creatorAvatarUrl || creator.avatar}
                     alt={creator.name}
                     fill
                     className="object-cover"

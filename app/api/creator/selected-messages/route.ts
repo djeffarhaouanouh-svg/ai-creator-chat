@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
             'Utilisateur'
           ) as fan_nickname,
           u.email as user_email,
+          u.avatar_url as user_avatar_url,
           tm.created_at as favorited_at
         FROM top_messages tm
         INNER JOIN messages m ON tm.message_id = m.id::text
@@ -83,7 +84,8 @@ export async function GET(request: NextRequest) {
       content: row.content,
       created_at: row.created_at,
       user_id: row.user_id,
-      user_email: row.user_email
+      user_email: row.user_email,
+      user_avatar_url: row.user_avatar_url || null
     }))
 
     return NextResponse.json({

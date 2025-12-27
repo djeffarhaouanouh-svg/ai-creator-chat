@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import ImageCropModal from '@/components/ImageCropModal'
 
 interface GalleryPhoto {
@@ -100,12 +101,23 @@ export default function EditProfilePage() {
       const response = await fetch(`/api/creators/${creatorSlug}`)
       const data = await response.json()
 
-      if (data.avatar_url) {
-        setAvatarUrl(data.avatar_url)
+      console.log('📸 Données créateur chargées:', { 
+        avatar_url: data.avatar_url, 
+        avatar: data.avatar,
+        cover_image: data.cover_image,
+        coverImage: data.coverImage 
+      })
+
+      // Utiliser avatar_url de la DB en priorité, sinon avatar local
+      if (data.avatar_url || data.avatar) {
+        setAvatarUrl(data.avatar_url || data.avatar)
       }
-      if (data.cover_image) {
-        setCoverUrl(data.cover_image)
+      
+      // Utiliser cover_image de la DB en priorité, sinon coverImage local
+      if (data.cover_image || data.coverImage) {
+        setCoverUrl(data.cover_image || data.coverImage)
       }
+      
       // Charger les photos uniquement si le tableau n'est pas vide
       if (data.galleryPhotos && Array.isArray(data.galleryPhotos) && data.galleryPhotos.length > 0) {
         setGalleryPhotos(data.galleryPhotos)
@@ -509,11 +521,20 @@ export default function EditProfilePage() {
                 className="hidden"
               />
               <div className="flex items-center gap-4">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-2xl overflow-hidden">
+                <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gray-200">
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    <Image
+                      src={avatarUrl}
+                      alt={name || 'Avatar'}
+                      fill
+                      className="object-cover"
+                    />
                   ) : (
-                    name.charAt(0).toUpperCase()
+                    <div className="w-full h-full bg-gradient-to-br from-[#e31fc1] to-[#ff6b9d] flex items-center justify-center">
+                      <span className="text-white font-bold text-2xl">
+                        {name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
                   )}
                 </div>
                 <button

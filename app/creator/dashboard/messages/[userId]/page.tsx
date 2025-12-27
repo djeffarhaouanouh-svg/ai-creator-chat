@@ -32,7 +32,7 @@ export default function CreatorChatPage() {
   useEffect(() => {
     const init = async () => {
       setLoading(true)
-      loadCreatorInfo()
+      await loadCreatorInfo()
       
       // Charger le setting IA d'abord
       await loadAISetting()
@@ -45,12 +45,24 @@ export default function CreatorChatPage() {
     init()
   }, [userId])
   
-  const loadCreatorInfo = () => {
+  const loadCreatorInfo = async () => {
     const creatorSlug = localStorage.getItem('creatorSlug')
     if (creatorSlug) {
-      const creator = localCreators.find(c => c.slug === creatorSlug)
-      if (creator && creator.avatar) {
-        setCreatorAvatar(creator.avatar)
+      try {
+        const response = await fetch(`/api/creators/${creatorSlug}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.avatar_url || data.avatar) {
+            setCreatorAvatar(data.avatar_url || data.avatar)
+          }
+        }
+      } catch (error) {
+        console.error('Erreur chargement avatar créatrice:', error)
+        // Fallback sur localCreators si l'API échoue
+        const creator = localCreators.find(c => c.slug === creatorSlug)
+        if (creator && creator.avatar) {
+          setCreatorAvatar(creator.avatar)
+        }
       }
     }
   }
