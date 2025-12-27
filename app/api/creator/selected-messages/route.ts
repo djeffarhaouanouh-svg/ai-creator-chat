@@ -32,44 +32,59 @@ export async function GET(request: NextRequest) {
 
     const creator = creatorResult.rows[0]
 
-    // Pour l'instant, utiliser uniquement des messages de démo
-    const messages = [
-        {
-          id: 'demo-1',
-          fan_nickname: 'SuperFan42',
-          content: 'Ton dernier post était incroyable ! Tu m\'inspires vraiment à être la meilleure version de moi-même. Merci pour tout ce que tu partages 💕',
-          emotion_badge: 'touching' as const,
-          created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'demo-2',
-          fan_nickname: 'CoolAdmirateur7',
-          content: 'Haha j\'ai trop ri avec ta story d\'hier 😂 C\'était exactement ce dont j\'avais besoin après ma journée. Tu es trop drôle !',
-          emotion_badge: 'funny' as const,
-          created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'demo-3',
-          fan_nickname: 'TopSupporter99',
-          content: 'Je voulais juste te dire que tu as changé ma vie. Grâce à tes conseils, j\'ai enfin trouvé le courage de poursuivre mes rêves. Tu es une vraie source d\'inspiration ! ✨',
-          emotion_badge: 'touching' as const,
-          created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'demo-4',
-          fan_nickname: 'GénialFollower23',
-          content: 'Waouh, ton nouveau projet a l\'air fou ! J\'ai hâte de voir la suite. Tu oses toujours tout et c\'est tellement inspirant 🔥',
-          emotion_badge: 'bold' as const,
-          created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'demo-5',
-          fan_nickname: 'IncroyableAbonné15',
-          content: 'Ta perspective sur la vie est vraiment unique. J\'adore comment tu arrives à voir les choses différemment. Ça me fait réfléchir à plein de trucs 💭',
-          emotion_badge: 'interesting' as const,
-          created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ]
+    // Récupérer les messages favoris depuis la base de données
+    // Jointure avec messages pour récupérer le contenu, et users pour récupérer le nom
+    let messagesResult
+    try {
+      // Récupérer les messages favoris avec une jointure simple
+      // On compare les IDs en les convertissant tous les deux en texte
+      messagesResult = await sql`
+        SELECT 
+          m.id,
+          m.content,
+          m.created_at,
+          m.user_id,
+          COALESCE(u.name, 
+            CASE 
+              WHEN u.email IS NOT NULL THEN 
+                SUBSTRING(u.email FROM 1 FOR POSITION('@' IN u.email) - 1)
+              ELSE 'Utilisateur'
+            END,
+            'Utilisateur'
+          ) as fan_nickname,
+          u.email as user_email,
+          tm.created_at as favorited_at
+        FROM top_messages tm
+        INNER JOIN messages m ON tm.message_id = m.id::text
+        LEFT JOIN users u ON m.user_id::text = u.id::text
+        WHERE tm.creator_id = ${creatorSlug}
+          AND m.creator_id = ${creatorSlug}
+          AND m.role = 'user'
+        ORDER BY tm.created_at DESC
+      `
+      
+      console.log(`✅ Found ${messagesResult.rows.length} top messages for creator ${creatorSlug}`)
+    } catch (error: any) {
+      console.error('❌ ERREUR REQUÊTE SELECTED-MESSAGES:', error.message)
+      // Si la table top_messages n'existe pas encore, retourner une liste vide
+      if (error.message && error.message.includes('does not exist')) {
+        console.log('⚠️ Table top_messages does not exist yet')
+        return NextResponse.json({
+          messages: [],
+          total: 0
+        })
+      }
+      throw error
+    }
+
+    const messages = messagesResult.rows.map((row: any) => ({
+      id: row.id,
+      fan_nickname: row.fan_nickname || 'Utilisateur',
+      content: row.content,
+      created_at: row.created_at,
+      user_id: row.user_id,
+      user_email: row.user_email
+    }))
 
     return NextResponse.json({
       messages,
@@ -83,20 +98,8 @@ export async function GET(request: NextRequest) {
       detail: error.detail
     })
     return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
+      { error: 'Erreur interne du serveur', details: error.message },
       { status: 500 }
     )
   }
-}
-
-function generateNickname(email: string): string {
-  const adjectives = ['Cool', 'Super', 'Génial', 'Top', 'Incroyable', 'Fantastique', 'Adorable']
-  const nouns = ['Fan', 'Supporter', 'Admirateur', 'Abonné', 'Follower']
-
-  const seed = email.split('@')[0].substring(0, 3).toLowerCase()
-  const adjIndex = seed.charCodeAt(0) % adjectives.length
-  const nounIndex = seed.charCodeAt(1 % seed.length) % nouns.length
-  const number = (seed.charCodeAt(2 % seed.length) % 99) + 1
-
-  return `${adjectives[adjIndex]}${nouns[nounIndex]}${number}`
 }

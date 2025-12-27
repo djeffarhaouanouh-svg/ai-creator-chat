@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heart, Laugh, Flame, MessageCircle, Share2, Sparkles, Bot, ChevronRight, Send, ChevronUp } from 'lucide-react'
+import { Heart, Share2, Sparkles, Bot, ChevronRight, Send, ChevronUp, Wand2 } from 'lucide-react'
 import Image from 'next/image'
 
 interface Message {
   id: string
   fan_nickname: string
   content: string
-  emotion_badge: 'touching' | 'funny' | 'bold' | 'interesting'
   created_at: string
+  user_id?: string
+  user_email?: string
 }
 
 interface Conversation {
@@ -25,12 +26,6 @@ interface Conversation {
   ai_enabled: boolean
 }
 
-const emotionConfig = {
-  touching: { label: 'Touchant', icon: Heart, color: 'bg-pink-100 text-pink-700' },
-  funny: { label: 'Drôle', icon: Laugh, color: 'bg-yellow-100 text-yellow-700' },
-  bold: { label: 'Audacieux', icon: Flame, color: 'bg-red-100 text-red-700' },
-  interesting: { label: 'Intéressant', icon: MessageCircle, color: 'bg-blue-100 text-blue-700' },
-}
 
 export default function MessagesPage() {
   const router = useRouter()
@@ -45,6 +40,7 @@ export default function MessagesPage() {
   const [conversationInputs, setConversationInputs] = useState<Record<string, string>>({})
   const [sendingMessages, setSendingMessages] = useState<Set<string>>(new Set())
   const [conversationsWithNewMessages, setConversationsWithNewMessages] = useState<Set<string>>(new Set())
+  const [analyzing, setAnalyzing] = useState(false)
 
   useEffect(() => {
     loadConversations()
@@ -293,6 +289,69 @@ export default function MessagesPage() {
     setReactingTo(messageId)
     await new Promise(resolve => setTimeout(resolve, 500))
     setReactingTo(null)
+  }
+
+  const handleRemoveFromTop = async (messageId: string) => {
+    try {
+      const creatorSlug = localStorage.getItem('creatorSlug')
+      if (!creatorSlug) return
+
+      const response = await fetch(
+        `/api/creator/top-messages?messageId=${messageId}&creatorSlug=${creatorSlug}`,
+        { method: 'DELETE' }
+      )
+
+      if (response.ok) {
+        // Recharger les messages
+        await loadMessages()
+      } else {
+        alert('Erreur lors de la suppression des favoris')
+      }
+    } catch (error) {
+      console.error('Erreur suppression favori:', error)
+      alert('Erreur lors de la suppression des favoris')
+    }
+  }
+
+  const handleAutoAnalyze = async () => {
+    // Protection contre les double-clics
+    if (analyzing) {
+      return // Déjà en cours d'analyse, ignorer le clic
+    }
+
+    try {
+      const creatorSlug = localStorage.getItem('creatorSlug')
+      if (!creatorSlug) return
+
+      setAnalyzing(true) // Désactive le bouton immédiatement
+      const response = await fetch('/api/creator/auto-top-messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          creatorSlug,
+          limit: 10
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        if (data.added > 0) {
+          alert(`✅ ${data.added} message(s) ajouté(s) automatiquement aux favoris !`)
+          // Recharger les messages
+          await loadMessages()
+        } else {
+          alert(`ℹ️ ${data.message || 'Aucun nouveau message n\'a été sélectionné automatiquement'}`)
+        }
+      } else {
+        alert(data.error || 'Erreur lors de l\'analyse automatique')
+      }
+    } catch (error) {
+      console.error('Erreur analyse automatique:', error)
+      alert('Erreur lors de l\'analyse automatique')
+    } finally {
+      setAnalyzing(false) // Réactive le bouton
+    }
   }
 
   /**
@@ -894,8 +953,30 @@ export default function MessagesPage() {
       {/* Section Mes messages */}
       <div id="meilleurs-messages" className="scroll-mt-20">
         <div className="mb-6 lg:mb-8">
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Mes messages</h1>
-          <p className="text-sm lg:text-base text-gray-600">Les meilleurs messages de ta communauté</p>
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Mes messages</h1>
+              <p className="text-sm lg:text-base text-gray-600">Les meilleurs messages de ta communauté</p>
+            </div>
+            <button
+              onClick={handleAutoAnalyze}
+              disabled={analyzing}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white rounded-lg hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
+              title="Analyser automatiquement les messages et ajouter les meilleurs (max 3 par utilisateur)"
+            >
+              {analyzing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Analyse...</span>
+                </>
+              ) : (
+                <>
+                  <Wand2 size={18} />
+                  <span>Analyse automatique</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
       {messages.length === 0 ? (
@@ -907,9 +988,6 @@ export default function MessagesPage() {
       ) : (
         <div className="space-y-6">
           {messages.map((message) => {
-            const emotion = emotionConfig[message.emotion_badge]
-            const EmotionIcon = emotion.icon
-
             return (
               <div
                 key={message.id}
@@ -928,11 +1006,6 @@ export default function MessagesPage() {
                       })}
                     </p>
                   </div>
-
-                  <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs lg:text-sm font-medium self-start ${emotion.color}`}>
-                    <EmotionIcon size={16} />
-                    <span className="whitespace-nowrap">{emotion.label}</span>
-                  </span>
                 </div>
 
                 <p className="text-gray-700 text-sm lg:text-base leading-relaxed mb-4 lg:mb-6">
@@ -943,25 +1016,30 @@ export default function MessagesPage() {
                   <button
                     onClick={() => handleReact(message.id)}
                     disabled={reactingTo === message.id}
-                    className="sm:w-1/2 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-[#e31fc1]/10 to-[#ff6b9d]/10 text-[#e31fc1] border border-[#e31fc1]/20 text-sm lg:text-base font-semibold hover:from-[#e31fc1]/20 hover:to-[#ff6b9d]/20 transition-all disabled:opacity-50"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-[#e31fc1]/10 to-[#ff6b9d]/10 text-[#e31fc1] border border-[#e31fc1]/20 text-sm lg:text-base font-semibold hover:from-[#e31fc1]/20 hover:to-[#ff6b9d]/20 transition-all disabled:opacity-50"
                   >
                     <Heart size={18} className={reactingTo === message.id ? 'fill-current animate-pulse' : ''} />
                     <span>{reactingTo === message.id ? 'Réaction envoyée!' : 'Réagir'}</span>
                   </button>
 
-                  <div className="sm:w-1/2 flex flex-col">
-                    <button
-                      onClick={() =>
-                        setShareSelectorFor((current) =>
-                          current === message.id ? null : message.id
-                        )
-                      }
-                      className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white text-sm lg:text-base font-semibold hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all"
-                    >
-                      <Share2 size={18} />
-                      <span>Partager en story</span>
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => handleRemoveFromTop(message.id)}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gray-100 text-gray-700 border border-gray-200 text-sm lg:text-base font-semibold hover:bg-gray-200 transition-all"
+                  >
+                    <span>Retirer des favoris</span>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      setShareSelectorFor((current) =>
+                        current === message.id ? null : message.id
+                      )
+                    }
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] text-white text-sm lg:text-base font-semibold hover:shadow-2xl hover:shadow-[#e31fc1]/50 transition-all"
+                  >
+                    <Share2 size={18} />
+                    <span>Partager en story</span>
+                  </button>
                 </div>
 
                 {shareSelectorFor === message.id && (

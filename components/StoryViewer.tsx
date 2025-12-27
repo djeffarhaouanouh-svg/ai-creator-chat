@@ -90,7 +90,7 @@ export default function StoryViewer({ stories, initialIndex, onClose }: StoryVie
   }
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black flex items-center justify-center">
+    <div className="fixed inset-0 z-[1000000] bg-black flex items-center justify-center">
       {/* Barres de progression */}
       <div className="absolute top-0 left-0 right-0 z-10 flex gap-1 p-2">
         {stories.map((_, index) => (

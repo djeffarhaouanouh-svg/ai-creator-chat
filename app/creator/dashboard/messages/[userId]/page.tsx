@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Send, Bot, User } from 'lucide-react'
+import { ArrowLeft, Send, Bot, User, Star } from 'lucide-react'
 import Image from 'next/image'
 import { localCreators } from '@/data/creators'
 
@@ -27,6 +27,7 @@ export default function CreatorChatPage() {
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
   const [aiEnabled, setAiEnabled] = useState(true)
   const [creatorAvatar, setCreatorAvatar] = useState<string | null>(null)
+  const [topMessageIds, setTopMessageIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const init = async () => {
@@ -38,6 +39,7 @@ export default function CreatorChatPage() {
       
       // Toujours charger la conversation (même si IA activée, on peut voir les messages)
       await loadConversation()
+      await loadTopMessages()
     }
     
     init()
@@ -129,6 +131,61 @@ export default function CreatorChatPage() {
     } catch (error) {
       console.error('Erreur chargement setting IA:', error)
       return true // Par défaut activé
+    }
+  }
+
+  const loadTopMessages = async () => {
+    try {
+      const creatorSlug = localStorage.getItem('creatorSlug')
+      if (!creatorSlug) return
+
+      const response = await fetch(`/api/creator/selected-messages?slug=${creatorSlug}`)
+      if (response.ok) {
+        const data = await response.json()
+        const topIds = new Set(data.messages.map((msg: any) => msg.id))
+        setTopMessageIds(topIds)
+      }
+    } catch (error) {
+      console.error('Erreur chargement top messages:', error)
+    }
+  }
+
+  const toggleTopMessage = async (messageId: string, isTop: boolean) => {
+    try {
+      const creatorSlug = localStorage.getItem('creatorSlug')
+      if (!creatorSlug) return
+
+      if (isTop) {
+        // Retirer des favoris
+        const response = await fetch(
+          `/api/creator/top-messages?messageId=${messageId}&creatorSlug=${creatorSlug}`,
+          { method: 'DELETE' }
+        )
+        if (response.ok) {
+          setTopMessageIds(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(messageId)
+            return newSet
+          })
+        }
+      } else {
+        // Ajouter aux favoris
+        const response = await fetch('/api/creator/top-messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messageId,
+            creatorSlug,
+            userId
+          })
+        })
+        if (response.ok) {
+          setTopMessageIds(prev => new Set(prev).add(messageId))
+        }
+      }
+    } catch (error) {
+      console.error('Erreur toggle top message:', error)
+      alert('Erreur lors de la modification des favoris')
     }
   }
 
@@ -232,34 +289,55 @@ export default function CreatorChatPage() {
                 </div>
               )}
               
-              <div
-                className={`max-w-[70%] rounded-2xl px-4 py-2 ${
-                  message.role === 'user'
-                    ? 'bg-white border border-gray-200 text-gray-900'
-                    : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                }`}
-              >
-                {message.content ? (
-                  <p className={`text-sm whitespace-pre-wrap break-words ${
-                    message.role === 'user' ? 'text-gray-900' : 'text-white'
+              <div className="flex flex-col gap-1">
+                <div
+                  className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                    message.role === 'user'
+                      ? 'bg-white border border-gray-200 text-gray-900'
+                      : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                  }`}
+                >
+                  {message.content ? (
+                    <p className={`text-sm whitespace-pre-wrap break-words ${
+                      message.role === 'user' ? 'text-gray-900' : 'text-white'
+                    }`}>
+                      {message.content}
+                    </p>
+                  ) : (
+                    <p className={`text-sm italic ${
+                      message.role === 'user' ? 'text-gray-400' : 'text-purple-200'
+                    }`}>
+                      (Message vide)
+                    </p>
+                  )}
+                  <p className={`text-xs mt-1 ${
+                    message.role === 'user' ? 'text-gray-400' : 'text-purple-100'
                   }`}>
-                    {message.content}
+                    {new Date(message.timestamp).toLocaleTimeString('fr-FR', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
                   </p>
-                ) : (
-                  <p className={`text-sm italic ${
-                    message.role === 'user' ? 'text-gray-400' : 'text-purple-200'
-                  }`}>
-                    (Message vide)
-                  </p>
+                </div>
+                {message.role === 'user' && (
+                  <button
+                    onClick={() => toggleTopMessage(message.id, topMessageIds.has(message.id))}
+                    className={`self-start px-2 py-1 rounded-md text-xs font-medium transition-colors ${
+                      topMessageIds.has(message.id)
+                        ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                    title={topMessageIds.has(message.id) ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                  >
+                    <Star
+                      size={14}
+                      className={topMessageIds.has(message.id) ? 'fill-current' : ''}
+                    />
+                    <span className="ml-1">
+                      {topMessageIds.has(message.id) ? 'Favori' : 'Marquer'}
+                    </span>
+                  </button>
                 )}
-                <p className={`text-xs mt-1 ${
-                  message.role === 'user' ? 'text-gray-400' : 'text-purple-100'
-                }`}>
-                  {new Date(message.timestamp).toLocaleTimeString('fr-FR', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </p>
               </div>
 
               {message.role === 'assistant' && (
