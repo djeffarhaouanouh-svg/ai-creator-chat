@@ -10,6 +10,7 @@ import { Message } from '@/lib/types';
 import Button from '@/components/ui/Button';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import PaypalContentButton from '@/components/PaypalContentButton';
+import ChatProgressBarBottom from '@/components/ChatProgressBarBottom';
 
 /* -------------------------------------------------------------------------- */
 /*   🔗 Fonction : rendre cliquable UNIQUEMENT les liens MYM / ONLYFANS       */
@@ -164,6 +165,10 @@ export default function ChatPage() {
     price?: number | null;
     paypal_authorization_id?: string | null;
   } | null>(null);
+
+  // États pour la barre de progression gamifiée
+  const [userMessageCount, setUserMessageCount] = useState(0);
+  const [rewardUnlocked, setRewardUnlocked] = useState(false);
 
   if (!creator) {
     return (
@@ -428,6 +433,58 @@ export default function ChatPage() {
     return () => window.removeEventListener('focus', handleFocus);
   }, [creator]);
 
+  // Charger la progression depuis le localStorage au montage
+  useEffect(() => {
+    if (!creator) return;
+
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+
+    const progressKey = `chat_progress_${userId}_${creator.slug || creator.id}`;
+    const savedProgress = localStorage.getItem(progressKey);
+
+    if (savedProgress) {
+      try {
+        const { count, unlocked } = JSON.parse(savedProgress);
+        setUserMessageCount(count || 0);
+        setRewardUnlocked(unlocked || false);
+      } catch (error) {
+        console.error('Error loading progress:', error);
+      }
+    }
+  }, [creator]);
+
+  // Compter les messages utilisateur existants et mettre à jour le compteur
+  useEffect(() => {
+    if (!creator || messages.length === 0) return;
+
+    const userMessagesCount = messages.filter(msg => msg.role === 'user').length;
+
+    // Toujours synchroniser avec le nombre réel de messages
+    setUserMessageCount(userMessagesCount);
+
+    // Vérifier si on a atteint 100 messages
+    if (userMessagesCount >= 100 && !rewardUnlocked) {
+      setRewardUnlocked(true);
+    }
+  }, [messages, creator]);
+
+  // Sauvegarder la progression dans le localStorage à chaque changement
+  useEffect(() => {
+    if (!creator) return;
+
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+
+    const progressKey = `chat_progress_${userId}_${creator.slug || creator.id}`;
+    const progressData = {
+      count: userMessageCount,
+      unlocked: rewardUnlocked
+    };
+
+    localStorage.setItem(progressKey, JSON.stringify(progressData));
+  }, [userMessageCount, rewardUnlocked, creator]);
+
   const getModeLabel = () => {
     switch (mode) {
       case 'girlfriend':
@@ -459,6 +516,16 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMessage]);
     storage.addMessage(creator.slug || creator.id, userMessage);
     saveMessageToDB(userMessage, creator.slug || creator.id);
+
+    // Incrémenter le compteur de messages utilisateur pour la barre de progression
+    setUserMessageCount(prev => {
+      const newCount = prev + 1;
+      // Débloquer la récompense à 100 messages
+      if (newCount >= 100 && !rewardUnlocked) {
+        setRewardUnlocked(true);
+      }
+      return newCount;
+    });
 
     setInput('');
     setIsLoading(true);
@@ -715,83 +782,92 @@ export default function ChatPage() {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* HEADER */}
-      <div className="bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/')}
-            className="mr-2"
-          >
-            <ArrowLeft size={20} />
-          </Button>
+      <div className="bg-white border-b px-4 py-2.5 shadow-sm">
+        {/* Ligne 1 : Profil + 3 points */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/')}
+            >
+              <ArrowLeft size={20} />
+            </Button>
 
-          <div
-            className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition"
-            onClick={() => router.push(`/creator/${creator.slug || creator.username}`)}
-          >
-            <Image
-              src={creator.avatar}
-              alt={creator.name}
-              fill
-              className="object-cover"
-            />
-          </div>
-
-          <div className="flex flex-col">
-            <h2 className="font-semibold text-gray-900">{creator.name}</h2>
-            <p className="text-xs text-green-600">En ligne</p>
-            <p className="text-[11px] text-gray-500">
-              Mode : <span className="font-medium">{getModeLabel()}</span>
-            </p>
-          </div>
-        </div>
-
-        <div className="relative">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsModeOpen((v) => !v)}
-          >
-            <MoreVertical size={20} />
-          </Button>
-
-          {isModeOpen && (
-            <div className="absolute right-0 mt-2 w-52 bg-white shadow-lg rounded-xl border p-2 z-50">
-              <p className="px-4 pb-2 text-xs text-gray-500 uppercase">
-                Mode de discussion
-              </p>
-
-              <button
-                className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
-                onClick={() => {
-                  setMode('girlfriend');
-                  setIsModeOpen(false);
-                }}
-              >
-                💕 Petite copine
-              </button>
-              <button
-                className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
-                onClick={() => {
-                  setMode('friend');
-                  setIsModeOpen(false);
-                }}
-              >
-                💛 Amie
-              </button>
-              <button
-                className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
-                onClick={() => {
-                  setMode('seductive');
-                  setIsModeOpen(false);
-                }}
-              >
-                😏 Séduisante
-              </button>
+            <div
+              className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+              onClick={() => router.push(`/creator/${creator.slug || creator.username}`)}
+            >
+              <Image
+                src={creator.avatar}
+                alt={creator.name}
+                fill
+                className="object-cover"
+              />
             </div>
-          )}
+
+            <div className="flex flex-col">
+              <h2 className="font-semibold text-gray-900">{creator.name}</h2>
+              <p className="text-xs text-green-600">En ligne</p>
+              <p className="text-[11px] text-gray-500">
+                Mode : <span className="font-medium">{getModeLabel()}</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsModeOpen((v) => !v)}
+            >
+              <MoreVertical size={20} />
+            </Button>
+
+            {isModeOpen && (
+              <div className="absolute right-0 mt-2 w-52 bg-white shadow-lg rounded-xl border p-2 z-50">
+                <p className="px-4 pb-2 text-xs text-gray-500 uppercase">
+                  Mode de discussion
+                </p>
+
+                <button
+                  className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                  onClick={() => {
+                    setMode('girlfriend');
+                    setIsModeOpen(false);
+                  }}
+                >
+                  💕 Petite copine
+                </button>
+                <button
+                  className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                  onClick={() => {
+                    setMode('friend');
+                    setIsModeOpen(false);
+                  }}
+                >
+                  💛 Amie
+                </button>
+                <button
+                  className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                  onClick={() => {
+                    setMode('seductive');
+                    setIsModeOpen(false);
+                  }}
+                >
+                  😏 Séduisante
+                </button>
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Ligne 2 : Barre de progression */}
+        <ChatProgressBarBottom
+          currentCount={userMessageCount}
+          maxCount={100}
+          rewardUnlocked={rewardUnlocked}
+        />
       </div>
 
       {/* MESSAGES */}
@@ -1215,6 +1291,16 @@ export default function ChatPage() {
             </div>
           )}
         </div>
+
+        {/* Texte de progression en bas */}
+        {!rewardUnlocked && (
+          <div className="mt-3 flex items-center justify-center gap-1">
+            <span className="text-sm">🎁</span>
+            <span className="text-[11px] font-medium text-gray-600">
+              Encore {100 - userMessageCount} messages pour débloquer un média privé
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
