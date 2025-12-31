@@ -11,6 +11,7 @@ import Button from '@/components/ui/Button';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import PaypalContentButton from '@/components/PaypalContentButton';
 import ChatProgressBarBottom from '@/components/ChatProgressBarBottom';
+import VoiceCallButton from '@/components/VoiceCallButton';
 
 /* -------------------------------------------------------------------------- */
 /*   🔗 Fonction : rendre cliquable UNIQUEMENT les liens MYM / ONLYFANS       */
@@ -171,6 +172,7 @@ export default function ChatPage() {
   const [rewardUnlocked, setRewardUnlocked] = useState(false);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [creatorAvatarUrl, setCreatorAvatarUrl] = useState<string | null>(null);
+  const [isInVoiceCall, setIsInVoiceCall] = useState(false);
 
   if (!creator) {
     return (
@@ -878,50 +880,53 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsModeOpen((v) => !v)}
-            >
-              <MoreVertical size={20} />
-            </Button>
+          <div className="flex items-center gap-2">
+            <VoiceCallButton onCallStateChange={setIsInVoiceCall} />
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsModeOpen((v) => !v)}
+              >
+                <MoreVertical size={20} />
+              </Button>
 
-            {isModeOpen && (
-              <div className="absolute right-0 mt-2 w-52 bg-white shadow-lg rounded-xl border p-2 z-50">
-                <p className="px-4 pb-2 text-xs text-gray-500 uppercase">
-                  Mode de discussion
-                </p>
+              {isModeOpen && (
+                <div className="absolute right-0 mt-2 w-52 bg-white shadow-lg rounded-xl border p-2 z-50">
+                  <p className="px-4 pb-2 text-xs text-gray-500 uppercase">
+                    Mode de discussion
+                  </p>
 
-                <button
-                  className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
-                  onClick={() => {
-                    setMode('girlfriend');
-                    setIsModeOpen(false);
-                  }}
-                >
-                  💕 Petite copine
-                </button>
-                <button
-                  className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
-                  onClick={() => {
-                    setMode('friend');
-                    setIsModeOpen(false);
-                  }}
-                >
-                  💛 Amie
-                </button>
-                <button
-                  className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
-                  onClick={() => {
-                    setMode('seductive');
-                    setIsModeOpen(false);
-                  }}
-                >
-                  😏 Séduisante
-                </button>
-              </div>
-            )}
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                    onClick={() => {
+                      setMode('girlfriend');
+                      setIsModeOpen(false);
+                    }}
+                  >
+                    💕 Petite copine
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                    onClick={() => {
+                      setMode('friend');
+                      setIsModeOpen(false);
+                    }}
+                  >
+                    💛 Amie
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                    onClick={() => {
+                      setMode('seductive');
+                      setIsModeOpen(false);
+                    }}
+                  >
+                    😏 Séduisante
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1333,8 +1338,9 @@ export default function ChatPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={isLoading || isUploading}
+                  disabled={isLoading || isUploading || isInVoiceCall}
                   className="shrink-0"
+                  title={isInVoiceCall ? "Appel vocal actif" : "Ajouter une image"}
                 >
                   <ImageIcon size={20} />
                 </Button>
@@ -1348,16 +1354,17 @@ export default function ChatPage() {
                       sendMessage();
                     }
                   }}
-                  placeholder={`Message à ${creator.name}...`}
+                  placeholder={isInVoiceCall ? "Appel vocal actif..." : `Message à ${creator.name}...`}
                   className="resize-none rounded-2xl border px-4 py-3 text-gray-900 flex-1"
                   rows={1}
-                  disabled={isLoading || isUploading}
+                  disabled={isLoading || isUploading || isInVoiceCall}
                 />
 
                 <Button
                   onClick={sendMessage}
-                  disabled={(!input.trim() && !uploadedImageUrl) || isLoading || isUploading}
+                  disabled={(!input.trim() && !uploadedImageUrl) || isLoading || isUploading || isInVoiceCall}
                   className="px-6 shrink-0"
+                  title={isInVoiceCall ? "Appel vocal actif" : "Envoyer"}
                 >
                   <Send size={20} />
                 </Button>
