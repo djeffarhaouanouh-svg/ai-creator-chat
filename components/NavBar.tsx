@@ -174,6 +174,11 @@ export default function NavBar() {
     // Menu utilisateur payant
     navItems = [
       {
+        name: 'Créer mon IA',
+        href: '/creer-mon-double-ia',
+        icon: Users,
+      },
+      {
         name: 'Accueil',
         href: '/',
         icon: Home,
@@ -198,6 +203,11 @@ export default function NavBar() {
     // Menu visiteur normal (non connecté ou pas d'abonnement)
     navItems = [
       {
+        name: 'Créer mon IA',
+        href: '/creer-mon-double-ia',
+        icon: Users,
+      },
+      {
         name: 'Accueil',
         href: '/',
         icon: Home,
@@ -211,11 +221,6 @@ export default function NavBar() {
         name: 'Mon compte',
         href: isAuthenticated ? '/mon-compte' : '/login',
         icon: User,
-      },
-      {
-        name: 'Nous rejoindre',
-        href: '/pourquoi-nous-rejoindre',
-        icon: Users,
       },
     ]
   }

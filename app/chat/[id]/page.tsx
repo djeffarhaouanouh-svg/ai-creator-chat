@@ -13,36 +13,6 @@ import PaypalContentButton from '@/components/PaypalContentButton';
 import ChatProgressBarBottom from '@/components/ChatProgressBarBottom';
 import VoiceCallButton from '@/components/VoiceCallButton';
 
-/* -------------------------------------------------------------------------- */
-/*   🔗 Fonction : rendre cliquable UNIQUEMENT les liens MYM / ONLYFANS       */
-/*   + afficher un texte court : "Accéder à mon espace officiel 🔥"           */
-/* -------------------------------------------------------------------------- */
-function linkifyMYMOF(text: string) {
-  if (!text) return '';
-
-  const regex = /(https?:\/\/[^\s]+)/g;
-
-  return text.split(regex).map((part, i) => {
-    const isOFOrMYM =
-      part.includes('mym.fans') || part.includes('onlyfans.com');
-
-    if (isOFOrMYM) {
-      return (
-        <a
-          key={i}
-          href={part}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[#e31fc1] underline break-words hover:opacity-80"
-        >
-          Accéder à mon espace officiel 🔥
-        </a>
-      );
-    }
-
-    return part;
-  });
-}
 
 async function saveMessageToDB(
   message: Message,
@@ -847,20 +817,21 @@ export default function ChatPage() {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* HEADER */}
-      <div className="bg-white border-b px-4 py-2.5 shadow-sm">
+      <div className="bg-white border-b px-3 py-1.5 shadow-sm">
         {/* Ligne 1 : Profil + 3 points */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => router.push('/')}
+              className="p-1.5"
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={18} />
             </Button>
 
             <div
-              className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+              className="relative w-9 h-9 rounded-full overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition"
               onClick={() => router.push(`/creator/${creator.slug || creator.username}`)}
             >
               <Image
@@ -872,23 +843,23 @@ export default function ChatPage() {
             </div>
 
             <div className="flex flex-col">
-              <h2 className="font-semibold text-gray-900">{creator.name}</h2>
-              <p className="text-xs text-green-600">En ligne</p>
-              <p className="text-[11px] text-gray-500">
+              <h2 className="font-semibold text-gray-900 text-sm leading-tight">{creator.name}</h2>
+              <p className="text-[10px] text-green-600 leading-tight">En ligne</p>
+              <p className="text-[10px] text-gray-500 leading-tight">
                 Mode : <span className="font-medium">{getModeLabel()}</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <VoiceCallButton onCallStateChange={setIsInVoiceCall} />
+          <div className="flex items-center gap-1.5">
             <div className="relative">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsModeOpen((v) => !v)}
+                className="p-1.5"
               >
-                <MoreVertical size={20} />
+                <MoreVertical size={18} />
               </Button>
 
               {isModeOpen && (
@@ -939,8 +910,8 @@ export default function ChatPage() {
       </div>
 
       {/* MESSAGES */}
-      <div className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="max-w-3xl mx-auto space-y-4">
+      <div className="flex-1 overflow-y-auto px-3 py-3">
+        <div className="max-w-3xl mx-auto space-y-2">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -948,10 +919,10 @@ export default function ChatPage() {
                 message.role === 'user' ? 'justify-end' : 'justify-start'
               }`}
             >
-              <div className="flex gap-3 max-w-[70%]">
+              <div className="flex gap-2 max-w-[70%]">
                 {message.role === 'assistant' && (
                   <div
-                    className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+                    className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition"
                     onClick={() => router.push(`/creator/${creator.slug || creator.username}`)}
                   >
                     <Image
@@ -1007,7 +978,7 @@ export default function ChatPage() {
                       </div>
                     )}
 
-                    {/* TEXTE AVEC LIEN MYM/OF UNIQUEMENT + AFFICHAGE IMAGES MARKDOWN */}
+                    {/* TEXTE AVEC AFFICHAGE IMAGES MARKDOWN */}
                     <div className="text-sm whitespace-pre-wrap break-words">
                       {(() => {
                         const content = message.content;
@@ -1022,7 +993,7 @@ export default function ChatPage() {
                           if (match.index > lastIndex) {
                             parts.push(
                               <span key={`text-${lastIndex}`}>
-                                {linkifyMYMOF(content.substring(lastIndex, match.index))}
+                                {content.substring(lastIndex, match.index)}
                               </span>
                             );
                           }
@@ -1058,14 +1029,14 @@ export default function ChatPage() {
                         if (lastIndex < content.length) {
                           parts.push(
                             <span key={`text-${lastIndex}`}>
-                              {linkifyMYMOF(content.substring(lastIndex))}
+                              {content.substring(lastIndex)}
                             </span>
                           );
                         }
 
                         // Si pas d'images, afficher normalement
                         if (parts.length === 0) {
-                          return linkifyMYMOF(content);
+                          return content;
                         }
 
                         return parts;
@@ -1120,7 +1091,7 @@ export default function ChatPage() {
                 </div>
 
                 {message.role === 'user' && userAvatar && (
-                  <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-[#E31FC1]">
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border-2 border-[#E31FC1]">
                     <Image
                       src={userAvatar}
                       alt="Votre avatar"
@@ -1135,9 +1106,9 @@ export default function ChatPage() {
 
           {isLoading && (
             <div className="flex justify-start">
-              <div className="flex gap-3 max-w-[70%]">
+              <div className="flex gap-2 max-w-[70%]">
                 <div
-                  className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+                  className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition"
                   onClick={() => router.push(`/creator/${creator.slug || creator.username}`)}
                 >
                   <Image
@@ -1163,12 +1134,24 @@ export default function ChatPage() {
         </div>
       </div>
 
+      {/* Bouton Demande un média privé - Flottant au-dessus des messages */}
+      {!isRequestOpen && (!contentRequest || contentRequest.status === 'delivered' || contentRequest.status === 'cancelled') && (
+        <div className="fixed bottom-20 left-0 right-0 flex justify-center z-50 px-3 pointer-events-none">
+          <button
+            onClick={() => setIsRequestOpen(true)}
+            className="max-w-xs px-4 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] hover:from-[#d11fb1] hover:via-[#ff5b8d] hover:to-[#ffb0bb] transition-all flex items-center justify-center gap-2 shadow-lg pointer-events-auto"
+          >
+            📸 Demande un média privé
+          </button>
+        </div>
+      )}
+
       {/* INPUT */}
-      <div className="bg-white border-t px-4 py-4">
-        <div className="max-w-3xl mx-auto flex flex-col gap-3 items-center">
+      <div className="bg-transparent px-3 py-1">
+        <div className="max-w-3xl mx-auto flex flex-col gap-2 items-center">
           {/* Infos sur la demande de contenu personnalisée */}
           {contentRequest && contentRequest.status !== 'cancelled' && contentRequest.status !== 'delivered' && (
-            <div className="w-full max-w-2xl text-xs text-gray-600 bg-gray-100 border border-gray-200 rounded-xl px-3 py-2">
+            <div className="w-full max-w-xs text-xs text-gray-600 bg-gray-100 border border-gray-200 rounded-xl px-3 py-2">
               {contentRequest.status === 'pending' && (
                 <p>
                   Ta demande personnalisée est <span className="font-semibold">en attente</span> de validation
@@ -1204,19 +1187,10 @@ export default function ChatPage() {
             </div>
           )}
 
-          {/* Bouton Demande un média privé - Au-dessus de la textarea */}
-          {!isRequestOpen && (!contentRequest || contentRequest.status === 'delivered' || contentRequest.status === 'cancelled') && (
-            <button
-              onClick={() => setIsRequestOpen(true)}
-              className="w-full max-w-2xl px-4 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] hover:from-[#d11fb1] hover:via-[#ff5b8d] hover:to-[#ffb0bb] transition-all flex items-center justify-center gap-2"
-            >
-              📸 Demande un média privé
-            </button>
-          )}
 
           {/* Demande contenu privé - Textarea pour la demande */}
           {isRequestOpen && (
-            <div className="w-full max-w-2xl flex flex-col gap-2">
+            <div className="w-full max-w-xs flex flex-col gap-2">
               <textarea
                 value={requestInput}
                 onChange={(e) => setRequestInput(e.target.value)}
@@ -1247,7 +1221,7 @@ export default function ChatPage() {
 
           {/* Bouton PayPal quand un prix est proposé */}
           {!isRequestOpen && contentRequest?.status === 'price_proposed' && contentRequest.price && (
-            <div className="w-full max-w-2xl">
+            <div className="w-full max-w-xs">
               <div className="mb-2 text-xs text-gray-500 text-center">
                 Cliquez sur le bouton PayPal ci-dessous pour payer
               </div>
@@ -1262,7 +1236,7 @@ export default function ChatPage() {
 
           {/* Textarea principale pour les messages normaux */}
           {!isRequestOpen && (
-            <div className="w-full max-w-2xl">
+            <div className="w-full">
               {/* Preview image si sélectionnée */}
               {previewUrl && (
                 <div className="mb-3 relative inline-block">
@@ -1289,7 +1263,7 @@ export default function ChatPage() {
                 </div>
               )}
 
-              <div className="flex gap-2 items-center w-full justify-center">
+              <div className="flex gap-1.5 items-center w-full">
                 {/* Input file caché */}
                 <input
                   ref={fileInputRef}
@@ -1333,16 +1307,18 @@ export default function ChatPage() {
                   className="hidden"
                 />
 
+                <VoiceCallButton onCallStateChange={setIsInVoiceCall} />
+
                 {/* Bouton upload image */}
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isLoading || isUploading || isInVoiceCall}
-                  className="shrink-0"
+                  className="shrink-0 p-1.5"
                   title={isInVoiceCall ? "Appel vocal actif" : "Ajouter une image"}
                 >
-                  <ImageIcon size={20} />
+                  <ImageIcon size={18} />
                 </Button>
 
                 <textarea
@@ -1355,7 +1331,7 @@ export default function ChatPage() {
                     }
                   }}
                   placeholder={isInVoiceCall ? "Appel vocal actif..." : `Message à ${creator.name}...`}
-                  className="resize-none rounded-2xl border px-4 py-3 text-gray-900 flex-1"
+                  className="resize-none rounded-2xl border px-3 py-2 text-sm text-gray-900 flex-1 bg-white focus:outline-none"
                   rows={1}
                   disabled={isLoading || isUploading || isInVoiceCall}
                 />
@@ -1363,10 +1339,10 @@ export default function ChatPage() {
                 <Button
                   onClick={sendMessage}
                   disabled={(!input.trim() && !uploadedImageUrl) || isLoading || isUploading || isInVoiceCall}
-                  className="px-6 shrink-0"
+                  className="px-3 py-1.5 shrink-0"
                   title={isInVoiceCall ? "Appel vocal actif" : "Envoyer"}
                 >
-                  <Send size={20} />
+                  <Send size={18} />
                 </Button>
               </div>
             </div>
@@ -1375,9 +1351,9 @@ export default function ChatPage() {
 
         {/* Texte de progression en bas */}
         {!rewardUnlocked && (
-          <div className="mt-3 flex items-center justify-center gap-1">
-            <span className="text-sm">🎁</span>
-            <span className="text-[11px] font-medium text-gray-600">
+          <div className="mt-1.5 flex items-center justify-center gap-1">
+            <span className="text-xs">🎁</span>
+            <span className="text-[10px] font-medium text-gray-600">
               Encore {100 - userMessageCount} messages pour débloquer un média privé
             </span>
           </div>

@@ -114,6 +114,13 @@ export default function Header() {
             // Menu utilisateur payant
             <>
               <Link
+                href="/creer-mon-double-ia"
+                className="block text-white px-4 py-2 hover:bg-gray-900 transition-colors font-semibold bg-gradient-to-r from-[#e31fc1]/10 via-[#ff6b9d]/10 to-[#ffc0cb]/10"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                ✨ Créer mon double IA
+              </Link>
+              <Link
                 href="/"
                 className="block text-white px-4 py-2 hover:bg-gray-900 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
@@ -145,6 +152,13 @@ export default function Header() {
           ) : (
             // Menu visiteur normal
             <>
+              <Link
+                href="/creer-mon-double-ia"
+                className="block text-white px-4 py-2 hover:bg-gray-900 transition-colors font-semibold bg-gradient-to-r from-[#e31fc1]/10 via-[#ff6b9d]/10 to-[#ffc0cb]/10"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                ✨ Créer mon double IA
+              </Link>
               <Link
                 href="/"
                 className="block text-white px-4 py-2 hover:bg-gray-900 transition-colors"

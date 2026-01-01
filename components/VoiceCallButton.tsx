@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Vapi from "@vapi-ai/web";
+import { Phone, PhoneOff } from "lucide-react";
 
 interface VoiceCallButtonProps {
   onCallStateChange?: (inCall: boolean) => void;
@@ -102,23 +103,26 @@ export default function VoiceCallButton({ onCallStateChange }: VoiceCallButtonPr
       onClick={inCall ? stopCall : startCall}
       disabled={isStarting}
       className={`
-        flex items-center gap-2 px-4 py-2 rounded-full font-medium
-        transition-all duration-300
+        flex items-center justify-center p-1.5 rounded-full
+        transition-all duration-300 shrink-0
         ${inCall
           ? "bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/50 animate-pulse"
-          : "bg-[#e31fc1] text-white hover:opacity-90 hover:shadow-lg hover:shadow-[#e31fc1]/50"
+          : "bg-transparent hover:bg-gray-100"
         }
         ${isStarting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
       `}
       title={inCall ? "Raccrocher" : "Appeler"}
     >
-      <span className="text-lg">{inCall ? "📞" : "📞"}</span>
-      <span>{inCall ? "Raccrocher" : isStarting ? "Connexion..." : "Appeler"}</span>
-      {inCall && (
-        <span className="relative flex h-2 w-2 ml-1">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-        </span>
+      {inCall ? (
+        <>
+          <PhoneOff size={18} />
+          <span className="relative flex h-2 w-2 ml-1">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+          </span>
+        </>
+      ) : (
+        <Phone size={18} className="text-black" />
       )}
     </button>
   );

@@ -35,7 +35,7 @@ export default function ChatProgressBarBottom({
   return (
     <div className="w-full max-w-3xl mx-auto">
       {/* Barre épaisse */}
-      <div className="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+      <div className="relative w-full h-1 bg-gray-200 rounded-full overflow-hidden">
         {/* Fond animé */}
         <div
           className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 opacity-50"

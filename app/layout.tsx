@@ -16,11 +16,12 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
   const isChatPage = pathname?.startsWith('/chat/');
+  const isDoubleIAChatPage = pathname?.startsWith('/mon-double-ia/chat');
   const isDashboardPage = pathname === '/dashboard';
   const isClassementPage = pathname === '/meilleur-fan';
   const isCreatorDashboardPage = pathname?.startsWith('/creator/dashboard');
-  const hideFooter = isChatPage || isDashboardPage || isClassementPage || isCreatorDashboardPage;
-  const hideHeader = isChatPage;
+  const hideFooter = isChatPage || isDoubleIAChatPage || isDashboardPage || isClassementPage || isCreatorDashboardPage;
+  const hideHeader = isChatPage || isDoubleIAChatPage;
 
   return (
     <html lang="fr">
@@ -29,7 +30,7 @@ export default function RootLayout({
         {!hideHeader && <Header />}
 
         {/* WRAPPER GLOBAL */}
-        <div className={isChatPage ? "min-h-screen flex flex-col" : "pt-20 pb-20 min-h-screen flex flex-col"}>
+        <div className={isChatPage || isDoubleIAChatPage ? "min-h-screen flex flex-col" : "pt-20 pb-20 min-h-screen flex flex-col"}>
           <main className="flex-1">
             {children}
           </main>
@@ -72,7 +73,7 @@ export default function RootLayout({
           )}
         </div>
         {/* NAVBAR - Caché sur les pages de chat */}
-        {!isChatPage && <NavBar />}
+        {!isChatPage && !isDoubleIAChatPage && <NavBar />}
       </body>
     </html>
   );

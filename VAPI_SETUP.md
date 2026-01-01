@@ -8,8 +8,8 @@ Ajoutez ces variables dans votre fichier `.env.local` à la racine du projet :
 
 ```env
 # Vapi Configuration
-NEXT_PUBLIC_VAPI_PUBLIC_KEY=3d7b48af-8a42-4947-b966-6ab03ad28054
-NEXT_PUBLIC_VAPI_ASSISTANT_ID=bbb6761b-493b-4bc6-a277-235f0ddfdfa3
+NEXT_PUBLIC_VAPI_PUBLIC_KEY=votre_cle_publique_vapi_ici
+NEXT_PUBLIC_VAPI_ASSISTANT_ID=votre_assistant_id_ici
 ```
 
 ⚠️ **Important** : La clé ElevenLabs ne doit **PAS** être dans le frontend. Elle est déjà configurée côté Vapi.
@@ -19,7 +19,7 @@ NEXT_PUBLIC_VAPI_ASSISTANT_ID=bbb6761b-493b-4bc6-a277-235f0ddfdfa3
 1. **Obtenez votre clé publique Vapi** :
    - Connectez-vous à votre compte Vapi
    - Allez dans "API Keys" dans le menu
-   - Dans la section "Public API Keys", copiez votre Public Key (format UUID, ex: `3d7b48af-8a42-4947-b966-6ab03ad28054`)
+   - Dans la section "Public API Keys", copiez votre Public Key (format UUID)
 
 2. **Obtenez l'ID de votre assistant** :
    - Dans votre dashboard Vapi

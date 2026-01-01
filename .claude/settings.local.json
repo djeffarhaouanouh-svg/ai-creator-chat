@@ -26,7 +26,8 @@
       "Bash(find:*)",
       "Bash(node test-openai.mjs:*)",
       "Bash(node test-deepseek.mjs:*)",
-      "Bash(node test-db.mjs:*)"
+      "Bash(node test-db.mjs:*)",
+      "Bash(node run-migrations.mjs:*)"
     ]
   }
 }

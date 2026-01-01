@@ -26,6 +26,9 @@ export default function MesMessagesPage() {
   const [subscriptions, setSubscriptions] = useState<string[]>([]);
   const [initialized, setInitialized] = useState(false);
   const [conversations, setConversations] = useState<Map<string, ConversationSummary>>(new Map());
+  const [doubleIA, setDoubleIA] = useState<any>(null);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [userFirstName, setUserFirstName] = useState<string>('');
 
   // Charger les derniers messages de toutes les conversations
   const loadConversations = async (userId: string, allCreators: any[]) => {
@@ -89,6 +92,41 @@ export default function MesMessagesPage() {
     setConversations(conversationsMap);
   };
 
+  // Charger le double IA de l'utilisateur
+  const loadDoubleIA = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/double-ia/list?userId=${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        // Prendre le premier double actif
+        const activeDouble = data.doubles?.find((d: any) => d.status === 'active');
+        setDoubleIA(activeDouble || null);
+      }
+    } catch (error) {
+      console.error('Error loading double IA:', error);
+    }
+  };
+
+  // Charger l'avatar de l'utilisateur
+  const loadUserAvatar = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/user/stats?userId=${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.user?.avatar_url) {
+          setUserAvatar(data.user.avatar_url);
+        }
+        if (data.user?.name) {
+          // Extraire le prénom (premier mot du nom)
+          const firstName = data.user.name.split(' ')[0];
+          setUserFirstName(firstName);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user avatar:', error);
+    }
+  };
+
   useEffect(() => {
     // Si compte créatrice => rediriger vers le dashboard créatrice "Mes messages"
     const accountType = localStorage.getItem("accountType");
@@ -106,14 +144,18 @@ export default function MesMessagesPage() {
       setSubscriptions(subs);
 
       async function loadCreators() {
+        if (!userId) return;
+
         const res = await fetch("/api/creators");
         const data = await res.json();
         setCreators(data || []);
 
+        // Charger le double IA et l'avatar utilisateur
+        await loadDoubleIA(userId);
+        await loadUserAvatar(userId);
+
         // Charger les conversations pour chaque créatrice
-        if (userId) {
-          await loadConversations(userId, data || []);
-        }
+        await loadConversations(userId, data || []);
 
         setInitialized(true);
       }
@@ -245,6 +287,7 @@ export default function MesMessagesPage() {
         </p>
 
         <div className="grid md:grid-cols-2 gap-6">
+          {/* Créatrices en premier */}
           {subscribedCreators.map((creator) => {
             const creatorSlug = creator.slug || creator.id;
             const conversation = conversations.get(creatorSlug);
@@ -323,6 +366,57 @@ export default function MesMessagesPage() {
               </Link>
             );
           })}
+
+          {/* Double IA après les créatrices */}
+          {doubleIA && (
+            <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800 hover:border-[#e31fc1] transition-all duration-300 hover:shadow-lg hover:shadow-[#e31fc1]/20">
+              {/* Header avec avatar et nom */}
+              <div className="flex items-center gap-4 mb-3">
+                <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[#e31fc1]">
+                  {userAvatar ? (
+                    <Image
+                      src={userAvatar}
+                      alt="Mon Double IA"
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] flex items-center justify-center text-white font-bold text-2xl">
+                      IA
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-white">
+                    Mon Double <span className="bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] bg-clip-text text-transparent">IA</span>
+                  </h3>
+                  <p className="text-sm text-gray-400">{userFirstName || 'IA'}</p>
+                </div>
+              </div>
+
+              {/* Bouton Discuter */}
+              <Link href={`/mon-double-ia/chat?id=${doubleIA.id}`} className="block mb-3">
+                <button className="w-full px-4 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-[#e31fc1] via-[#ff6b9d] to-[#ffc0cb] hover:opacity-90 transition-opacity">
+                  💬 Discuter avec ton double
+                </button>
+              </Link>
+
+              {/* Bouton Partager */}
+              <Link href="/mon-double-ia/partage" className="block mb-4">
+                <button className="w-full px-4 py-2 rounded-lg text-sm font-medium text-white border-2 border-white hover:bg-white hover:text-black transition-all">
+                  🔗 Partager mon double
+                </button>
+              </Link>
+
+              {/* Info */}
+              <div className="bg-gray-800 rounded-lg p-3">
+                <p className="text-sm text-gray-400">
+                  Ton IA est prêt à discuter avec toi ! Commence une conversation.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </main>
