@@ -68,8 +68,9 @@ export async function POST(req: Request) {
     // Enregistrer le paiement si paypalOrderId est fourni
     if (paypalOrderId && amount) {
       await sql`
-        INSERT INTO payments (subscription_id, amount, currency, status, paypal_order_id)
+        INSERT INTO payments (user_id, subscription_id, amount, currency, status, paypal_order_id)
         VALUES (
+          ${userId}::uuid,
           ${subscriptionId}::uuid,
           ${amount},
           'EUR',

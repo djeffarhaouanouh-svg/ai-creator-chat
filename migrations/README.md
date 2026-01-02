@@ -1,5 +1,32 @@
 # Migrations Base de Données
 
+## ⚠️ MIGRATION URGENTE - PayPal Order ID
+
+**Si vous avez l'erreur : `column "paypal_order_id" of relation "payments" does not exist`**
+
+Exécutez IMMÉDIATEMENT le fichier : `migrations/add_paypal_order_id_to_payments.sql`
+
+### Comment exécuter :
+
+1. **Via Vercel Dashboard (Recommandé)** :
+   - Va sur [vercel.com](https://vercel.com) et ouvre ton projet
+   - Va dans l'onglet **Storage**
+   - Clique sur ta base de données Postgres
+   - Va dans l'onglet **Query**
+   - Copie-colle le contenu de `migrations/add_paypal_order_id_to_payments.sql`
+   - Clique sur **Execute**
+
+2. **Via un script TypeScript** :
+   ```bash
+   npx tsx scripts/add-paypal-order-id.ts
+   ```
+
+3. **Via un client SQL** (TablePlus, pgAdmin, DBeaver, etc.) :
+   - Connecte-toi à ta base de données
+   - Exécute le fichier `migrations/add_paypal_order_id_to_payments.sql`
+
+---
+
 ## ⚠️ MIGRATION URGENTE - Content Requests Status
 
 **Si vous avez l'erreur : `violates check constraint "content_requests_status_check"`**

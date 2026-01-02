@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS payments (
     amount DECIMAL(10, 2) NOT NULL,
     currency VARCHAR(3) DEFAULT 'EUR',
     stripe_payment_id VARCHAR(255) UNIQUE,
+    paypal_order_id VARCHAR(255),
     status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'succeeded', 'failed'
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
