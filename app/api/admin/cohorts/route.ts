@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
           COUNT(DISTINCT CASE WHEN ua.activity_date >= uc.created_at::date + 14 THEN uc.id END) as day_14,
           COUNT(DISTINCT CASE WHEN ua.activity_date >= uc.created_at::date + 30 THEN uc.id END) as day_30
         FROM user_cohorts uc
-        LEFT JOIN user_activity ua ON uc.id = ua.user_id
+        LEFT JOIN user_activity ua ON (ua.user_id = uc.id::text OR ua.user_id = (SELECT email FROM users WHERE id = uc.id LIMIT 1))
         GROUP BY uc.cohort_week
         ORDER BY uc.cohort_week DESC
       `
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
           COUNT(DISTINCT CASE WHEN ua.activity_date = uc.created_at::date + 14 THEN uc.id END) as day_14,
           COUNT(DISTINCT CASE WHEN ua.activity_date = uc.created_at::date + 30 THEN uc.id END) as day_30
         FROM user_cohorts uc
-        LEFT JOIN user_activity ua ON uc.id = ua.user_id
+        LEFT JOIN user_activity ua ON (ua.user_id = uc.id::text OR ua.user_id = (SELECT email FROM users WHERE id = uc.id LIMIT 1))
         GROUP BY uc.cohort_week
         ORDER BY uc.cohort_week DESC
       `
@@ -136,19 +136,19 @@ export async function GET(request: NextRequest) {
         -- Messages moyens par utilisateur actif
         AVG(daily_messages.messages_count) as avg_messages_per_user
       FROM users u
-      LEFT JOIN messages m ON u.id = m.user_id
+      LEFT JOIN messages m ON m.user_id = u.id::text OR m.user_id = u.email
       LEFT JOIN (
         SELECT user_id, COUNT(DISTINCT DATE(created_at)) as sessions_count
         FROM messages
         WHERE created_at >= NOW() - INTERVAL '30 days'
         GROUP BY user_id
-      ) daily_sessions ON u.id = daily_sessions.user_id
+      ) daily_sessions ON daily_sessions.user_id = u.id::text OR daily_sessions.user_id = u.email
       LEFT JOIN (
         SELECT user_id, COUNT(*) as messages_count
         FROM messages
         WHERE created_at >= NOW() - INTERVAL '30 days'
         GROUP BY user_id
-      ) daily_messages ON u.id = daily_messages.user_id
+      ) daily_messages ON daily_messages.user_id = u.id::text OR daily_messages.user_id = u.email
     `
 
     const activityMetrics = {
@@ -214,7 +214,7 @@ export async function GET(request: NextRequest) {
             THEN u.id
           END)::float / NULLIF(COUNT(DISTINCT u.id), 0) * 100 as retention_d7
         FROM users u
-        LEFT JOIN messages m ON u.id = m.user_id
+        LEFT JOIN messages m ON m.user_id = u.id::text OR m.user_id = u.email
         WHERE u.created_at >= NOW() - INTERVAL '12 weeks'
         GROUP BY DATE_TRUNC('week', u.created_at)
       )

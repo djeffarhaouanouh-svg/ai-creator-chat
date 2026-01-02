@@ -37,6 +37,22 @@ export async function POST(req: Request) {
       );
     }
 
+    // METTRE À JOUR last_login (si la colonne existe)
+    try {
+      await sql`
+        UPDATE creators
+        SET last_login = NOW()
+        WHERE slug = ${slug}
+      `
+    } catch (error: any) {
+      // Si la colonne last_login n'existe pas encore, on continue quand même
+      if (error.message && error.message.includes('last_login')) {
+        console.warn('⚠️ Colonne last_login non trouvée, migration nécessaire')
+      } else {
+        throw error
+      }
+    }
+
     return NextResponse.json({
       success: true,
       creator: {
