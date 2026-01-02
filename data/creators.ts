@@ -4,7 +4,7 @@ export const localCreators = [
     slug: "lauryncrl",
     username: "lauryncrl",
     name: "Lauryn",
-    price: 6.97,
+    price: 5.97,
     photos: [],
     avatar: "/lau.png",
     coverImage: "/lau.png",

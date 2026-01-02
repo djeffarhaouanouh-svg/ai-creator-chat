@@ -64,7 +64,7 @@ const data = await res.json();
   const [storyIndex, setStoryIndex] = useState(0);
 
   // 🔥 DONNÉES UNIQUES POUR LAURYN
-  const price = 6.97;
+  const price = 5.97;
   const audio = "/audio/alice.mp3";
   const photosStatic = [
     "/laurin.png",
