@@ -332,19 +332,9 @@ export default function ChatPage() {
     loadMessages();
 
     // Marquer cette conversation comme vue (pour les notifications non lues)
-    // Seulement quand on charge les messages, pas à chaque changement
-    if (creator && messages.length > 0) {
+    if (creator) {
       const creatorSlug = creator.slug || creator.id;
-      const lastViewedKey = `lastViewed_${creatorSlug}`;
-      const lastReadKey = `lastRead_${creatorSlug}`;
-      const now = new Date().toISOString();
-      
-      // Mettre à jour seulement si on n'a pas déjà une date plus récente
-      const existing = localStorage.getItem(lastViewedKey);
-      if (!existing || new Date(now) > new Date(existing)) {
-        localStorage.setItem(lastViewedKey, now);
-        localStorage.setItem(lastReadKey, now);
-      }
+      localStorage.setItem(`lastViewed_${creatorSlug}`, new Date().toISOString());
     }
   }, [creator, router]);
 
@@ -438,22 +428,11 @@ export default function ChatPage() {
   }, [messages]);
 
   // Marquer les messages comme lus quand on voit les messages
-  // Seulement quand l'utilisateur est vraiment sur la page et a scrollé jusqu'en bas
   useEffect(() => {
     if (!creator || messages.length === 0) return;
 
-    // Attendre un peu pour s'assurer que l'utilisateur a vraiment vu les messages
-    const timer = setTimeout(() => {
-      const lastReadKey = `lastRead_${creator.slug || creator.id}`;
-      const lastViewedKey = `lastViewed_${creator.slug || creator.id}`;
-      const now = new Date().toISOString();
-      
-      // Mettre à jour les deux clés pour compatibilité
-      localStorage.setItem(lastReadKey, now);
-      localStorage.setItem(lastViewedKey, now);
-    }, 1000); // Attendre 1 seconde après le chargement
-
-    return () => clearTimeout(timer);
+    const lastReadKey = `lastRead_${creator.slug || creator.id}`;
+    localStorage.setItem(lastReadKey, new Date().toISOString());
   }, [messages, creator]);
 
   // Recharger l'état de l'IA quand la fenêtre reprend le focus
@@ -817,9 +796,9 @@ export default function ChatPage() {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* HEADER */}
-      <div className="bg-white border-b px-3 py-1.5 shadow-sm">
+      <div className="bg-white border-b px-3 py-1 shadow-sm">
         {/* Ligne 1 : Profil + 3 points */}
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center justify-between mb-0.5">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -862,41 +841,41 @@ export default function ChatPage() {
                 <MoreVertical size={18} />
               </Button>
 
-              {isModeOpen && (
-                <div className="absolute right-0 mt-2 w-52 bg-white shadow-lg rounded-xl border p-2 z-50">
-                  <p className="px-4 pb-2 text-xs text-gray-500 uppercase">
-                    Mode de discussion
-                  </p>
+            {isModeOpen && (
+              <div className="absolute right-0 mt-2 w-52 bg-white shadow-lg rounded-xl border p-2 z-50">
+                <p className="px-4 pb-2 text-xs text-gray-500 uppercase">
+                  Mode de discussion
+                </p>
 
-                  <button
-                    className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
-                    onClick={() => {
-                      setMode('girlfriend');
-                      setIsModeOpen(false);
-                    }}
-                  >
-                    💕 Petite copine
-                  </button>
-                  <button
-                    className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
-                    onClick={() => {
-                      setMode('friend');
-                      setIsModeOpen(false);
-                    }}
-                  >
-                    💛 Amie
-                  </button>
-                  <button
-                    className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
-                    onClick={() => {
-                      setMode('seductive');
-                      setIsModeOpen(false);
-                    }}
-                  >
-                    😏 Séduisante
-                  </button>
-                </div>
-              )}
+                <button
+                  className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                  onClick={() => {
+                    setMode('girlfriend');
+                    setIsModeOpen(false);
+                  }}
+                >
+                  💕 Petite copine
+                </button>
+                <button
+                  className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                  onClick={() => {
+                    setMode('friend');
+                    setIsModeOpen(false);
+                  }}
+                >
+                  💛 Amie
+                </button>
+                <button
+                  className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
+                  onClick={() => {
+                    setMode('seductive');
+                    setIsModeOpen(false);
+                  }}
+                >
+                  😏 Séduisante
+                </button>
+              </div>
+            )}
             </div>
           </div>
         </div>
@@ -910,7 +889,7 @@ export default function ChatPage() {
       </div>
 
       {/* MESSAGES */}
-      <div className="flex-1 overflow-y-auto px-3 py-3">
+      <div className="flex-1 overflow-y-auto px-3 py-1">
         <div className="max-w-3xl mx-auto space-y-2">
           {messages.map((message) => (
             <div
@@ -1083,7 +1062,7 @@ export default function ChatPage() {
                       ) : (
                         <>
                           <Volume2 size={14} />
-                          <span>Écouter</span>
+                          <span>🔉 Écouter</span>
                         </>
                       )}
                     </button>
@@ -1147,8 +1126,8 @@ export default function ChatPage() {
       )}
 
       {/* INPUT */}
-      <div className="bg-transparent px-3 py-1">
-        <div className="max-w-3xl mx-auto flex flex-col gap-2 items-center">
+      <div className="bg-transparent px-3 py-0.5">
+        <div className="max-w-3xl mx-auto flex flex-col gap-1.5 items-center">
           {/* Infos sur la demande de contenu personnalisée */}
           {contentRequest && contentRequest.status !== 'cancelled' && contentRequest.status !== 'delivered' && (
             <div className="w-full max-w-xs text-xs text-gray-600 bg-gray-100 border border-gray-200 rounded-xl px-3 py-2">
@@ -1187,7 +1166,6 @@ export default function ChatPage() {
             </div>
           )}
 
-
           {/* Demande contenu privé - Textarea pour la demande */}
           {isRequestOpen && (
             <div className="w-full max-w-xs flex flex-col gap-2">
@@ -1221,7 +1199,7 @@ export default function ChatPage() {
 
           {/* Bouton PayPal quand un prix est proposé */}
           {!isRequestOpen && contentRequest?.status === 'price_proposed' && contentRequest.price && (
-            <div className="w-full max-w-xs">
+            <div className="w-full max-w-2xl">
               <div className="mb-2 text-xs text-gray-500 text-center">
                 Cliquez sur le bouton PayPal ci-dessous pour payer
               </div>
@@ -1236,7 +1214,7 @@ export default function ChatPage() {
 
           {/* Textarea principale pour les messages normaux */}
           {!isRequestOpen && (
-            <div className="w-full">
+            <div className="w-full max-w-xs">
               {/* Preview image si sélectionnée */}
               {previewUrl && (
                 <div className="mb-3 relative inline-block">
@@ -1263,7 +1241,7 @@ export default function ChatPage() {
                 </div>
               )}
 
-              <div className="flex gap-1.5 items-center w-full">
+              <div className="flex gap-2 items-center w-full justify-center">
                 {/* Input file caché */}
                 <input
                   ref={fileInputRef}
@@ -1351,7 +1329,7 @@ export default function ChatPage() {
 
         {/* Texte de progression en bas */}
         {!rewardUnlocked && (
-          <div className="mt-1.5 flex items-center justify-center gap-1">
+          <div className="mt-0.5 flex items-center justify-center gap-1">
             <span className="text-xs">🎁</span>
             <span className="text-[10px] font-medium text-gray-600">
               Encore {100 - userMessageCount} messages pour débloquer un média privé
