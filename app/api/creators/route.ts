@@ -10,9 +10,12 @@ export async function GET() {
   try {
     const creators = await getCreators();
 
+    // Filtrer Tootatis du frontend (garder dans le code mais ne pas afficher)
+    const filteredCreators = creators.filter(creator => creator.slug !== 'tootatis');
+
     // Pour chaque créatrice, ajouter les stats
     const creatorsWithStats = await Promise.all(
-      creators.map(async (creator) => {
+      filteredCreators.map(async (creator) => {
         let totalSubscribers = 0
         let totalMessages = 0
 
