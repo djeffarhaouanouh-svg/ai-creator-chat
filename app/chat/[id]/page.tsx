@@ -1062,7 +1062,7 @@ export default function ChatPage() {
                       ) : (
                         <>
                           <Volume2 size={14} />
-                          <span>🔉 Écouter</span>
+                          <span>Écouter</span>
                         </>
                       )}
                     </button>
