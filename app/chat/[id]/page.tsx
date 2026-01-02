@@ -796,21 +796,21 @@ export default function ChatPage() {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* HEADER */}
-      <div className="bg-white border-b px-3 py-1 shadow-sm">
+      <div className="bg-white border-b px-3 py-0.5 shadow-sm">
         {/* Ligne 1 : Profil + 3 points */}
-        <div className="flex items-center justify-between mb-0.5">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mb-0">
+          <div className="flex items-center gap-1.5">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => router.push('/')}
-              className="p-1.5"
+              className="p-1"
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft size={16} />
             </Button>
 
             <div
-              className="relative w-9 h-9 rounded-full overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+              className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition"
               onClick={() => router.push(`/creator/${creator.slug || creator.username}`)}
             >
               <Image
@@ -822,9 +822,9 @@ export default function ChatPage() {
             </div>
 
             <div className="flex flex-col">
-              <h2 className="font-semibold text-gray-900 text-sm leading-tight">{creator.name}</h2>
-              <p className="text-[10px] text-green-600 leading-tight">En ligne</p>
-              <p className="text-[10px] text-gray-500 leading-tight">
+              <h2 className="font-semibold text-gray-900 text-xs leading-tight">{creator.name}</h2>
+              <p className="text-[9px] text-green-600 leading-tight">En ligne</p>
+              <p className="text-[9px] text-gray-500 leading-tight">
                 Mode : <span className="font-medium">{getModeLabel()}</span>
               </p>
             </div>
@@ -889,8 +889,8 @@ export default function ChatPage() {
       </div>
 
       {/* MESSAGES */}
-      <div className="flex-1 overflow-y-auto px-3 py-1">
-        <div className="max-w-3xl mx-auto space-y-2">
+      <div className="flex-1 overflow-y-auto px-3 py-0.5">
+        <div className="max-w-3xl mx-auto space-y-1.5">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -1127,7 +1127,7 @@ export default function ChatPage() {
 
       {/* INPUT */}
       <div className="bg-transparent px-3 py-0.5">
-        <div className="max-w-3xl mx-auto flex flex-col gap-1.5 items-center">
+        <div className="max-w-3xl mx-auto flex flex-col gap-1 items-center">
           {/* Infos sur la demande de contenu personnalisée */}
           {contentRequest && contentRequest.status !== 'cancelled' && contentRequest.status !== 'delivered' && (
             <div className="w-full max-w-xs text-xs text-gray-600 bg-gray-100 border border-gray-200 rounded-xl px-3 py-2">
@@ -1309,7 +1309,7 @@ export default function ChatPage() {
                     }
                   }}
                   placeholder={isInVoiceCall ? "Appel vocal actif..." : `Message à ${creator.name}...`}
-                  className="resize-none rounded-2xl border px-3 py-2 text-sm text-gray-900 flex-1 bg-white focus:outline-none"
+                  className="resize-none rounded-2xl border px-2.5 py-1.5 text-sm text-gray-900 flex-1 bg-white focus:outline-none"
                   rows={1}
                   disabled={isLoading || isUploading || isInVoiceCall}
                 />
