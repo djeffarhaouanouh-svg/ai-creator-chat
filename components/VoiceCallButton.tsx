@@ -14,8 +14,9 @@ export default function VoiceCallButton({ onCallStateChange }: VoiceCallButtonPr
 
   const vapi = useMemo(() => {
     const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
+    console.log("🔍 VoiceCallButton - Public Key:", publicKey ? "✓ Présent" : "✗ Manquant");
     if (!publicKey) {
-      console.error("⚠️ NEXT_PUBLIC_VAPI_PUBLIC_KEY is not defined");
+      console.warn("⚠️ NEXT_PUBLIC_VAPI_PUBLIC_KEY is not defined");
       return null;
     }
     return new Vapi(publicKey);
@@ -94,13 +95,21 @@ export default function VoiceCallButton({ onCallStateChange }: VoiceCallButtonPr
     onCallStateChange?.(false);
   };
 
-  if (!process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || !process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID) {
-    return null; // Ne pas afficher le bouton si les variables ne sont pas configurées
-  }
+  const handleClick = () => {
+    if (!process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || !process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID) {
+      alert("Configuration Vapi manquante. Vérifiez vos variables d'environnement.");
+      return;
+    }
+    if (inCall) {
+      stopCall();
+    } else {
+      startCall();
+    }
+  };
 
   return (
     <button
-      onClick={inCall ? stopCall : startCall}
+      onClick={handleClick}
       disabled={isStarting}
       className={`
         flex items-center justify-center p-1.5 rounded-full
