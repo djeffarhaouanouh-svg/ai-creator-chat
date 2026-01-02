@@ -18,3 +18,4 @@ COMMENT ON COLUMN users.avatar_url IS 'URL de la photo de profil de l\'utilisate
 
 
 
+

@@ -45,14 +45,45 @@ export default function PartageDoublePage() {
     loadDouble();
   }, [router]);
 
-  const shareUrl = doubleIA
-    ? `${window.location.origin}/talk-to/${doubleIA.share_slug || doubleIA.id}`
-    : '';
+  const getShareUrl = () => {
+    if (!doubleIA) return '';
+    if (typeof window === 'undefined') return '';
+    const slug = doubleIA.share_slug || doubleIA.id;
+    return `${window.location.origin}/talk-to/${slug}`;
+  };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const shareUrl = getShareUrl();
+
+  const copyToClipboard = async () => {
+    const url = getShareUrl();
+    if (!url) {
+      alert('Le lien de partage n\'est pas encore disponible. Active d\'abord le partage public.');
+      return;
+    }
+    
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Erreur lors de la copie:', err);
+      // Fallback pour les navigateurs qui ne supportent pas clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Erreur fallback copie:', err);
+        alert('Impossible de copier le lien. Veuillez le sélectionner manuellement.');
+      }
+      document.body.removeChild(textArea);
+    }
   };
 
   const togglePublic = async () => {
@@ -72,10 +103,16 @@ export default function PartageDoublePage() {
       });
 
       if (response.ok) {
+        const data = await response.json();
         setIsPublic(!isPublic);
+        // Mettre à jour le share_slug si généré
+        if (data.shareSlug && doubleIA) {
+          setDoubleIA({ ...doubleIA, share_slug: data.shareSlug });
+        }
       }
     } catch (error) {
       console.error('Error toggling public:', error);
+      alert('Erreur lors de la mise à jour du partage. Veuillez réessayer.');
     } finally {
       setUpdating(false);
     }
