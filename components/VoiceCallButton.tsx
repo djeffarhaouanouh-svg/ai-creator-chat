@@ -14,7 +14,6 @@ export default function VoiceCallButton({ onCallStateChange }: VoiceCallButtonPr
 
   const vapi = useMemo(() => {
     const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
-    console.log("🔍 VoiceCallButton - Public Key:", publicKey ? "✓ Présent" : "✗ Manquant");
     if (!publicKey) {
       console.warn("⚠️ NEXT_PUBLIC_VAPI_PUBLIC_KEY is not defined");
       return null;
