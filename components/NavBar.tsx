@@ -184,7 +184,7 @@ export default function NavBar() {
         icon: Home,
       },
       {
-        name: 'Mes messages',
+        name: 'Messages',
         href: '/mes-messages',
         icon: MessageCircle,
       },
@@ -213,7 +213,7 @@ export default function NavBar() {
         icon: Home,
       },
       {
-        name: 'Mes messages',
+        name: 'Messages',
         href: '/mes-messages',
         icon: MessageCircle,
       },
@@ -247,7 +247,7 @@ export default function NavBar() {
                   <div className="relative">
                     <Icon className={`w-6 h-6 ${!isActive && 'group-hover:scale-110 transition-transform'}`} />
                     {/* Bulle de notification pour les messages */}
-                    {item.name === 'Mes messages' && hasNewMessages && (
+                    {(item.name === 'Mes messages' || item.name === 'Messages') && hasNewMessages && (
                       <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-black"></div>
                     )}
                   </div>

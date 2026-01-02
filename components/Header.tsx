@@ -132,7 +132,7 @@ export default function Header() {
                 className="block text-white px-4 py-2 hover:bg-gray-900 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Mes messages
+                Messages
               </Link>
               <Link
                 href="/mon-compte"
@@ -171,7 +171,7 @@ export default function Header() {
                 className="block text-white px-4 py-2 hover:bg-gray-900 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Mes messages
+                Messages
               </Link>
               <Link
                 href="/mon-compte"
